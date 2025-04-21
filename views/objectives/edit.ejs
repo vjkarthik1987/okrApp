@@ -17,8 +17,8 @@
   <div class="mb-3">
     <label>Cycle:</label>
     <select name="cycle" class="form-control" required>
-      <% ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'].forEach(c => { %>
-        <option value="<%= c %>" <%= objective.cycle === c ? 'selected' : '' %>><%= c %></option>
+      <% enabledCycles.forEach(c => { %>
+        <option value="<%= c.label %>" <%= objective.cycle === c.label ? 'selected' : '' %>><%= c.label %></option>
       <% }) %>
     </select>
   </div>

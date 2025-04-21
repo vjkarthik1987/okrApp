@@ -28,7 +28,8 @@ const keyResultSchema = new mongoose.Schema({
     {
       label: { type: String, required: true },
       completed: { type: Boolean, default: false },
-      weight: { type: Number, default: 1 }
+      weight: { type: Number, default: 1 },
+      dueDate: { type: Date } // ✅ NEW FIELD
     }
   ],
 

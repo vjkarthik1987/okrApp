@@ -3,36 +3,124 @@
 
 <h2>Edit Key Result for: <%= objective.title %></h2>
 
-<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>?_method=PUT" method="POST" id="krForm">
-  <% include ../partials/keyResultForm %>
-  <button type="submit" class="btn btn-success">Update Key Result</button>
+<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>" method="POST" id="krForm">
+  <div class="mb-3">
+    <label for="title">Key Result Title <span class="text-danger">*</span></label>
+    <input type="text" name="title" id="title" class="form-control" required value="<%= kr.title %>">
+  </div>
+
+  <div class="mb-3">
+    <label for="metricType">Metric Type <span class="text-danger">*</span></label>
+    <select name="metricType" id="metricType" onchange="handleMetricTypeChange(this.value)" class="form-control">
+      <option value="percent" <%= kr.metricType === 'percent' ? 'selected' : '' %>>Percent</option>
+      <option value="number" <%= kr.metricType === 'number' ? 'selected' : '' %>>Number</option>
+      <option value="boolean" <%= kr.metricType === 'boolean' ? 'selected' : '' %>>Boolean</option>
+      <option value="milestone" <%= kr.metricType === 'milestone' ? 'selected' : '' %>>Milestone</option>
+    </select>
+  </div>
+
+  <div id="milestonesSection" style="<%= kr.metricType === 'milestone' ? '' : 'display: none;' %>">
+    <div id="milestoneList">
+      <% if (kr.milestones && kr.milestones.length > 0) { %>
+        <% kr.milestones.forEach((m, index) => { %>
+          <div class="row align-items-center mb-2" id="milestone-row-<%= index %>">
+            <div class="col-md-5">
+              <input type="text" name="milestones[<%= index %>][label]" class="form-control" value="<%= m.label %>">
+            </div>
+            <div class="col-md-2">
+              <input type="number" name="milestones[<%= index %>][weight]" class="form-control weight-input" value="<%= m.weight %>" onchange="validateMilestoneWeights()">
+            </div>
+            <div class="col-md-3">
+              <input type="date" name="milestones[<%= index %>][dueDate]" class="form-control" value="<%= m.dueDate ? m.dueDate.toISOString().split('T')[0] : '' %>">
+            </div>
+            <div class="col-md-2">
+              <button type="button" class="btn btn-danger btn-sm" onclick="removeMilestone(<%= index %>)">🗑️</button>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addMilestone()">➕ Add Milestone</button>
+    <small class="text-muted d-block mt-1">Total weightage must be exactly 100%</small>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="startValue">Start Value</label>
+      <input type="text" name="startValue" id="startValue" class="form-control" value="<%= kr.startValue || '' %>">
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="targetValue">Target Value</label>
+      <input type="text" name="targetValue" id="targetValue" class="form-control" value="<%= kr.targetValue || '' %>">
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="direction">Progress Direction</label>
+    <select name="direction" id="direction" class="form-control">
+      <option value="auto" <%= kr.direction === 'auto' ? 'selected' : '' %>>Auto</option>
+      <option value="increase" <%= kr.direction === 'increase' ? 'selected' : '' %>>Increase is good</option>
+      <option value="decrease" <%= kr.direction === 'decrease' ? 'selected' : '' %>>Decrease is good</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-success mt-3">💾 Save Changes</button>
 </form>
 
-<!-- <script>
-  const validateBtn = document.getElementById('validateKR');
-  if (validateBtn) {
-    validateBtn.addEventListener('click', async function () {
-      const title = document.querySelector('input[name="title"]').value;
-      const metricType = document.querySelector('select[name="metricType"]').value;
-      const startValue = document.querySelector('input[name="startValue"]').value;
-      const targetValue = document.querySelector('input[name="targetValue"]').value;
+<a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary mt-3">⬅ Back</a>
 
-      const res = await fetch('/<%= orgName %>/objectives/<%= objective._id %>/keyresults/validate-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: title,
-          metricType: metricType,
-          startValue: startValue,
-          targetValue: targetValue,
-          objectiveTitle: "<%= objective.title %>"
-        })
-      });
+<script>
+  let milestoneCount = <%= kr.milestones?.length || 0 %>;
 
-      const data = await res.json();
-      const box = document.getElementById('ai-feedback');
-      box.style.display = 'block';
-      box.innerHTML = `<pre>${JSON.stringify(data.feedback, null, 2)}</pre>`;
-    });
+  function handleMetricTypeChange(value) {
+    const section = document.getElementById('milestonesSection');
+    section.style.display = value === 'milestone' ? 'block' : 'none';
   }
-</script> -->
+
+  function addMilestone(label = '', weight = 20, date = '') {
+    const container = document.getElementById('milestoneList');
+    const row = document.createElement('div');
+    row.className = 'row align-items-center mb-2';
+    row.id = `milestone-row-${milestoneCount}`;
+
+    row.innerHTML = `
+      <div class="col-md-5">
+        <input type="text" name="milestones[${milestoneCount}][label]" class="form-control" placeholder="Milestone ${milestoneCount + 1}" value="${label}">
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="milestones[${milestoneCount}][weight]" class="form-control weight-input" value="${weight}" onchange="validateMilestoneWeights()">
+      </div>
+      <div class="col-md-3">
+        <input type="date" name="milestones[${milestoneCount}][dueDate]" class="form-control" value="${date}">
+      </div>
+      <div class="col-md-2">
+        <button type="button" class="btn btn-danger btn-sm" onclick="removeMilestone(${milestoneCount})">🗑️</button>
+      </div>
+    `;
+    container.appendChild(row);
+    milestoneCount++;
+    validateMilestoneWeights();
+  }
+
+  function removeMilestone(index) {
+    const row = document.getElementById(`milestone-row-${index}`);
+    if (row) {
+      row.remove();
+      validateMilestoneWeights();
+    }
+  }
+
+  function validateMilestoneWeights() {
+    const weights = document.querySelectorAll('.weight-input');
+    let total = 0;
+    weights.forEach(w => total += parseFloat(w.value) || 0);
+
+    const list = document.getElementById('milestoneList');
+    if (total !== 100) {
+      list.classList.add('border', 'border-danger');
+    } else {
+      list.classList.remove('border', 'border-danger');
+    }
+  }
+</script>

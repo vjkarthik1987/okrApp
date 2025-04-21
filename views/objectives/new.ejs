@@ -1,76 +1,166 @@
 <% layout('layouts/dashboard') %>
-<% title = 'Create Objective' %>
+<% title = 'Add Key Result' %>
 
-<h2>Create Objective</h2>
+<h2>Add Key Result to: <%= objective.title %></h2>
 
-<form action="/<%= orgName %>/objectives" method="POST" id="objectiveForm">
+<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" method="POST" id="krForm">
   <div class="mb-3">
-    <label>Title:</label>
-    <input type="text" name="title" class="form-control" id="objectiveTitle" required>
+    <label for="title">Key Result Title <span class="text-danger">*</span></label>
+    <input type="text" name="title" id="title" class="form-control" required placeholder="e.g., Increase NPS score to 60+">
+    <small class="text-muted">Be clear, specific, and outcome-focused.</small>
   </div>
 
   <div class="mb-3">
-    <label>Description:</label>
-    <textarea name="description" class="form-control"></textarea>
-  </div>
-
-  <div class="mb-3">
-    <label>Cycle:</label>
-    <select name="cycle" class="form-control" required>
-      <option value="">Select Cycle</option>
-      <option value="Q1 2025">Q1 2025</option>
-      <option value="Q2 2025">Q2 2025</option>
-      <option value="Q3 2025">Q3 2025</option>
-      <option value="Q4 2025">Q4 2025</option>
+    <label for="metricType">Metric Type <span class="text-danger">*</span></label>
+    <select name="metricType" id="metricType" onchange="handleMetricTypeChange(this.value)" class="form-control">
+      <option value="percent">Percent</option>
+      <option value="number">Number</option>
+      <option value="boolean">Boolean</option>
+      <option value="milestone">Milestone</option>
     </select>
+    <small class="text-muted">Choose how progress is measured.</small>
+  </div>
+
+  <div id="milestonesSection" style="display: none;">
+    <button type="button" onclick="generateMilestones()" class="btn btn-outline-primary">✨ Auto-Fill Milestones</button>
+
+    <div id="milestoneLoader" class="mt-2" style="display: none;">
+      <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <span class="ms-2">Generating milestones...</span>
+    </div>
+
+    <div id="milestoneList" class="mt-3"></div>
+
+    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addMilestone()">➕ Add Milestone</button>
+    <small class="text-muted d-block mt-1">Total weightage must be exactly 100%</small>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="startValue">Start Value</label>
+      <input type="text" name="startValue" id="startValue" class="form-control" placeholder="e.g., 40">
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="targetValue">Target Value</label>
+      <input type="text" name="targetValue" id="targetValue" class="form-control" placeholder="e.g., 60">
+    </div>
   </div>
 
   <div class="mb-3">
-    <label>Team:</label>
-    <select name="teamId" class="form-control" required>
-      <option value="">Select Team</option>
-      <% teams.forEach(team => { %>
-        <option value="<%= team._id %>"><%= team.name %></option>
-      <% }) %>
+    <label for="direction">Progress Direction</label>
+    <select name="direction" id="direction" class="form-control">
+      <option value="auto" selected>Auto (based on start & target)</option>
+      <option value="increase">Increase is good</option>
+      <option value="decrease">Decrease is good</option>
     </select>
+    <small class="text-muted">Auto will assume direction based on values.</small>
   </div>
 
-  <div class="mb-3">
-    <label>Parent Objective (optional):</label>
-    <select name="parentObjective" class="form-control">
-      <option value="">None</option>
-      <% parentObjectives.forEach(obj => { %>
-        <option value="<%= obj._id %>"><%= obj.title %></option>
-      <% }) %>
-    </select>
-  </div>
+  <input type="hidden" name="objectiveId" value="<%= objective._id %>">
 
-  <button type="submit" class="btn btn-success">Create Objective</button>
-  <% if (['super_admin', 'function_head', 'okr_editor'].includes(user.role)) { %>
-    <button type="button" class="btn btn-outline-primary" id="validateBtn">🧠 Validate with AI</button>
-  <% } %>
-
-  <div id="ai-feedback" class="mt-3" style="display:none;"></div>
+  <button type="submit" class="btn btn-success mt-3">✅ Save Key Result</button>
 </form>
 
+<a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary mt-2">⬅ Back to Key Results</a>
+
 <script>
-  document.getElementById('validateBtn').addEventListener('click', async () => {
-    const title = document.getElementById('objectiveTitle').value;
-    if (!title.trim()) return alert('Enter a title first');
+  let milestoneCount = 0;
 
-    const description = document.querySelector('textarea[name="description"]').value;
-    const cycle = document.querySelector('select[name="cycle"]').value;
-    const teamName = document.querySelector('select[name="teamId"] option:checked')?.textContent;
+  function handleMetricTypeChange(value) {
+    const section = document.getElementById('milestonesSection');
+    section.style.display = value === 'milestone' ? 'block' : 'none';
 
-    const res = await fetch('/<%= orgName %>/objectives/validate-ai', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description, cycle, teamName })
+    if (value === 'milestone' && milestoneCount === 0) {
+      for (let i = 0; i < 5; i++) {
+        addMilestone();
+      }
+    }
+  }
+
+  function addMilestone(label = '', weight = 20, date = '') {
+    const container = document.getElementById('milestoneList');
+
+    const row = document.createElement('div');
+    row.className = 'row align-items-center mb-2';
+    row.id = `milestone-row-${milestoneCount}`;
+
+    row.innerHTML = `
+      <div class="col-md-5">
+        <input type="text" name="milestones[${milestoneCount}][label]" class="form-control" placeholder="Milestone ${milestoneCount + 1}" value="${label}">
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="milestones[${milestoneCount}][weight]" class="form-control weight-input" placeholder="%" value="${weight}" min="0" max="100" onchange="validateMilestoneWeights()">
+      </div>
+      <div class="col-md-3">
+        <input type="date" name="milestones[${milestoneCount}][dueDate]" class="form-control" value="${date}">
+      </div>
+      <div class="col-md-2">
+        <button type="button" class="btn btn-danger btn-sm" onclick="removeMilestone(${milestoneCount})">🗑️</button>
+      </div>
+    `;
+
+    container.appendChild(row);
+    milestoneCount++;
+    validateMilestoneWeights();
+  }
+
+  function removeMilestone(index) {
+    const row = document.getElementById(`milestone-row-${index}`);
+    if (row) {
+      row.remove();
+      validateMilestoneWeights();
+    }
+  }
+
+  function validateMilestoneWeights() {
+    const weightInputs = document.querySelectorAll('.weight-input');
+    let total = 0;
+
+    weightInputs.forEach(input => {
+      total += parseFloat(input.value) || 0;
     });
-    const data = await res.json();
-    const box = document.getElementById('ai-feedback');
-    box.style.display = 'block';
-    box.className = 'alert alert-info';
-    box.innerHTML = `<strong>AI Feedback:</strong><br>${data.feedback}`;
-  });
+
+    if (total !== 100) {
+      document.getElementById('milestoneList').classList.add('border', 'border-danger');
+    } else {
+      document.getElementById('milestoneList').classList.remove('border', 'border-danger');
+    }
+  }
+
+  async function generateMilestones() {
+    console.log('Generate Milestones')
+    const krTitle = document.getElementById('title').value;
+    const loader = document.getElementById('milestoneLoader');
+    const container = document.getElementById('milestoneList');
+
+    loader.style.display = 'inline-flex';
+    container.innerHTML = '';
+    milestoneCount = 0;
+
+    try {
+      const response = await fetch(`${window.location.pathname}/generate-milestones`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ krTitle })
+      });
+
+      const data = await response.json();
+      loader.style.display = 'none';
+
+      if (data.milestones && Array.isArray(data.milestones)) {
+        data.milestones.forEach(milestone => {
+          addMilestone(milestone, 20, '');
+        });
+      } else {
+        container.innerHTML = '<p class="text-danger">⚠️ Could not generate milestones. Try again.</p>';
+      }
+    } catch (error) {
+      console.error(error);
+      loader.style.display = 'none';
+      container.innerHTML = '<p class="text-danger">⚠️ Error contacting AI service. Please try again.</p>';
+    }
+  }
 </script>

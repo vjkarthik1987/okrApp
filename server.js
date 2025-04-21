@@ -55,8 +55,9 @@ app.use('/:orgName/okrs', loadOrg, require('./routes/okrs'));
 app.use('/:orgName/users', loadOrg, require('./routes/users'));
 app.use('/:orgName/teams', loadOrg, require('./routes/teams'));
 app.use('/:orgName/objectives', loadOrg, require('./routes/objectives'));
-app.use('/:orgName/keyresults', loadOrg, require('./routes/keyresults'));
+//app.use('/:orgName/keyresults', loadOrg, require('./routes/keyresults'));
 app.use('/:orgName/dashboard', loadOrg, require('./routes/dashboard'));
+app.use('/:orgName/admin/cycles', loadOrg, require('./routes/cycles'));
 
 
 const PORT = process.env.PORT || 3000;

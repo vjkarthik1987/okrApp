@@ -29,6 +29,13 @@
       <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/users">🙋 Users</a></li>
       <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/teams">👥 Teams</a></li>
       <li class="nav-item"><a class="nav-link" href="#">🔧 Settings</a></li>
+      <% if (user.role === 'super_admin') { %>
+        <li class="nav-item">
+          <a href="/<%= orgName %>/admin/cycles" class="nav-link">
+            🧭 OKR Cycles
+          </a>
+        </li>
+      <% } %>
       <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/auth/change-password">🔒 Change Password</a></li>
       <li class="nav-item">
         <a class="nav-link text-danger" href="/<%= orgName %>/auth/logout">🚪 Logout</a>

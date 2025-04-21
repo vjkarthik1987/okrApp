@@ -6,7 +6,10 @@ const objectiveSchema = new mongoose.Schema({
   teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   cycle: { type: String, required: true },
-
+  year: {
+    type: String, // e.g., '2025'
+    required: true
+  },
   // 🔥 Core fields we added
   progressValue: { type: Number, default: 0 }, // latest value for dashboard
   progressHistory: [

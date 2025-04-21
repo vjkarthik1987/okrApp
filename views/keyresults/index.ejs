@@ -24,20 +24,18 @@
           <td><%= kr.targetValue %></td>
           <td><%= kr.progressValue %>%</td>
           <td>
-            <a href="/<%= orgName %>/objectives/<%= kr._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
-            <form method="POST" action="/<%= orgName %>/keyresults/<%= kr._id %>/delete" style="display:inline;">
+            <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+            <form method="POST" action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/delete" style="display:inline;">
               <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑 Delete</button>
             </form>
           </td>
         </tr>
         <tr>
           <td colspan="4">
-            <form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/update" method="POST" class="mt-2">
-              <div class="input-group input-group-sm">
-                <input type="text" name="updateValue" class="form-control" placeholder="Progress value" required>
-                <input type="text" name="updateText" class="form-control" placeholder="Update note (optional)">
-                <button class="btn btn-outline-success">Update</button>
-              </div>
+            <form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/update" method="POST" class="d-flex gap-2 align-items-start">
+              <input type="number" step="any" name="updateValue" class="form-control form-control-sm" required placeholder="Progress value" />
+              <input type="text" name="updateText" class="form-control form-control-sm" placeholder="Update note (optional)" />
+              <button type="submit" class="btn btn-sm btn-success">Update</button>
             </form>
 
             <!-- ✅ Update History -->

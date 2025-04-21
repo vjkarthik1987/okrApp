@@ -7,6 +7,7 @@ const Team = require('../models/Team');
 const { isLoggedIn } = require('../middleware/auth');
 const KeyResult = require('../models/KeyResult');
 const calculateObjectiveProgress = require('../utils/calculateObjectiveProgress');
+const OKRCycle = require('../models/OKRCycle');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -19,7 +20,7 @@ You are an OKR assistant. A user is about to create this Objective:
 
 Title: ${title}
 Description: ${description}
-Cycle: ${cycle}
+OKRCycle: ${cycle}
 Team: ${teamName}
 
 Evaluate this Objective:
@@ -44,7 +45,7 @@ Respond in JSON format with verdict and suggestions.
   }
 });
 
-//Get objectives and show this
+// ✅ GET ALL OBJECTIVES FOR ORG/TEAM
 router.get('/', isLoggedIn, async (req, res) => {
   try {
     const filter = { organization: req.organization._id };
@@ -52,12 +53,18 @@ router.get('/', isLoggedIn, async (req, res) => {
 
     const objectives = await Objective.find(filter).populate('teamId createdBy');
 
+    const enabledCycles = await OKRCycle.find({
+      organization: req.organization._id,
+      isEnabled: true
+    }).sort({ label: 1 });
+
     res.render('objectives/index', {
       title: 'Objectives',
       orgName: req.organization.orgName,
       user: req.user,
       objectives,
-      cycle: req.query.cycle || ''
+      cycle: req.query.cycle || '',
+      enabledCycles // ✅ Add this
     });
   } catch (err) {
     console.error(err);
@@ -70,11 +77,15 @@ router.get('/', isLoggedIn, async (req, res) => {
 router.post('/', isLoggedIn, async (req, res) => {
   const { title, description, cycle, teamId, parentObjective } = req.body;
 
+  // Extract year from cycle string
+  const year = cycle.includes('-') ? cycle.split('-')[1] : cycle;
+
   try {
     const objective = new Objective({
       title,
       description,
       cycle,
+      year, // ✅ Set year explicitly
       teamId,
       organization: req.organization._id,
       createdBy: req.user._id,
@@ -97,12 +108,17 @@ router.get('/new', isLoggedIn, async (req, res) => {
   try {
     const teams = await Team.find({ organization: req.organization._id });
     const objectives = await Objective.find({ organization: req.organization._id });
+    const enabledCycles = await OKRCycle.find({
+      organization: req.organization._id,
+      isEnabled: true
+    }).sort({ label: 1 });
 
     res.render('objectives/new', {
       orgName: req.organization.orgName,
       user: req.user,
       teams,
-      parentObjectives: objectives
+      parentObjectives: objectives,
+      enabledCycles
     });
   } catch (err) {
     console.error(err);
@@ -111,18 +127,6 @@ router.get('/new', isLoggedIn, async (req, res) => {
   }
 });
   
-// ✅ GET ALL OBJECTIVES FOR ORG/TEAM
-router.get('/', async (req, res) => {
-  try {
-    const objectives = await Objective.find({
-      organization: req.organization._id
-    }).populate('teamId createdBy', 'name email');
-    res.json(objectives);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch objectives' });
-  }
-});
-
 // ✅ GET ONE OBJECTIVE
 router.get('/:objectiveId', async (req, res) => {
   try {
@@ -171,6 +175,11 @@ router.get('/:id/edit', isLoggedIn, async (req, res) => {
       _id: { $ne: req.params.id } // exclude itself
     });
 
+    const enabledCycles = await OKRCycle.find({
+      organization: req.organization._id,
+      isEnabled: true
+    }).sort({ label: 1 });
+
     if (!objective) {
       req.flash('error', 'Objective not found');
       return res.redirect(`/${req.organization.orgName}/objectives`);
@@ -181,7 +190,8 @@ router.get('/:id/edit', isLoggedIn, async (req, res) => {
       user: req.user,
       objective,
       teams,
-      parentObjectives
+      parentObjectives,
+      enabledCycles
     });
   } catch (err) {
     console.error(err);
@@ -258,20 +268,13 @@ router.post('/:id/delete', isLoggedIn, async (req, res) => {
 
 // Utility to calculate progress
 function calculateProgress(kr, latestUpdateValue) {
-  if (kr.metricType === 'boolean') {
-    return latestUpdateValue ? 100 : 0;
-  }
-
-  if (kr.metricType === 'milestone') {
-    const total = kr.milestones.reduce((sum, m) => sum + m.weight, 0);
-    const completed = kr.milestones.filter(m => m.completed).reduce((sum, m) => sum + m.weight, 0);
-    return total ? Math.round((completed / total) * 100) : 0;
-  }
-
-  // For percent or number
   const start = Number(kr.startValue);
   const target = Number(kr.targetValue);
-  const current = Number(latestUpdateValue ?? kr.startValue); // Use startValue if latest is undefined
+  const current = Number(latestUpdateValue ?? kr.startValue);
+
+  console.log('📊 Start:', kr.startValue, 'Parsed:', start);
+  console.log('🎯 Target:', kr.targetValue, 'Parsed:', target);
+  console.log('📍 Current:', latestUpdateValue, 'Parsed:', current);
 
   if (isNaN(start) || isNaN(target) || isNaN(current)) return 0;
 
@@ -334,6 +337,18 @@ router.post('/:objectiveId/keyresults', isSuperAdminOrFunctionEditor, async (req
       createdBy: req.user._id
     });
 
+    // 👇 Explicitly parse numeric fields if applicable
+    if (kr.metricType === 'percent' || kr.metricType === 'number') {
+      kr.startValue = Number(req.body.startValue);
+      kr.targetValue = Number(req.body.targetValue);
+    }
+
+    const milestones = req.body.milestones?.map(m => ({
+      label: m.label,
+      weight: Number(m.weight),
+      dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+    }));
+
     kr.progressValue = calculateProgress(kr);
     await kr.save();
 
@@ -349,11 +364,13 @@ router.post('/:objectiveId/keyresults', isSuperAdminOrFunctionEditor, async (req
 
 // 🧠 AI Validate
 router.post('/:objectiveId/keyresults/validate-ai', isSuperAdminOrFunctionEditor, async (req, res) => {
+  console.log('Hitting Validate AI route')
   const { title, metricType, startValue, targetValue, objectiveTitle } = req.body;
 
   const prompt = `
 You are an OKR assistant. A user is defining a Key Result for this Objective:
 Objective: "${objectiveTitle}"
+This is for SunTec, a mid-sized (500 to 700 employees) enterprise product organization.
 
 Key Result: "${title}"
 Metric Type: ${metricType}
@@ -379,6 +396,32 @@ Evaluate this Key Result and respond in JSON:
     res.json({ feedback: aiFeedback });
   } catch (err) {
     res.status(500).json({ error: 'AI validation failed', details: err.message });
+  }
+});
+
+//AI Milestone Generation 
+router.post('/:objectiveId/keyresults/generate-milestones', async (req, res) => {
+  const { krTitle } = req.body;
+
+  const prompt = `
+You are an AI assistant helping define OKRs at SunTec, a midsized enterprise product-based organization.
+Given the following Key Result: "${krTitle}", suggest 5 clear milestone steps that break down the work toward achieving this result.
+Each step should be simple, outcome-oriented, and progress-specific.
+Return only the milestone steps as a numbered list.
+`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const text = completion.choices[0].message.content;
+    const milestones = text.split('\n').filter(line => line.trim()).map(line => line.replace(/^\d+\.\s*/, ''));
+    res.json({ milestones });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate milestones' });
   }
 });
 
@@ -415,6 +458,11 @@ router.post('/:objectiveId/keyresults/:krId', isSuperAdminOrFunctionEditor, asyn
       { new: true }
     );
 
+    if (kr.metricType === 'percent' || kr.metricType === 'number') {
+      kr.startValue = Number(req.body.startValue);
+      kr.targetValue = Number(req.body.targetValue);
+    }
+
     kr.progressValue = calculateProgress(kr);
     await kr.save();
 
@@ -428,9 +476,44 @@ router.post('/:objectiveId/keyresults/:krId', isSuperAdminOrFunctionEditor, asyn
   }
 });
 
+// ✏️ GET: Edit a Key Result
+router.get('/:objectiveId/keyresults/:krId/edit', isLoggedIn, async (req, res) => {
+  try {
+    const objective = await Objective.findOne({
+      _id: req.params.objectiveId,
+      organization: req.organization._id
+    });
+
+    const kr = await KeyResult.findOne({
+      _id: req.params.krId,
+      objectiveId: req.params.objectiveId,
+      organization: req.organization._id
+    });
+
+    if (!kr || !objective) {
+      req.flash('error', 'Key Result or Objective not found');
+      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+
+    res.render('keyresults/edit', {
+      orgName: req.organization.orgName,
+      user: req.user,
+      objective,
+      kr
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Could not load edit form');
+    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+  }
+});
+
+
 // ⬆️ Update Progress (inline)
 router.post('/:objectiveId/keyresults/:krId/update', isLoggedIn, async (req, res) => {
-  const { updateValue, updateText } = req.body;
+  const { updateText } = req.body;
+  const updateValueRaw = req.body.updateValue;
+  const updateValue = parseFloat(updateValueRaw);
 
   try {
     const kr = await KeyResult.findOne({
@@ -438,13 +521,26 @@ router.post('/:objectiveId/keyresults/:krId/update', isLoggedIn, async (req, res
       organization: req.organization._id
     });
 
+    if (isNaN(updateValue)) {
+      req.flash('error', 'Progress value must be a valid number');
+      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+
     if (!kr) return res.status(404).json({ error: 'Key Result not found' });
+
+    console.log("Update submitted VALUE:", req.body.updateValue);
+    console.log("Update submitted NOTE:", req.body.updateText);
 
     kr.updates.push({
       updateValue,
       updateText,
       updatedBy: req.user._id
     });
+
+    console.log('🧪 Final Parsed updateValue:', updateValue, 'Type:', typeof updateValue);
+    console.log('💾 Stored in KR.updates:', kr.updates[kr.updates.length - 1]);
+
+    console.log("Progress calculated:", kr.progressValue);
 
     kr.progressValue = calculateProgress(kr, Number(updateValue));
     kr.updatedAt = new Date();
