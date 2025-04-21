@@ -1,0 +1,42 @@
+<div class="mb-3">
+    <label>Title:</label>
+    <input type="text" name="title" class="form-control" required value="<%= kr && kr.title ? kr.title : '' %>">
+</div>
+
+<div class="mb-3">
+    <label>Metric Type:</label>
+    <select name="metricType" class="form-control" required>
+        <option value="">-- Select --</option>
+        <% ['percent', 'number', 'boolean', 'milestone'].forEach(type => { %>
+        <option value="<%= type %>" <%= kr && kr.metricType === type ? 'selected' : '' %>><%= type.charAt(0).toUpperCase() + type.slice(1) %></option>
+        <% }) %>
+    </select>
+</div>
+
+<div class="mb-3">
+    <label>Start Value:</label>
+    <input type="text" name="startValue" class="form-control" value="<%= kr && kr.startValue ? kr.startValue : '' %>">
+</div>
+
+<div class="mb-3">
+    <label>Target Value:</label>
+    <input type="text" name="targetValue" class="form-control" value="<%= kr && kr.targetValue ? kr.targetValue : '' %>">
+</div>
+
+<div class="mb-3">
+    <label>Direction:</label>
+    <select name="direction" class="form-control">
+        <% ['auto', 'increase', 'decrease'].forEach(dir => { %>
+        <option value="<%= dir %>" <%= kr && kr.direction === dir ? 'selected' : '' %>><%= dir.charAt(0).toUpperCase() + dir.slice(1) %></option>
+        <% }) %>
+    </select>
+</div>
+
+<% if (objective) { %>
+    <input type="hidden" name="objectiveId" value="<%= objective._id %>">
+<% } %>
+
+<% if (objective && objective.title) { %>
+    <button type="button" class="btn btn-outline-primary mb-3" id="validateKR">🧠 Validate with AI</button>
+    <div id="ai-feedback" class="alert alert-info mt-2" style="display: none;"></div>
+<% } %>

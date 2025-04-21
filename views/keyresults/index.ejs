@@ -1,0 +1,56 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Key Results for ' + objective.title %>
+
+<h2>Key Results for: <%= objective.title %></h2>
+
+<a href="/<%= orgName %>/keyresults/<%= objective._id %>/keyresults/new" class="btn btn-primary mb-3">➕ Add Key Result</a>
+
+<% if (keyResults.length === 0) { %>
+  <div class="alert alert-warning">No key results yet.</div>
+<% } else { %>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Target</th>
+        <th>Progress</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% keyResults.forEach(kr => { %>
+        <tr>
+          <td><%= kr.title %></td>
+          <td><%= kr.targetValue %></td>
+          <td><%= kr.progressValue %>%</td>
+          <td>
+            <a href="/<%= orgName %>/objectives/<%= kr._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+            <form method="POST" action="/<%= orgName %>/keyresults/<%= kr._id %>/delete" style="display:inline;">
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑 Delete</button>
+            </form>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="4">
+            <form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/update" method="POST" class="mt-2">
+              <div class="input-group input-group-sm">
+                <input type="text" name="updateValue" class="form-control" placeholder="Progress value" required>
+                <input type="text" name="updateText" class="form-control" placeholder="Update note (optional)">
+                <button class="btn btn-outline-success">Update</button>
+              </div>
+            </form>
+
+            <!-- ✅ Update History -->
+            <% if (kr.updates && kr.updates.length > 0) { %>
+              <ul class="small text-muted mt-2 mb-0">
+                <% kr.updates.slice(-3).reverse().forEach(upd => { %>
+                  <li><%= upd.updateDate.toDateString() %>: <%= upd.updateValue %> (<%= upd.updateText || 'No note' %>)</li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </td>
+        </tr>      
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>

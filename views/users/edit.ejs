@@ -1,0 +1,43 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Edit User' %>
+
+<h2>Edit User</h2>
+
+<form method="POST" action="/<%= orgName %>/users/<%= userToEdit._id %>?_method=PUT">
+  <div class="mb-3">
+    <label>Name:</label>
+    <input name="name" class="form-control" value="<%= userToEdit.name %>" required />
+  </div>
+
+  <div class="mb-3">
+    <label>Role:</label>
+    <select name="role" class="form-control">
+      <option value="employee" <%= userToEdit.role === 'employee' ? 'selected' : '' %>>Employee</option>
+      <option value="okr_editor" <%= userToEdit.role === 'okr_editor' ? 'selected' : '' %>>OKR Editor</option>
+      <option value="function_head" <%= userToEdit.role === 'function_head' ? 'selected' : '' %>>Function Head</option>
+      <option value="super_admin" <%= userToEdit.role === 'super_admin' ? 'selected' : '' %>>Super Admin</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Location:</label>
+    <input name="location" class="form-control" value="<%= userToEdit.location %>" />
+  </div>
+
+  <div class="mb-3">
+    <label>Designation:</label>
+    <input name="designation" class="form-control" value="<%= userToEdit.designation %>" />
+  </div>
+
+  <div class="mb-3">
+    <label>Band:</label>
+    <input name="band" class="form-control" value="<%= userToEdit.band %>" />
+  </div>
+
+  <div class="mb-3">
+    <label>Gender:</label>
+    <input name="gender" class="form-control" value="<%= userToEdit.gender %>" />
+  </div>
+
+  <button class="btn btn-success">Update User</button>
+</form>

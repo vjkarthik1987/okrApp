@@ -1,0 +1,13 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Add Users' %>
+
+<h2>Add Users (Bulk)</h2>
+
+<form method="POST" action="/<%= orgName %>/users">
+  <div class="mb-3">
+    <label class="form-label">Paste user details (one per line):</label>
+    <textarea name="bulkUsers" class="form-control" rows="8" required placeholder="Name, Email, Role, Location, Designation, Band, Gender"></textarea>
+    <div class="form-text">Example:<br>John Doe, john.doe@suntec.com, employee, TVM, Developer, B2, Male</div>
+  </div>
+  <button class="btn btn-success">Create Users</button>
+</form>

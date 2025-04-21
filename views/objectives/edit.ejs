@@ -1,0 +1,46 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Edit Objective' %>
+
+<h2>Edit Objective</h2>
+
+<form action="/<%= orgName %>/objectives/<%= objective._id %>" method="POST">
+  <div class="mb-3">
+    <label>Title:</label>
+    <input type="text" name="title" class="form-control" value="<%= objective.title %>" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Description:</label>
+    <textarea name="description" class="form-control"><%= objective.description %></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label>Cycle:</label>
+    <select name="cycle" class="form-control" required>
+      <% ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'].forEach(c => { %>
+        <option value="<%= c %>" <%= objective.cycle === c ? 'selected' : '' %>><%= c %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Team:</label>
+    <select name="teamId" class="form-control" required>
+      <% teams.forEach(team => { %>
+        <option value="<%= team._id %>" <%= objective.teamId?.toString() === team._id.toString() ? 'selected' : '' %>><%= team.name %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Parent Objective (optional):</label>
+    <select name="parentObjective" class="form-control">
+      <option value="">None</option>
+      <% parentObjectives.forEach(obj => { %>
+        <option value="<%= obj._id %>" <%= objective.parentObjective?.toString() === obj._id.toString() ? 'selected' : '' %>><%= obj.title %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Update Objective</button>
+</form>

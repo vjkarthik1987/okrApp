@@ -1,0 +1,102 @@
+<% layout('layouts/main') %>
+<% title = 'Register Organization' %>
+
+<h2>Register Your Organization</h2>
+<form action="/register-org" method="POST" class="mt-4">
+  <div class="mb-3">
+    <label>Organization Name (URL-friendly, lowercase):</label>
+    <input type="text" name="orgName" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Display Name:</label>
+    <input type="text" name="displayName" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Industry (optional):</label>
+    <input type="text" name="industry" class="form-control">
+  </div>
+
+  <hr>
+
+  <h4 class="mt-4">Admin Details</h4>
+
+  <div class="mb-3">
+    <label>Full Name:</label>
+    <input type="text" name="adminName" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Email:</label>
+    <input type="email" name="adminEmail" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Password:</label>
+    <input type="password" name="adminPassword" class="form-control" required>
+  </div>
+  
+  <div class="mb-3">
+    <label>Confirm Password:</label>
+    <input type="password" name="confirmPassword" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Designation:</label>
+    <input type="text" name="designation" class="form-control">
+  </div>
+
+  <div class="mb-3">
+    <label>Band:</label>
+    <input type="text" name="band" class="form-control">
+  </div>
+
+  <div class="mb-3">
+    <label>Location:</label>
+    <input type="text" name="location" class="form-control">
+  </div>
+
+  <div class="mb-3">
+    <label>Gender:</label>
+    <select name="gender" class="form-control">
+      <option value="">Select</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Joining Date:</label>
+    <input type="date" name="joiningDate" class="form-control">
+  </div>
+
+  <button class="btn btn-success mt-3" type="submit">Register Organization</button>
+</form>
+
+<script>
+    const passwordInput = document.querySelector('input[name="adminPassword"]');
+    const confirmInput = document.querySelector('input[name="confirmPassword"]');
+  
+    const message = document.createElement('small');
+    message.style.fontSize = '0.9rem';
+    message.style.display = 'block';
+    confirmInput.parentNode.appendChild(message);
+  
+    confirmInput.addEventListener('input', () => {
+      if (!confirmInput.value) {
+        message.textContent = '';
+        return;
+      }
+  
+      if (passwordInput.value === confirmInput.value) {
+        message.textContent = '✅ Passwords match';
+        message.style.color = 'green';
+      } else {
+        message.textContent = '❌ Passwords do not match';
+        message.style.color = 'red';
+      }
+    });
+</script>
+  

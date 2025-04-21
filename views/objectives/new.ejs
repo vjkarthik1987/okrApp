@@ -1,0 +1,76 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Create Objective' %>
+
+<h2>Create Objective</h2>
+
+<form action="/<%= orgName %>/objectives" method="POST" id="objectiveForm">
+  <div class="mb-3">
+    <label>Title:</label>
+    <input type="text" name="title" class="form-control" id="objectiveTitle" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Description:</label>
+    <textarea name="description" class="form-control"></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label>Cycle:</label>
+    <select name="cycle" class="form-control" required>
+      <option value="">Select Cycle</option>
+      <option value="Q1 2025">Q1 2025</option>
+      <option value="Q2 2025">Q2 2025</option>
+      <option value="Q3 2025">Q3 2025</option>
+      <option value="Q4 2025">Q4 2025</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Team:</label>
+    <select name="teamId" class="form-control" required>
+      <option value="">Select Team</option>
+      <% teams.forEach(team => { %>
+        <option value="<%= team._id %>"><%= team.name %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Parent Objective (optional):</label>
+    <select name="parentObjective" class="form-control">
+      <option value="">None</option>
+      <% parentObjectives.forEach(obj => { %>
+        <option value="<%= obj._id %>"><%= obj.title %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-success">Create Objective</button>
+  <% if (['super_admin', 'function_head', 'okr_editor'].includes(user.role)) { %>
+    <button type="button" class="btn btn-outline-primary" id="validateBtn">🧠 Validate with AI</button>
+  <% } %>
+
+  <div id="ai-feedback" class="mt-3" style="display:none;"></div>
+</form>
+
+<script>
+  document.getElementById('validateBtn').addEventListener('click', async () => {
+    const title = document.getElementById('objectiveTitle').value;
+    if (!title.trim()) return alert('Enter a title first');
+
+    const description = document.querySelector('textarea[name="description"]').value;
+    const cycle = document.querySelector('select[name="cycle"]').value;
+    const teamName = document.querySelector('select[name="teamId"] option:checked')?.textContent;
+
+    const res = await fetch('/<%= orgName %>/objectives/validate-ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description, cycle, teamName })
+    });
+    const data = await res.json();
+    const box = document.getElementById('ai-feedback');
+    box.style.display = 'block';
+    box.className = 'alert alert-info';
+    box.innerHTML = `<strong>AI Feedback:</strong><br>${data.feedback}`;
+  });
+</script>

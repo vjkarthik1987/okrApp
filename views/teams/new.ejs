@@ -1,0 +1,43 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Create Team' %>
+
+<h2>Create New Team</h2>
+
+<form action="/<%= orgName %>/teams" method="POST">
+  <div class="mb-3">
+    <label>Team Name:</label>
+    <input type="text" name="name" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Parent Team (optional):</label>
+    <select name="parentTeam" class="form-control">
+      <option value="">None</option>
+      <% teams.forEach(t => { %>
+        <option value="<%= t._id %>"><%= t.name %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Function Head:</label>
+    <select name="functionHead" class="form-control">
+      <option value="">Select</option>
+      <% users.forEach(u => { %>
+        <option value="<%= u._id %>"><%= u.name %> (<%= u.email %>)</option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>OKR Editors (multi-select):</label>
+    <select name="okrEditors" class="form-control" multiple>
+      <% users.forEach(u => { %>
+        <option value="<%= u._id %>"><%= u.name %> (<%= u.email %>)</option>
+      <% }) %>
+    </select>
+    <small class="form-text text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
+  </div>
+
+  <button class="btn btn-success">Create Team</button>
+</form>

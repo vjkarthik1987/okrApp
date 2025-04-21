@@ -1,0 +1,52 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Add Key Result' %>
+
+<h2>Add Key Result to: <%= objective.title %></h2>
+
+<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" method="POST" id="krForm">
+  <div class="mb-3">
+    <label for="title">Key Result Title <span class="text-danger">*</span></label>
+    <input type="text" name="title" id="title" class="form-control" required placeholder="e.g., Increase NPS score to 60+">
+    <small class="text-muted">Be clear, specific, and outcome-focused.</small>
+  </div>
+
+  <div class="mb-3">
+    <label for="metricType">Metric Type <span class="text-danger">*</span></label>
+    <select name="metricType" id="metricType" class="form-control" required>
+      <option value="">-- Select Metric Type --</option>
+      <option value="percent">Percentage (e.g., 70%)</option>
+      <option value="number">Number (e.g., 50 leads)</option>
+      <option value="boolean">Boolean (e.g., Yes/No)</option>
+      <option value="milestone">Milestone (multiple steps)</option>
+    </select>
+    <small class="text-muted">Choose how progress is measured.</small>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="startValue">Start Value</label>
+      <input type="text" name="startValue" id="startValue" class="form-control" placeholder="e.g., 40">
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="targetValue">Target Value</label>
+      <input type="text" name="targetValue" id="targetValue" class="form-control" placeholder="e.g., 60">
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="direction">Progress Direction</label>
+    <select name="direction" id="direction" class="form-control">
+      <option value="auto" selected>Auto (based on start & target)</option>
+      <option value="increase">Increase is good</option>
+      <option value="decrease">Decrease is good</option>
+    </select>
+    <small class="text-muted">Auto will assume direction based on values.</small>
+  </div>
+
+  <input type="hidden" name="objectiveId" value="<%= objective._id %>">
+
+  <button type="submit" class="btn btn-success mt-3">✅ Save Key Result</button>
+</form>
+
+<a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary mt-2">⬅ Back to Key Results</a>

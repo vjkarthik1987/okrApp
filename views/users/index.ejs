@@ -1,0 +1,73 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Users' %>
+
+<h2 class="mb-4">👥 Users</h2>
+
+<a href="/<%= orgName %>/users/new" class="btn btn-primary mb-3">➕ Add New Users</a>
+
+<% if (users.length === 0) { %>
+  <div class="alert alert-warning">No active users found.</div>
+<% } else { %>
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Band</th>
+        <th>Location</th>
+        <th>Gender</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% users.forEach(u => { %>
+        <tr>
+          <td><%= u.name %></td>
+          <td><%= u.email %></td>
+          <td><%= u.role %></td>
+          <td><%= u.band || '—' %></td>
+          <td><%= u.location || '—' %></td>
+          <td><%= u.gender || '—' %></td>
+          <td>
+            <a href="/<%= orgName %>/users/<%= u._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+            <% if (!(u.role === 'super_admin' && user.role !== 'super_admin')) { %>
+                <form method="POST" action="/<%= orgName %>/users/<%= u._id %>?_method=DELETE" style="display:inline;">
+                  <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑 Delete</button>
+                </form>                 
+            <% } %>           
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <h5 class="mt-4">Deactivated Users</h5>
+    <% if (inactiveUsers.length === 0) { %>
+    <div class="text-muted">No deactivated users</div>
+    <% } else { %>
+    <table class="table table-sm table-bordered">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Reactivate</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% inactiveUsers.forEach(u => { %>
+            <tr>
+            <td><%= u.name %></td>
+            <td><%= u.email %></td>
+            <td><%= u.role %></td>
+            <td>
+                <form method="POST" action="/<%= orgName %>/users/<%= u._id %>/reactivate" style="display:inline;">
+                    <button class="btn btn-sm btn-outline-success" onclick="return confirm('Reactivate this user?')">♻️ Reactivate</button>
+                </form>
+            </td>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    <% } %>
+<% } %>

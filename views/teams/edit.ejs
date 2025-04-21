@@ -1,0 +1,42 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Edit Team' %>
+
+<h2>Edit Team: <%= team.name %></h2>
+
+<form action="/<%= orgName %>/teams/<%= team._id %>?_method=PUT" method="POST">
+  <div class="mb-3">
+    <label>Team Name:</label>
+    <input type="text" name="name" class="form-control" value="<%= team.name %>" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Parent Team:</label>
+    <select name="parentTeam" class="form-control">
+      <option value="">None</option>
+      <% teams.forEach(t => { %>
+        <option value="<%= t._id %>" <%= team.parentTeam?.toString() === t._id.toString() ? 'selected' : '' %>><%= t.name %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Function Head:</label>
+    <select name="functionHead" class="form-control">
+      <option value="">Select</option>
+      <% users.forEach(u => { %>
+        <option value="<%= u._id %>" <%= team.functionHead?.toString() === u._id.toString() ? 'selected' : '' %>><%= u.name %> (<%= u.email %>)</option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>OKR Editors (multi-select):</label>
+    <select name="okrEditors" class="form-control" multiple>
+      <% users.forEach(u => { %>
+        <option value="<%= u._id %>" <%= team.okrEditors.includes(u._id.toString()) ? 'selected' : '' %>><%= u.name %> (<%= u.email %>)</option>
+      <% }) %>
+    </select>
+  </div>
+
+  <button class="btn btn-success">Update Team</button>
+</form>

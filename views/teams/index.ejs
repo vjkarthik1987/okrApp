@@ -1,0 +1,46 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Teams' %>
+
+<h2 class="mb-4">👥 Teams</h2>
+
+<a href="/<%= orgName %>/teams/new" class="btn btn-primary mb-3">➕ Add New Team</a>
+
+<% if (!teams || teams.length === 0) { %>
+  <div class="alert alert-warning">No teams found.</div>
+<% } else { %>
+  <table class="table table-striped table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th>Team Name</th>
+        <th>Function Head</th>
+        <th>OKR Editors</th>
+        <th>Parent Team</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% teams.forEach(team => { %>
+        <tr>
+          <td><%= team.name %></td>
+          <td><%= team.functionHead?.name || '—' %></td>
+          <td>
+            <% if (team.okrEditors && team.okrEditors.length > 0) { %>
+              <% team.okrEditors.forEach(ed => { %>
+                <span class="badge bg-info text-dark me-1"><%= ed.name %></span>
+              <% }) %>
+            <% } else { %>
+              —
+            <% } %>
+          </td>
+          <td><%= team.parentTeam?.name || '—' %></td>
+          <td>
+            <a href="/<%= orgName %>/teams/<%= team._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+            <form action="/<%= orgName %>/teams/<%= team._id %>?_method=DELETE" method="POST" style="display:inline;">
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑 Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>

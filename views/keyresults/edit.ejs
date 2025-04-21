@@ -1,0 +1,38 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Edit Key Result' %>
+
+<h2>Edit Key Result for: <%= objective.title %></h2>
+
+<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>?_method=PUT" method="POST" id="krForm">
+  <% include ../partials/keyResultForm %>
+  <button type="submit" class="btn btn-success">Update Key Result</button>
+</form>
+
+<!-- <script>
+  const validateBtn = document.getElementById('validateKR');
+  if (validateBtn) {
+    validateBtn.addEventListener('click', async function () {
+      const title = document.querySelector('input[name="title"]').value;
+      const metricType = document.querySelector('select[name="metricType"]').value;
+      const startValue = document.querySelector('input[name="startValue"]').value;
+      const targetValue = document.querySelector('input[name="targetValue"]').value;
+
+      const res = await fetch('/<%= orgName %>/objectives/<%= objective._id %>/keyresults/validate-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title,
+          metricType: metricType,
+          startValue: startValue,
+          targetValue: targetValue,
+          objectiveTitle: "<%= objective.title %>"
+        })
+      });
+
+      const data = await res.json();
+      const box = document.getElementById('ai-feedback');
+      box.style.display = 'block';
+      box.innerHTML = `<pre>${JSON.stringify(data.feedback, null, 2)}</pre>`;
+    });
+  }
+</script> -->
