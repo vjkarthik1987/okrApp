@@ -1,0 +1,38 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Team Details' %>
+
+<h2>Team: <%= team.name %></h2>
+
+<div class="mb-3">
+  <strong>Function Head:</strong>
+  <% if (team.functionHead) { %>
+    <%= team.functionHead.name %> (<%= team.functionHead.email %>)
+  <% } else { %>
+    <em>Not Assigned</em>
+  <% } %>
+</div>
+
+<div class="mb-3">
+  <strong>OKR Editors:</strong>
+  <% if (team.okrEditors && team.okrEditors.length > 0) { %>
+    <ul>
+      <% team.okrEditors.forEach(editor => { %>
+        <li><%= editor.name %> (<%= editor.email %>)</li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <em>No editors assigned</em>
+  <% } %>
+</div>
+
+<div class="mb-3">
+  <strong>Parent Team:</strong>
+  <% if (team.parentTeam) { %>
+    <%= team.parentTeam.name %>
+  <% } else { %>
+    <em>No parent team</em>
+  <% } %>
+</div>
+
+<a href="/<%= orgName %>/teams" class="btn btn-secondary">⬅ Back to Teams</a>
+<a href="/<%= orgName %>/teams/<%= team._id %>/edit" class="btn btn-primary">✏️ Edit Team</a>

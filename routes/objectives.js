@@ -74,37 +74,46 @@ router.get('/', isLoggedIn, async (req, res) => {
 });
 
 // ✅ CREATE OBJECTIVE
-router.post('/', isLoggedIn, async (req, res) => {
-  const { title, description, cycle, teamId, parentObjective } = req.body;
+router.post('/',
+  isLoggedIn,
+  (req, res, next) => {
+    // Attach teamId explicitly for middleware to check access
+    req.body.teamId = req.body.teamId;
+    next();
+  },
+  isSuperAdminOrFunctionEditor,
+  async (req, res) => {
+    const { title, description, cycle, teamId, parentObjective } = req.body;
 
-  if (!cycle || cycle.trim() === '') {
-    req.flash('error', 'OKR Cycle is required');
-    return res.redirect(`/${req.organization.orgName}/objectives/new`);
+    if (!cycle || cycle.trim() === '') {
+      req.flash('error', 'OKR Cycle is required');
+      return res.redirect(`/${req.organization.orgName}/objectives/new`);
+    }
+
+    const year = cycle.includes('-') ? cycle.split('-')[1] : cycle;
+
+    try {
+      const objective = new Objective({
+        title,
+        description,
+        cycle,
+        year,
+        teamId,
+        organization: req.organization._id,
+        createdBy: req.user._id,
+        parentObjective: parentObjective || null
+      });
+
+      await objective.save();
+      req.flash('success', 'Objective created successfully');
+      res.redirect(`/${req.organization.orgName}/objectives`);
+    } catch (err) {
+      console.error(err);
+      req.flash('error', 'Failed to create objective');
+      res.redirect(`/${req.organization.orgName}/objectives/new`);
+    }
   }
-
-  const year = cycle.includes('-') ? cycle.split('-')[1] : cycle;
-
-  try {
-    const objective = new Objective({
-      title,
-      description,
-      cycle,
-      year,
-      teamId,
-      organization: req.organization._id,
-      createdBy: req.user._id,
-      parentObjective: parentObjective || null
-    });
-
-    await objective.save();
-    req.flash('success', 'Objective created successfully');
-    res.redirect(`/${req.organization.orgName}/objectives`);
-  } catch (err) {
-    console.error(err);
-    req.flash('error', 'Failed to create objective');
-    res.redirect(`/${req.organization.orgName}/objectives/new`);
-  }
-});
+);
 
 //Create a new objective
 router.get('/new', isLoggedIn, async (req, res) => {
@@ -147,23 +156,32 @@ router.get('/:objectiveId', async (req, res) => {
 });
 
 // ✅ UPDATE OBJECTIVE
-router.put('/:objectiveId', isSuperAdminOrFunctionEditor, async (req, res) => {
+router.put('/:objectiveId',
+  isLoggedIn,
+  async (req, res, next) => {
+    const existing = await Objective.findOne({
+      _id: req.params.objectiveId,
+      organization: req.organization._id
+    });
+    if (!existing) return res.status(404).json({ error: 'Objective not found' });
+
+    req.body.teamId = existing.teamId;
+    next();
+  },
+  isSuperAdminOrFunctionEditor,
+  async (req, res) => {
     try {
-      const updated = await Objective.findOneAndUpdate(
-        {
-          _id: req.params.objectiveId,
-          organization: req.organization._id
-        },
+      const updated = await Objective.findByIdAndUpdate(
+        req.params.objectiveId,
         req.body,
         { new: true }
       );
-  
-      if (!updated) return res.status(404).json({ error: 'Objective not found' });
       res.json({ message: 'Objective updated', objective: updated });
     } catch (err) {
       res.status(500).json({ error: 'Failed to update objective' });
     }
-});
+  }
+);
 
 // EDIT OBJECTIVES
 router.get('/:id/edit', isLoggedIn, async (req, res) => {
@@ -237,38 +255,64 @@ router.get('/parent/:parentId', async (req, res) => {
       organization: req.organization._id
     });
     res.json(children);
-  });
+});
   
 // ✅ DELETE (SOFT) OBJECTIVE
-router.delete('/:objectiveId', isSuperAdmin, async (req, res) => {
-  try {
-    const obj = await Objective.findOneAndUpdate(
-      {
-        _id: req.params.objectiveId,
-        organization: req.organization._id
-      },
-      { status: 'off track', summaryUpdate: 'Objective deactivated' },
-      { new: true }
-    );
+router.delete('/:objectiveId',
+  isLoggedIn,
+  async (req, res, next) => {
+    const obj = await Objective.findOne({
+      _id: req.params.objectiveId,
+      organization: req.organization._id
+    });
     if (!obj) return res.status(404).json({ error: 'Objective not found' });
-    res.json({ message: 'Objective deactivated', objective: obj });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete objective' });
+
+    req.body.teamId = obj.teamId;
+    req.objective = obj;
+    next();
+  },
+  isSuperAdminOrFunctionEditor,
+  async (req, res) => {
+    try {
+      const updated = await Objective.findByIdAndUpdate(
+        req.objective._id,
+        { status: 'off track', summaryUpdate: 'Objective deactivated' },
+        { new: true }
+      );
+      res.json({ message: 'Objective deactivated', objective: updated });
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to deactivate objective' });
+    }
   }
-});
+);
 
 //DELETE OBJECTIVES
-router.post('/:id/delete', isLoggedIn, async (req, res) => {
-  try {
-    await Objective.deleteOne({ _id: req.params.id, organization: req.organization._id });
-    req.flash('success', 'Objective deleted successfully');
-    res.redirect(`/${req.organization.orgName}/objectives`);
-  } catch (err) {
-    console.error(err);
-    req.flash('error', 'Failed to delete objective');
-    res.redirect(`/${req.organization.orgName}/objectives`);
+router.post('/:id/delete',
+  isLoggedIn,
+  async (req, res, next) => {
+    const objective = await Objective.findById(req.params.id);
+    if (!objective) {
+      req.flash('error', 'Objective not found');
+      return res.redirect(`/${req.organization.orgName}/objectives`);
+    }
+
+    req.body.teamId = objective.teamId;
+    req.objective = objective;
+    next();
+  },
+  isSuperAdminOrFunctionEditor,
+  async (req, res) => {
+    try {
+      await Objective.deleteOne({ _id: req.objective._id });
+      req.flash('success', 'Objective deleted successfully');
+      res.redirect(`/${req.organization.orgName}/objectives`);
+    } catch (err) {
+      console.error(err);
+      req.flash('error', 'Failed to delete objective');
+      res.redirect(`/${req.organization.orgName}/objectives`);
+    }
   }
-});
+);
 
 // Utility to calculate progress
 function calculateProgress(kr, latestUpdateValue) {
@@ -332,39 +376,49 @@ router.get('/:objectiveId/keyresults/new', isLoggedIn, async (req, res) => {
 });
 
 // ✅ Create KR
-router.post('/:objectiveId/keyresults', isSuperAdminOrFunctionEditor, async (req, res) => {
-  try {
-    const kr = new KeyResult({
-      ...req.body,
-      organization: req.organization._id,
-      objectiveId: req.params.objectiveId,
-      createdBy: req.user._id
+router.post('/:objectiveId/keyresults',
+  isLoggedIn,
+  async (req, res, next) => {
+    const objective = await Objective.findOne({
+      _id: req.params.objectiveId,
+      organization: req.organization._id
     });
-
-    // 👇 Explicitly parse numeric fields if applicable
-    if (kr.metricType === 'percent' || kr.metricType === 'number') {
-      kr.startValue = Number(req.body.startValue);
-      kr.targetValue = Number(req.body.targetValue);
+    if (!objective) {
+      req.flash('error', 'Objective not found');
+      return res.redirect(`/${req.organization.orgName}/objectives`);
     }
 
-    const milestones = req.body.milestones?.map(m => ({
-      label: m.label,
-      weight: Number(m.weight),
-      dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-    }));
+    req.body.teamId = objective.teamId;
+    req.objective = objective;
+    next();
+  },
+  isSuperAdminOrFunctionEditor,
+  async (req, res) => {
+    try {
+      const kr = new KeyResult({
+        ...req.body,
+        organization: req.organization._id,
+        objectiveId: req.params.objectiveId,
+        createdBy: req.user._id
+      });
 
-    kr.progressValue = calculateProgress(kr);
-    await kr.save();
+      if (kr.metricType === 'percent' || kr.metricType === 'number') {
+        kr.startValue = Number(req.body.startValue);
+        kr.targetValue = Number(req.body.targetValue);
+      }
 
-    await calculateObjectiveProgress(req.params.objectiveId);
+      kr.progressValue = calculateProgress(kr);
+      await kr.save();
+      await calculateObjectiveProgress(req.params.objectiveId);
 
-    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-  } catch (err) {
-    console.error(err);
-    req.flash('error', 'Failed to create Key Result');
-    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    } catch (err) {
+      console.error(err);
+      req.flash('error', 'Failed to create Key Result');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
   }
-});
+);
 
 // 🧠 AI Validate
 router.post('/:objectiveId/keyresults/validate-ai', isSuperAdminOrFunctionEditor, async (req, res) => {
@@ -430,55 +484,82 @@ Return only the milestone steps as a numbered list.
 });
 
 // ✏️ Edit KR form
-router.get('/:objectiveId/keyresults/new', isLoggedIn, async (req, res) => {
-  const objective = await Objective.findOne({
-    _id: req.params.objectiveId,
-    organization: req.organization._id
-  });
+// To be deleted
+// router.get('/:objectiveId/keyresults/new', isLoggedIn, async (req, res) => {
+//   const objective = await Objective.findOne({
+//     _id: req.params.objectiveId,
+//     organization: req.organization._id
+//   });
 
-  if (!objective) {
-    req.flash('error', 'Objective not found');
-    return res.redirect(`/${req.organization.orgName}/objectives`);
-  }
+//   if (!objective) {
+//     req.flash('error', 'Objective not found');
+//     return res.redirect(`/${req.organization.orgName}/objectives`);
+//   }
 
-  res.render('keyresults/new', {
-    orgName: req.organization.orgName,
-    user: req.user,
-    objective,
-    kr: null // ✅ Pass kr as null to avoid reference error
-  });
-});
+//   res.render('keyresults/new', {
+//     orgName: req.organization.orgName,
+//     user: req.user,
+//     objective,
+//     kr: null // ✅ Pass kr as null to avoid reference error
+//   });
+// });
 
 
 // 🔁 Update KR
-router.post('/:objectiveId/keyresults/:krId', isSuperAdminOrFunctionEditor, async (req, res) => {
-  try {
-    const kr = await KeyResult.findOneAndUpdate(
-      {
-        _id: req.params.krId,
-        organization: req.organization._id
-      },
-      req.body,
-      { new: true }
-    );
+// To be deleted
+// router.post('/:objectiveId/keyresults/:krId',
+//   isLoggedIn,
+//   async (req, res, next) => {
+//     const kr = await KeyResult.findOne({
+//       _id: req.params.krId,
+//       organization: req.organization._id
+//     });
 
-    if (kr.metricType === 'percent' || kr.metricType === 'number') {
-      kr.startValue = Number(req.body.startValue);
-      kr.targetValue = Number(req.body.targetValue);
-    }
+//     if (!kr) {
+//       req.flash('error', 'Key Result not found');
+//       return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+//     }
 
-    kr.progressValue = calculateProgress(kr);
-    await kr.save();
+//     const objective = await Objective.findById(kr.objectiveId);
+//     if (!objective) {
+//       req.flash('error', 'Objective not found');
+//       return res.redirect(`/${req.organization.orgName}/objectives`);
+//     }
 
-    await calculateObjectiveProgress(req.params.objectiveId);
+//     req.body.teamId = objective.teamId;
+//     next();
+//   },
+//   isSuperAdminOrFunctionEditor,
+//   async (req, res) => {
+//     try {
+//       const kr = await KeyResult.findOneAndUpdate(
+//         {
+//           _id: req.params.krId,
+//           organization: req.organization._id
+//         },
+//         req.body,
+//         { new: true }
+//       );
 
-    req.flash('success', 'Key Result updated');
-    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-  } catch (err) {
-    req.flash('error', 'Failed to update Key Result');
-    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-  }
-});
+//       if (kr.metricType === 'percent' || kr.metricType === 'number') {
+//         kr.startValue = Number(req.body.startValue);
+//         kr.targetValue = Number(req.body.targetValue);
+//       }
+
+//       kr.progressValue = calculateProgress(kr);
+//       await kr.save();
+
+//       await calculateObjectiveProgress(req.params.objectiveId);
+
+//       req.flash('success', 'Key Result updated');
+//       res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+//     } catch (err) {
+//       console.error(err);
+//       req.flash('error', 'Failed to update Key Result');
+//       res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+//     }
+//   }
+// );
 
 // ✏️ GET: Edit a Key Result
 router.get('/:objectiveId/keyresults/:krId/edit', isLoggedIn, async (req, res) => {
@@ -514,70 +595,161 @@ router.get('/:objectiveId/keyresults/:krId/edit', isLoggedIn, async (req, res) =
 
 
 // ⬆️ Update Progress (inline)
-router.post('/:objectiveId/keyresults/:krId/update', isLoggedIn, async (req, res) => {
-  const { updateText } = req.body;
-  const updateValueRaw = req.body.updateValue;
-  const updateValue = parseFloat(updateValueRaw);
-
-  try {
+router.post('/:objectiveId/keyresults/:krId',
+  isLoggedIn,
+  async (req, res, next) => {
     const kr = await KeyResult.findOne({
       _id: req.params.krId,
       organization: req.organization._id
     });
 
-    if (isNaN(updateValue)) {
-      req.flash('error', 'Progress value must be a valid number');
+    if (!kr) {
+      req.flash('error', 'Key Result not found');
       return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
     }
 
-    if (!kr) return res.status(404).json({ error: 'Key Result not found' });
-
-    console.log("Update submitted VALUE:", req.body.updateValue);
-    console.log("Update submitted NOTE:", req.body.updateText);
-
-    kr.updates.push({
-      updateValue,
-      updateText,
-      updatedBy: req.user._id
+    const objective = await Objective.findOne({
+      _id: kr.objectiveId,
+      organization: req.organization._id
     });
 
-    console.log('🧪 Final Parsed updateValue:', updateValue, 'Type:', typeof updateValue);
-    console.log('💾 Stored in KR.updates:', kr.updates[kr.updates.length - 1]);
+    if (!objective) {
+      req.flash('error', 'Associated objective not found');
+      return res.redirect(`/${req.organization.orgName}/objectives`);
+    }
 
-    console.log("Progress calculated:", kr.progressValue);
+    req.body.teamId = objective.teamId;
+    req.keyResult = kr;
+    next();
+  },
+  isSuperAdminOrFunctionEditor,
+  async (req, res) => {
+    try {
+      const kr = req.keyResult;
 
-    kr.progressValue = calculateProgress(kr, Number(updateValue));
-    kr.updatedAt = new Date();
-    await kr.save();
+      kr.title = req.body.title;
+      kr.metricType = req.body.metricType;
+      kr.startValue = Number(req.body.startValue);
+      kr.targetValue = Number(req.body.targetValue);
+      kr.direction = req.body.direction || 'auto';
+      kr.updatedAt = new Date();
 
-    await calculateObjectiveProgress(kr.objectiveId);
+      if (Array.isArray(req.body.milestones)) {
+        kr.milestones = req.body.milestones.map(m => ({
+          label: m.label,
+          weight: Number(m.weight),
+          dueDate: m.dueDate ? new Date(m.dueDate) : undefined
+        }));
+      }
 
-    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update progress' });
+      kr.progressValue = calculateProgress(kr);
+      await kr.save();
+      await calculateObjectiveProgress(req.params.objectiveId);
+
+      req.flash('success', 'Key Result updated successfully');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    } catch (err) {
+      console.error(err);
+      req.flash('error', 'Failed to update Key Result');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
   }
-});
+);
+
+// ⬆️ Inline Progress Update
+router.post('/:objectiveId/keyresults/:krId/update',
+  isLoggedIn,
+  async (req, res, next) => {
+    const kr = await KeyResult.findOne({
+      _id: req.params.krId,
+      organization: req.organization._id
+    });
+
+    if (!kr) {
+      req.flash('error', 'Key Result not found');
+      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+
+    const objective = await Objective.findById(kr.objectiveId);
+    if (!objective) {
+      req.flash('error', 'Associated objective not found');
+      return res.redirect(`/${req.organization.orgName}/objectives`);
+    }
+
+    req.body.teamId = objective.teamId;
+    req.keyResult = kr;
+    next();
+  },
+  isSuperAdminOrFunctionEditor,
+  async (req, res) => {
+    try {
+      const kr = req.keyResult;
+      const parsedValue = parseFloat(req.body.updateValue);
+
+      if (isNaN(parsedValue)) {
+        req.flash('error', 'Progress must be a valid number');
+        return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+      }
+
+      kr.updates.push({
+        updateValue: parsedValue,
+        updateText: req.body.updateText,
+        updatedBy: req.user._id
+      });
+
+      kr.progressValue = calculateProgress(kr, parsedValue);
+      kr.updatedAt = new Date();
+
+      await kr.save();
+      await calculateObjectiveProgress(kr.objectiveId);
+
+      req.flash('success', 'Progress updated');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    } catch (err) {
+      console.error(err);
+      req.flash('error', 'Failed to update progress');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+  }
+);
 
 // ❌ Delete (soft)
-router.post('/:objectiveId/keyresults/:krId/delete', isSuperAdmin, async (req, res) => {
-  try {
-    const kr = await KeyResult.findOneAndUpdate(
-      {
-        _id: req.params.krId,
-        organization: req.organization._id
-      },
-      { deactivated: true },
-      { new: true }
-    );
+router.post('/:objectiveId/keyresults/:krId/delete',
+  isLoggedIn,
+  async (req, res, next) => {
+    const kr = await KeyResult.findOne({
+      _id: req.params.krId,
+      organization: req.organization._id
+    });
 
-    if (!kr) return res.status(404).json({ error: 'Key Result not found' });
+    if (!kr) {
+      req.flash('error', 'Key Result not found');
+      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
 
-    req.flash('success', 'Key Result deactivated');
-    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete Key Result' });
+    const objective = await Objective.findById(kr.objectiveId);
+    if (!objective) {
+      req.flash('error', 'Associated objective not found');
+      return res.redirect(`/${req.organization.orgName}/objectives`);
+    }
+
+    req.body.teamId = objective.teamId;
+    req.krToDelete = kr;
+    next();
+  },
+  isSuperAdminOrFunctionEditor,
+  async (req, res) => {
+    try {
+      req.krToDelete.deactivated = true;
+      await req.krToDelete.save();
+
+      req.flash('success', 'Key Result deactivated');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to delete Key Result' });
+    }
   }
-});
-
+);
 
 module.exports = router;

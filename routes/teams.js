@@ -3,8 +3,9 @@ const router = express.Router({ mergeParams: true });
 const Team = require('../models/Team');
 const { isSuperAdmin } = require('../middleware/checkRoles');
 const User = require('../models/User');
+const Objective = require('../models/Objective');
 
-//Teams index page
+// Teams index page
 router.get('/', isSuperAdmin, async (req, res) => {
   try {
     const teams = await Team.find({
@@ -22,7 +23,6 @@ router.get('/', isSuperAdmin, async (req, res) => {
     res.redirect(`/${req.organization.orgName}/dashboard`);
   }
 });
-
 
 // GET form to create team
 router.get('/new', isSuperAdmin, async (req, res) => {
@@ -45,28 +45,16 @@ router.post('/', isSuperAdmin, async (req, res) => {
     });
 
     await team.save();
-    res.status(201).json({ message: 'Team created', team });
+    req.flash('success', 'Team created successfully');
+    res.redirect(`/${req.organization.orgName}/teams`);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to create team' });
+    req.flash('error', 'Failed to create team');
+    res.redirect(`/${req.organization.orgName}/teams`);
   }
 });
 
-// READ all active teams in org
-router.get('/', async (req, res) => {
-  try {
-    const teams = await Team.find({
-      organization: req.organization._id,
-      activeTeam: true
-    }).populate('functionHead okrEditors parentTeam', 'name email');
-    
-    res.json(teams);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch teams' });
-  }
-});
-
-// READ single team
+// READ single team (rendered page)
 router.get('/:teamId', async (req, res) => {
   try {
     const team = await Team.findOne({
@@ -74,10 +62,15 @@ router.get('/:teamId', async (req, res) => {
       organization: req.organization._id
     }).populate('functionHead okrEditors parentTeam', 'name email');
 
-    if (!team) return res.status(404).json({ error: 'Team not found' });
-    res.json(team);
+    if (!team) {
+      req.flash('error', 'Team not found');
+      return res.redirect(`/${req.organization.orgName}/teams`);
+    }
+
+    res.render('teams/show', { orgName: req.organization.orgName, team, user: req.user });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch team' });
+    req.flash('error', 'Failed to fetch team');
+    res.redirect(`/${req.organization.orgName}/teams`);
   }
 });
 
@@ -90,19 +83,36 @@ router.get('/:teamId/edit', isSuperAdmin, async (req, res) => {
 });
 
 // UPDATE team
+// UPDATE team
 router.put('/:teamId', isSuperAdmin, async (req, res) => {
   try {
+    // Normalize okrEditors to an array
+    if (req.body.okrEditors && !Array.isArray(req.body.okrEditors)) {
+      req.body.okrEditors = [req.body.okrEditors];
+    }
+
+    // Remove empty string from parentTeam
+    if (req.body.parentTeam === '') {
+      delete req.body.parentTeam;
+    }
+
     const updatedTeam = await Team.findOneAndUpdate(
       { _id: req.params.teamId, organization: req.organization._id },
       req.body,
       { new: true }
     ).populate('functionHead okrEditors parentTeam', 'name email');
 
-    if (!updatedTeam) return res.status(404).json({ error: 'Team not found' });
+    if (!updatedTeam) {
+      req.flash('error', 'Team not found');
+      return res.redirect(`/${req.organization.orgName}/teams`);
+    }
+
     req.flash('success', 'Team updated successfully');
     res.redirect(`/${req.organization.orgName}/teams`);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update team' });
+    console.error(err);
+    req.flash('error', 'Failed to update team');
+    res.redirect(`/${req.organization.orgName}/teams`);
   }
 });
 
@@ -111,7 +121,6 @@ router.delete('/:teamId', isSuperAdmin, async (req, res) => {
   try {
     const teamId = req.params.teamId;
 
-    // 1. Check for sub-teams
     const hasChildren = await Team.exists({
       parentTeam: teamId,
       organization: req.organization._id,
@@ -123,7 +132,6 @@ router.delete('/:teamId', isSuperAdmin, async (req, res) => {
       return res.redirect(`/${req.organization.orgName}/teams`);
     }
 
-    // 2. Check for active users in this team
     const hasUsers = await User.exists({
       team: teamId,
       organization: req.organization._id,
@@ -135,7 +143,6 @@ router.delete('/:teamId', isSuperAdmin, async (req, res) => {
       return res.redirect(`/${req.organization.orgName}/teams`);
     }
 
-    // 3. (Optional) Check if team is used in any active Objective
     const isTaggedInObjective = await Objective.exists({
       teamId: teamId,
       organization: req.organization._id
@@ -146,7 +153,6 @@ router.delete('/:teamId', isSuperAdmin, async (req, res) => {
       return res.redirect(`/${req.organization.orgName}/teams`);
     }
 
-    // ✅ Proceed with soft delete
     await Team.findOneAndUpdate(
       { _id: teamId, organization: req.organization._id },
       { activeTeam: false }

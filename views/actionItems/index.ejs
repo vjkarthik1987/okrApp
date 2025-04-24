@@ -21,11 +21,28 @@
     <% function renderItem(item, level = 0) { %>
       <tr>
         <td>
-          <%= '-'.repeat(level + 1) %> <%= item.title %>
-          <a href="/<%= orgName %>/actionItems/<%= item._id %>" class="ms-2" title="View details" style="text-decoration: none;">
-            🔍
-          </a>
-        </td>
+          <div class="d-flex align-items-center">
+            <span class="me-2 toggle-updates" data-id="<%= item._id %>" style="cursor: pointer;">▶</span>
+            <div>
+              <div><%= '-'.repeat(level + 1) %> <%= item.title %></div>
+              <div id="updates-<%= item._id %>" class="mt-1" style="display: none;">
+                <% if (item.updates && item.updates.length > 0) { %>
+                  <ul class="list-group small">
+                    <% item.updates.slice().reverse().forEach(update => { %>
+                      <li class="list-group-item px-2 py-1 d-flex justify-content-between">
+                        <span><%= update.updateText %></span>
+                        <small class="text-muted"><%= new Date(update.updateDate).toLocaleString() %></small>
+                      </li>
+                    <% }) %>
+                  </ul>
+                <% } else { %>
+                  <div class="text-muted small">No updates yet.</div>
+                <% } %>
+              </div>
+            </div>
+            <a href="/<%= orgName %>/actionItems/<%= item._id %>" class="ms-2" title="View details" style="text-decoration: none;">🔍</a>
+          </div>
+        </td>        
         <td><%= item.assignedTo?.name || item.assignedTo?.email %></td>
         <td><%= item.meeting || '-' %></td>
         <td><%= item.dueDate ? new Date(item.dueDate).toDateString() : '-' %></td>
@@ -47,9 +64,23 @@
     <% actionItems.forEach(item => renderItem(item)) %>
   </tbody>
 </table>
-
 <script>
   function confirmDelete() {
     return confirm("Are you sure you want to delete this Action Item?");
   }
+  function confirmDelete() {
+    return confirm("Are you sure you want to delete this Action Item?");
+  }
+
+  document.querySelectorAll('.toggle-updates').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const updatesDiv = document.getElementById(`updates-${id}`);
+      const isVisible = updatesDiv.style.display === 'block';
+      
+      updatesDiv.style.display = isVisible ? 'none' : 'block';
+      el.textContent = isVisible ? '▶' : '▼';
+    });
+  });
 </script>
+

@@ -12,6 +12,9 @@
 <hr>
 
 <h5>🧩 Linked Action Items</h5>
+<a href="/<%= orgName %>/actionItems/new?initiativeId=<%= initiative._id %>" class="btn btn-primary mt-3 mb-3">
+  ➕ Add Action Item to This Initiative
+</a>
 <% if (actionItems.length > 0) { %>
   <ul class="list-group">
     <% actionItems.forEach(ai => { %>

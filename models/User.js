@@ -14,17 +14,16 @@ const userSchema = new mongoose.Schema({
     trim: true,
     unique: false // Unique within org, so don't enforce globally here
   },
-  role: {
-    type: String,
-    enum: ['super_admin', 'function_head', 'okr_editor', 'employee'],
-    default: 'employee'
-  },
   manager: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' },
   organization: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Organization',
     required: true
+  },
+  isSuperAdmin: {
+    type: Boolean,
+    default: false
   },
   isActive: {
     type: Boolean,

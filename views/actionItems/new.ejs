@@ -15,6 +15,22 @@
   </div>
 
   <div class="mb-3">
+    <label for="initiativeId">Initiative (optional)</label>
+    <% if (preselectedInitiativeId) { %>
+      <input type="hidden" name="initiativeId" value="<%= preselectedInitiativeId %>">
+      <% const selected = initiatives.find(i => i._id.toString() === preselectedInitiativeId.toString()); %>
+      <input type="text" class="form-control" disabled value="<%= selected?.title || 'Selected initiative' %>">
+    <% } else { %>
+      <select name="initiativeId" id="initiativeId" class="form-control">
+        <option value="">-- None --</option>
+        <% initiatives.forEach(i => { %>
+          <option value="<%= i._id %>"><%= i.title %></option>
+        <% }) %>
+      </select>
+    <% } %>
+  </div>
+
+  <div class="mb-3">
     <label for="assignedTo">Assign To <span class="text-danger">*</span></label>
     <select name="assignedTo" id="assignedTo" class="form-control" required>
       <% users.forEach(user => { %>
@@ -58,16 +74,6 @@
       <option value="">-- None --</option>
       <% keyResults.forEach(kr => { %>
         <option value="<%= kr._id %>"><%= kr.title %></option>
-      <% }) %>
-    </select>
-  </div>
-
-  <div class="mb-3">
-    <label for="initiativeId">Initiative (optional)</label>
-    <select name="initiativeId" id="initiativeId" class="form-control">
-      <option value="">-- None --</option>
-      <% initiatives.forEach(i => { %>
-        <option value="<%= i._id %>"><%= i.title %></option>
       <% }) %>
     </select>
   </div>

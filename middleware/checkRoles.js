@@ -1,31 +1,59 @@
-// Only super admin can access
-exports.isSuperAdmin = (req, res, next) => {
-    const user = req.user;
-    if (!user || user.role !== 'super_admin') {
-      return res.status(403).json({ error: 'Access denied. Super admin only.' });
-    }
-    next();
-  };
-  
-  // Super admin or the user themselves can update
-  exports.canEditOwnOrSuperAdmin = (req, res, next) => {
-    const currentUser = req.user;
-    const targetUserId = req.params.userId;
-  
-    if (
-      currentUser.role === 'super_admin' ||
-      currentUser._id.toString() === targetUserId
-    ) {
-      return next();
-    }
-  
-    return res.status(403).json({ error: 'You are not allowed to update this user.' });
-};  
+const Team = require('../models/Team');
 
-exports.isSuperAdminOrFunctionEditor = (req, res, next) => {
-  const user = req.user;
-  if (!user || !['super_admin', 'function_head', 'okr_editor'].includes(user.role)) {
-    return res.status(403).json({ error: 'Access denied. Only editors or admins can create objectives.' });
+const handleAccessDenied = (req, res, message = 'Access denied.') => {
+  if (req.accepts('html')) {
+    req.flash('error', message);
+    return res.redirect(`/${req.organization?.orgName || 'dashboard'}/dashboard`);
+  } else {
+    return res.status(403).json({ error: message });
   }
-  next();
+};
+
+// ✅ Check if user is super admin
+exports.isSuperAdmin = (req, res, next) => {
+  if (req.user?.isSuperAdmin) return next();
+  return handleAccessDenied(req, res, 'Access denied. Super admin only.');
+};
+
+// ✅ Check if user is super admin or editing their own record
+exports.canEditOwnOrSuperAdmin = (req, res, next) => {
+  if (req.user?.isSuperAdmin || req.user._id.toString() === req.params.userId) return next();
+  return handleAccessDenied(req, res, 'You are not allowed to edit this user.');
+};
+
+// ✅ Check if user can edit objectives/KRs for a specific team
+exports.isSuperAdminOrFunctionEditor = async (req, res, next) => {
+  const user = req.user;
+  if (user.isSuperAdmin) return next();
+
+  try {
+    const teamId =
+      req.body.teamId ||
+      req.body.objective?.teamId ||
+      req.query.teamId ||
+      req.objective?.teamId;
+
+    if (!teamId) {
+      req.flash('error', 'Team ID missing for access validation');
+      return res.redirect(`/${req.organization.orgName}/dashboard`);
+    }
+
+    const team = await Team.findById(teamId);
+    if (!team) {
+      req.flash('error', 'Team not found');
+      return res.redirect(`/${req.organization.orgName}/dashboard`);
+    }
+
+    const isFunctionHead = team.functionHead?.toString() === user._id.toString();
+    const isEditor = team.okrEditors?.some(id => id.toString() === user._id.toString());
+
+    if (isFunctionHead || isEditor) return next();
+
+    req.flash('error', 'Access denied. Only Function Heads, OKR Editors, or Super Admins may create/edit for this team.');
+    return res.redirect(`/${req.organization.orgName}/dashboard`);
+  } catch (err) {
+    console.error('Role check failed:', err);
+    req.flash('error', 'Internal server error during role check.');
+    return res.redirect(`/${req.organization.orgName}/dashboard`);
+  }
 };

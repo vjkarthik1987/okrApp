@@ -41,6 +41,7 @@ router.get('/', isLoggedIn, async (req, res) => {
 // New
 router.get('/new', isLoggedIn, async (req, res) => {
   const { orgName } = req.params;
+  const { initiativeId } = req.query;
 
   const users = await User.find({ organization: req.user.organization });
   const cycles = await OKRCycle.find({ organization: req.user.organization, isEnabled: true });
@@ -56,7 +57,8 @@ router.get('/new', isLoggedIn, async (req, res) => {
     objectives,
     keyResults,
     actionItems,
-    initiatives
+    initiatives,
+    preselectedInitiativeId: initiativeId || null,
   });
 });
 
