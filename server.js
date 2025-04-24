@@ -58,7 +58,8 @@ app.use('/:orgName/objectives', loadOrg, require('./routes/objectives'));
 //app.use('/:orgName/keyresults', loadOrg, require('./routes/keyresults'));
 app.use('/:orgName/dashboard', loadOrg, require('./routes/dashboard'));
 app.use('/:orgName/admin/cycles', loadOrg, require('./routes/cycles'));
-
+app.use('/:orgName/actionItems', loadOrg, require('./routes/actionItems'));
+app.use('/:orgName/initiatives', loadOrg, require('./routes/initiatives'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}\n----------------------------------------------------------`));

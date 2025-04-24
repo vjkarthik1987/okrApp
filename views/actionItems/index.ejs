@@ -1,0 +1,55 @@
+<% layout('layouts/dashboard') %>
+<% title = 'All Action Items' %>
+
+<h2>📋 Action Items</h2>
+
+<a href="/<%= orgName %>/actionItems/new" class="btn btn-primary mb-3">➕ New Action Item</a>
+
+<table class="table table-bordered table-hover">
+  <thead class="table-light">
+    <tr>
+      <th>Title</th>
+      <th>Assigned To</th>
+      <th>Meeting</th>
+      <th>Due Date</th>
+      <th>Status</th>
+      <th>Cycle</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% function renderItem(item, level = 0) { %>
+      <tr>
+        <td>
+          <%= '-'.repeat(level + 1) %> <%= item.title %>
+          <a href="/<%= orgName %>/actionItems/<%= item._id %>" class="ms-2" title="View details" style="text-decoration: none;">
+            🔍
+          </a>
+        </td>
+        <td><%= item.assignedTo?.name || item.assignedTo?.email %></td>
+        <td><%= item.meeting || '-' %></td>
+        <td><%= item.dueDate ? new Date(item.dueDate).toDateString() : '-' %></td>
+        <td><%= item.updates?.length ? '⏳ In Progress' : '🆕 New' %></td>
+        <td><%= item.cycle?.label %></td>
+        <td>
+          <a href="/<%= orgName %>/actionItems/<%= item._id %>/edit" class="btn btn-sm btn-outline-primary">Edit</a>
+          <form method="POST" action="/<%= orgName %>/actionItems/<%= item._id %>?_method=DELETE" style="display:inline" onsubmit="return confirmDelete()">
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+  
+      <% if (item.children && item.children.length > 0) {
+        item.children.forEach(child => renderItem(child, level + 1));
+      } %>
+    <% } %>
+  
+    <% actionItems.forEach(item => renderItem(item)) %>
+  </tbody>
+</table>
+
+<script>
+  function confirmDelete() {
+    return confirm("Are you sure you want to delete this Action Item?");
+  }
+</script>

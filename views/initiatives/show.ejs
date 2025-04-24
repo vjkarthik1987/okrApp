@@ -1,0 +1,29 @@
+<% layout('layouts/dashboard') %>
+<% title = initiative.title %>
+
+<h2>🚀 <%= initiative.title %></h2>
+
+<p><strong>Description:</strong> <%= initiative.description || '—' %></p>
+<p><strong>Expected Outcome:</strong> <%= initiative.expectedOutcome %></p>
+<p><strong>Outcome Achieved:</strong> <%= initiative.outcomeAchieved || '—' %></p>
+<p><strong>Status:</strong> <span class="badge bg-dark"><%= initiative.status %></span></p>
+<p><strong>Key Result:</strong> <%= initiative.keyResultId?.title || '—' %></p>
+
+<hr>
+
+<h5>🧩 Linked Action Items</h5>
+<% if (actionItems.length > 0) { %>
+  <ul class="list-group">
+    <% actionItems.forEach(ai => { %>
+      <li class="list-group-item d-flex justify-content-between">
+        <span><%= ai.title %></span>
+        <span class="text-muted"><%= ai.status || 'Not Started' %></span>
+      </li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p class="text-muted">No action items linked to this initiative yet.</p>
+<% } %>
+
+<a href="/<%= orgName %>/initiatives/<%= initiative._id %>/edit" class="btn btn-outline-primary mt-3">✏️ Edit</a>
+<a href="/<%= orgName %>/initiatives" class="btn btn-outline-secondary mt-3">⬅ Back</a>

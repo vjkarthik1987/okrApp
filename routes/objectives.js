@@ -77,7 +77,11 @@ router.get('/', isLoggedIn, async (req, res) => {
 router.post('/', isLoggedIn, async (req, res) => {
   const { title, description, cycle, teamId, parentObjective } = req.body;
 
-  // Extract year from cycle string
+  if (!cycle || cycle.trim() === '') {
+    req.flash('error', 'OKR Cycle is required');
+    return res.redirect(`/${req.organization.orgName}/objectives/new`);
+  }
+
   const year = cycle.includes('-') ? cycle.split('-')[1] : cycle;
 
   try {
@@ -85,7 +89,7 @@ router.post('/', isLoggedIn, async (req, res) => {
       title,
       description,
       cycle,
-      year, // ✅ Set year explicitly
+      year,
       teamId,
       organization: req.organization._id,
       createdBy: req.user._id,
@@ -95,7 +99,6 @@ router.post('/', isLoggedIn, async (req, res) => {
     await objective.save();
     req.flash('success', 'Objective created successfully');
     res.redirect(`/${req.organization.orgName}/objectives`);
-
   } catch (err) {
     console.error(err);
     req.flash('error', 'Failed to create objective');
@@ -110,8 +113,9 @@ router.get('/new', isLoggedIn, async (req, res) => {
     const objectives = await Objective.find({ organization: req.organization._id });
     const enabledCycles = await OKRCycle.find({
       organization: req.organization._id,
-      isEnabled: true
-    }).sort({ label: 1 });
+      isEnabled: true,
+      type: 'quarter' // ✅ only fetch Q1/Q2/Q3/Q4 cycles
+    }).sort({ label: 1 })
 
     res.render('objectives/new', {
       orgName: req.organization.orgName,

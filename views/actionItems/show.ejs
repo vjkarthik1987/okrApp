@@ -1,0 +1,42 @@
+<% layout('layouts/dashboard') %>
+<% title = item.title %>
+
+<h2>📝 <%= item.title %></h2>
+
+<p><strong>Description:</strong> <%= item.description || '—' %></p>
+
+<div class="row">
+  <div class="col-md-6">
+    <p><strong>Assigned To:</strong> <%= item.assignedTo?.name || item.assignedTo?.email %></p>
+    <p><strong>Assigned By:</strong> <%= item.assignedBy?.name || item.assignedBy?.email %></p>
+    <p><strong>Status:</strong> <span class="badge bg-secondary"><%= item.status || 'Not Started' %></span></p>
+    <p><strong>Due Date:</strong> <%= item.dueDate ? new Date(item.dueDate).toDateString() : '—' %></p>
+  </div>
+  <div class="col-md-6">
+    <p><strong>Meeting:</strong> <%= item.meeting || '—' %></p>
+    <p><strong>Cycle:</strong> <%= item.cycle?.label %></p>
+    <p><strong>Objective:</strong> <%= item.objectiveId?.title || '—' %></p>
+    <p><strong>Key Result:</strong> <%= item.keyResultId?.title || '—' %></p>
+  </div>
+</div>
+
+<hr>
+
+<h5>📚 Update History</h5>
+<% if (item.updates && item.updates.length > 0) { %>
+  <ul class="list-group">
+    <% item.updates.slice().reverse().forEach(u => { %>
+      <li class="list-group-item d-flex justify-content-between">
+        <span><%= u.updateText %></span>
+        <small class="text-muted"><%= new Date(u.updateDate).toLocaleString() %></small>
+      </li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p class="text-muted">No updates yet.</p>
+<% } %>
+
+<hr>
+
+<a href="/<%= orgName %>/actionItems/<%= item._id %>/edit" class="btn btn-outline-primary">✏️ Edit</a>
+<a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary">⬅ Back</a>

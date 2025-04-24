@@ -1,0 +1,35 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Initiatives' %>
+
+<h2>📌 All Initiatives</h2>
+<a href="/<%= orgName %>/initiatives/new" class="btn btn-primary mb-3">➕ Create New Initiative</a>
+
+<% if (initiatives.length === 0) { %>
+  <div class="alert alert-warning">No initiatives created yet.</div>
+<% } else { %>
+  <table class="table table-bordered table-hover">
+    <thead class="table-light">
+      <tr>
+        <th>Title</th>
+        <th>Expected Outcome</th>
+        <th>Status</th>
+        <th>KR</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% initiatives.forEach(i => { %>
+        <tr>
+          <td><%= i.title %></td>
+          <td><%= i.expectedOutcome %></td>
+          <td><span class="badge bg-secondary"><%= i.status %></span></td>
+          <td><%= i.keyResultId?.title || '—' %></td>
+          <td>
+            <a href="/<%= orgName %>/initiatives/<%= i._id %>" class="btn btn-sm btn-outline-primary">View</a>
+            <a href="/<%= orgName %>/initiatives/<%= i._id %>/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
