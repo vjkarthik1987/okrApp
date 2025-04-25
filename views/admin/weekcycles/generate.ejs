@@ -1,0 +1,27 @@
+<% title = 'Generate WeekCycles' %>
+<% layout('layouts/dashboard') %>
+
+<h2>Generate Weekly Cycles</h2>
+
+<form action="/<%= orgName %>/admin/weekcycles/generate" method="POST">
+  <div class="mb-3">
+    <label for="cycle">Select OKR Cycle</label>
+    <select name="cycleId" class="form-control" required>
+      <% okrCycles.forEach(cycle => { %>
+        <option value="<%= cycle._id %>"><%= cycle.label %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label for="startDate">First Wednesday</label>
+    <input type="date" name="startDate" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label for="numWeeks">Number of Weeks</label>
+    <input type="number" name="numWeeks" value="13" class="form-control" required>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Generate Weeks</button>
+</form>

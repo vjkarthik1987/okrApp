@@ -1,0 +1,45 @@
+<% title = "New Diary Entry" %>
+<% layout('layouts/dashboard') %>
+
+<h2 class="mb-4">📝 New Diary Entry</h2>
+
+<form action="/<%= orgName %>/diary" method="POST">
+  <div class="mb-3">
+    <label for="weekCycle">Select Week</label>
+    <select name="weekCycleId" id="weekCycleSelect" class="form-control" required onchange="updateEntryCount()">
+      <% weeks.forEach(week => { %>
+        <option value="<%= week._id %>"><%= week.label %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div id="entryCountMessage" class="text-muted mb-3"></div>
+
+  <div class="mb-3">
+    <label for="content">What did you work on?</label>
+    <textarea name="content" class="form-control" rows="6" required></textarea>
+  </div>
+
+  <button type="submit" class="btn btn-success">💾 Save Entry</button>
+</form>
+
+<script>
+  const diaryCounts = <%- JSON.stringify(diaryCounts) %>;
+
+  function updateEntryCount() {
+    const selectedWeekId = document.getElementById('weekCycleSelect').value;
+    const count = diaryCounts[selectedWeekId] || 0;
+
+    const messageDiv = document.getElementById('entryCountMessage');
+    if (count === 0) {
+      messageDiv.innerText = "No entries yet for this week.";
+    } else if (count === 1) {
+      messageDiv.innerText = "You already have 1 entry for this week.";
+    } else {
+      messageDiv.innerText = `You already have ${count} entries for this week.`;
+    }
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', updateEntryCount);
+</script>

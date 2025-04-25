@@ -4,6 +4,7 @@
 <h2>Key Results for: <%= objective.title %></h2>
 
 <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/new" class="btn btn-primary mb-3">➕ Add Key Result</a>
+<a href="/<%= orgName %>/objectives/" class="btn btn-outline-secondary mb-3">⬅️ Back to Objectivess</a>
 
 <% if (keyResults.length === 0) { %>
   <div class="alert alert-warning">No key results yet.</div>

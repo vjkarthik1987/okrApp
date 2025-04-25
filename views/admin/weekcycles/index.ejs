@@ -1,0 +1,28 @@
+<% title = 'Generate WeekCycles' %>
+<% layout('layouts/dashboard') %>
+<h2>All WeekCycles</h2>
+
+<a href="/<%= orgName %>/admin/weekcycles/generate" class="btn btn-success mb-3">➕ Generate New WeekCycles</a>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Cycle</th>
+      <th>Label</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% cycles.forEach(w => { %>
+      <tr>
+        <td><%= w.cycle.name %></td>
+        <td><%= w.label %></td>
+        <td><%= w.weekStart.toDateString() %></td>
+        <td><%= w.weekEnd.toDateString() %></td>
+        <td><%= w.isActive ? "✅" : "⛔" %></td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>

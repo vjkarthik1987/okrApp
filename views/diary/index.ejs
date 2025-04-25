@@ -1,0 +1,25 @@
+<% title = "My Diary Entries" %>
+<% layout('layouts/dashboard') %>
+
+<h2 class="mb-3">📓 My Diary Entries</h2>
+
+<a href="/<%= orgName %>/diary/new" class="btn btn-primary mb-3">➕ New Entry</a>
+
+<% if (entries.length === 0) { %>
+  <p>No entries yet. Start by adding your first one.</p>
+<% } else { %>
+  <ul class="list-group">
+    <% entries.forEach(entry => { %>
+      <li class="list-group-item">
+        <strong><%= entry.date.toDateString() %> (<%= entry.weekCycle.label %>)</strong><br>
+        <div><%= entry.content %></div>
+        <div class="mt-2">
+          <a href="/<%= orgName %>/diary/<%= entry._id %>/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
+          <form action="/<%= orgName %>/diary/<%= entry._id %>?_method=DELETE" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this entry?')">Delete</button>
+          </form>
+        </div>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
