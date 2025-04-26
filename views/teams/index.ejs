@@ -2,10 +2,10 @@
 <% title = 'Teams' %>
 
 <h2 class="mb-4">👥 Teams</h2>
-
 <a href="/<%= orgName %>/teams/new" class="btn btn-primary mb-3">➕ Add New Team</a>
 
-<% if (!teams || teams.length === 0) { %>
+<!-- 🧹 Teams Table -->
+<% if (!allTeams || allTeams.length === 0) { %>
   <div class="alert alert-warning">No teams found.</div>
 <% } else { %>
   <table class="table table-striped table-bordered align-middle">
@@ -19,29 +19,44 @@
       </tr>
     </thead>
     <tbody>
-      <% teams.forEach(team => { %>
-        <tr>
-          <td><strong><%= team.name %></strong></td>
-          <td><%= team.functionHead?.name || '—' %></td>
-          <td>
-            <% if (team.okrEditors && team.okrEditors.length > 0) { %>
-              <% team.okrEditors.forEach(ed => { %>
-                <span class="badge bg-info text-dark me-1"><%= ed.name %></span>
-              <% }) %>
-            <% } else { %>
-              —
-            <% } %>
-          </td>
-          <td><%= team.parentTeam?.name || '—' %></td>
-          <td>
-            <a href="/<%= orgName %>/teams/<%= team._id %>" class="btn btn-sm btn-outline-primary">👁 View</a>
-            <a href="/<%= orgName %>/teams/<%= team._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
-            <form action="/<%= orgName %>/teams/<%= team._id %>?_method=DELETE" method="POST" style="display:inline;">
-              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this team?')">🗑 Delete</button>
-            </form>
-          </td>
-        </tr>
-      <% }) %>
+
+      <% function renderTeams(parentId, level) { %>
+        <% allTeams.forEach(team => { %>
+          <% if ((team.parentTeam && team.parentTeam._id.toString()) === parentId || (!team.parentTeam && !parentId)) { %>
+            <tr>
+              <td style="padding-left: <%= level * 20 + 10 %>px;">
+                <strong><%= team.name %></strong>
+                <a href="/<%= orgName %>/teams/new?parentTeam=<%= team._id %>" class="badge bg-secondary text-decoration-none small">
+                  + 
+                </a>
+              </td>
+              <td><%= team.functionHead?.name || '—' %></td>
+              <td>
+                <% if (team.okrEditors && team.okrEditors.length > 0) { %>
+                  <% team.okrEditors.forEach(ed => { %>
+                    <span class="badge bg-info text-dark me-1"><%= ed.name %></span>
+                  <% }) %>
+                <% } else { %>
+                  — 
+                <% } %>
+              </td>
+              <td><%= team.parentTeam?.name || '—' %></td>
+              <td>
+                <a href="/<%= orgName %>/teams/<%= team._id %>" class="btn btn-sm btn-outline-primary">👁 View</a>
+                <a href="/<%= orgName %>/teams/<%= team._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+                <form action="/<%= orgName %>/teams/<%= team._id %>?_method=DELETE" method="POST" style="display:inline;">
+                  <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this team?')">🗑 Delete</button>
+                </form>
+              </td>
+            </tr>
+
+            <% renderTeams(team._id.toString(), level + 1); %>
+          <% } %>
+        <% }) %>
+      <% } %>
+
+      <% renderTeams(null, 0); %>
+
     </tbody>
   </table>
 <% } %>

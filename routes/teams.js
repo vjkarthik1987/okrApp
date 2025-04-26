@@ -4,31 +4,36 @@ const Team = require('../models/Team');
 const { isSuperAdmin } = require('../middleware/checkRoles');
 const User = require('../models/User');
 const Objective = require('../models/Objective');
+const buildTeamTree = require('../utils/buildTeamTree');
 
-// Teams index page
+// GET /teams
 router.get('/', isSuperAdmin, async (req, res) => {
-  try {
-    const teams = await Team.find({
-      organization: req.organization._id,
-      activeTeam: true
-    }).populate('functionHead okrEditors parentTeam', 'name email');
+  const allTeams = await Team.find({ organization: req.organization._id })
+    .populate('functionHead okrEditors parentTeam');
 
-    res.render('teams/index', {
-      orgName: req.organization.orgName,
-      user: req.user,
-      teams
-    });
-  } catch (err) {
-    req.flash('error', 'Failed to load teams');
-    res.redirect(`/${req.organization.orgName}/dashboard`);
-  }
+  const users = await User.find({ organization: req.organization._id });
+
+  res.render('teams/index', {
+    orgName: req.organization.orgName,
+    allTeams,
+    users
+  });
 });
 
 // GET form to create team
 router.get('/new', isSuperAdmin, async (req, res) => {
   const users = await User.find({ organization: req.organization._id });
-  const teams = await Team.find({ organization: req.organization._id });
-  res.render('teams/new', { orgName: req.organization.orgName, users, teams });
+  const allTeams = await Team.find({ organization: req.organization._id })
+    .populate('functionHead okrEditors parentTeam');
+
+  const preselectedParentTeamId = req.query.parentTeam || null;
+
+  res.render('teams/new', {
+    orgName: req.organization.orgName,
+    users,
+    allTeams,
+    preselectedParentTeamId
+  });
 });
 
 // CREATE a team
@@ -39,8 +44,8 @@ router.post('/', isSuperAdmin, async (req, res) => {
     const team = new Team({
       name,
       parentTeam: parentTeam || null,
-      functionHead,
-      okrEditors,
+      functionHead: functionHead || null,
+      okrEditors: okrEditors || null,
       organization: req.organization._id,
     });
 
@@ -94,6 +99,11 @@ router.put('/:teamId', isSuperAdmin, async (req, res) => {
     // Remove empty string from parentTeam
     if (req.body.parentTeam === '') {
       delete req.body.parentTeam;
+    }
+
+    // 🔥 Remove empty string from functionHead
+    if (req.body.functionHead === '') {
+      delete req.body.functionHead;
     }
 
     const updatedTeam = await Team.findOneAndUpdate(

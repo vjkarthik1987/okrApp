@@ -11,10 +11,12 @@
 
   <div class="mb-3">
     <label>Parent Team (optional):</label>
-    <select name="parentTeam" class="form-control">
-      <option value="">None</option>
-      <% teams.forEach(t => { %>
-        <option value="<%= t._id %>"><%= t.name %></option>
+    <select name="parentTeam" class="form-select">
+      <option value="">Parent Team (Optional)</option>
+      <% allTeams.forEach(t => { %>
+        <option value="<%= t._id %>" <%= preselectedParentTeamId && t._id.toString() === preselectedParentTeamId ? 'selected' : '' %>>
+          <%= t.name %>
+        </option>
       <% }) %>
     </select>
   </div>
