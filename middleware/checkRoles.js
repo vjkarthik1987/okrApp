@@ -1,4 +1,5 @@
 const Team = require('../models/Team');
+const User = require('../models/User');
 
 const handleAccessDenied = (req, res, message = 'Access denied.') => {
   if (req.accepts('html')) {
@@ -55,5 +56,28 @@ exports.isSuperAdminOrFunctionEditor = async (req, res, next) => {
     console.error('Role check failed:', err);
     req.flash('error', 'Internal server error during role check.');
     return res.redirect(`/${req.organization.orgName}/dashboard`);
+  }
+};
+
+exports.isManager = async (req, res, next) => {
+  if (!req.user) {
+    return handleAccessDenied(req, res, 'Not logged in.');
+  }
+
+  try {
+    const reportees = await User.find({
+      organization: req.organization._id,
+      manager: req.user._id,
+      isActive: true
+    }).select('_id');
+
+    if (reportees.length > 0) {
+      return next();
+    } else {
+      return handleAccessDenied(req, res, 'Access denied. You do not have direct reports.');
+    }
+  } catch (err) {
+    console.error('Error checking manager role:', err);
+    return handleAccessDenied(req, res, 'Internal error while checking manager role.');
   }
 };

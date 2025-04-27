@@ -1,0 +1,43 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Manager Dashboard' %>
+
+<h2 class="mb-4">👥 Manager Dashboard</h2>
+
+<!-- Quick Action Buttons at Top -->
+<div class="d-flex justify-content-start gap-3 mb-4">
+    <a href="/<%= orgName %>/objectives" class="btn btn-primary">🎯 View Team OKRs</a>
+    <a href="/<%= orgName %>/actionItems" class="btn btn-success">📋 View Team Action Items</a>
+    <a href="/<%= orgName %>/diary" class="btn btn-warning">📓 View Team Diary Entries</a>
+</div>
+
+<!-- Select Maximum Level to Show -->
+<form method="GET" action="/<%= orgName %>/manager-dashboard" class="mb-4">
+    <div class="d-flex align-items-center gap-2">
+        <label for="maxDepthSelect" class="form-label m-0">Show up to Level:</label>
+        <select id="maxDepthSelect" name="maxDepth" class="form-select w-auto" onchange="this.form.submit()">
+        <option value="">All Levels</option>
+        <% for (let i = 1; i <= 8; i++) { %>
+            <option value="<%= i %>" <%= maxDepth == i ? 'selected' : '' %>>Level <%= i %></option>
+        <% } %>
+        </select>
+    </div>
+</form>
+s  
+
+<!-- Hierarchical Team View -->
+<div class="card">
+  <div class="card-header">
+    🧑‍🤝‍🧑 My Team Hierarchy
+  </div>
+  <div class="card-body">
+    <% if (teamTree.length === 0) { %>
+      <p>No direct reports found.</p>
+    <% } else { %>
+      <ul class="list-unstyled">
+        <% teamTree.forEach(function(member) { %>
+          <%- include('./_teamNode', { member: member, depth: 0 }) %> <!-- start depth at 0 -->
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+</div>

@@ -4,14 +4,42 @@
 <h2>Edit User</h2>
 
 <form method="POST" action="/<%= orgName %>/users/<%= userToEdit._id %>?_method=PUT">
+
   <div class="mb-3">
     <label>Name:</label>
     <input name="name" class="form-control" value="<%= userToEdit.name %>" required />
   </div>
 
   <div class="mb-3">
+    <label>Email (cannot be edited):</label>
+    <input name="email" class="form-control" value="<%= userToEdit.email %>" disabled />
+  </div>
+
+  <div class="mb-3 position-relative">
+    <label>Manager:</label>
+    <input 
+      type="text" 
+      id="managerSearch" 
+      class="form-control" 
+      placeholder="Start typing manager name..." 
+      autocomplete="off" 
+      value="<%= userToEdit.manager ? userToEdit.manager.name : '' %>"
+    />
+    
+    <input 
+      type="hidden" 
+      name="manager" 
+      id="managerId" 
+      value="<%= userToEdit.manager ? userToEdit.manager._id : '' %>"
+    />
+    
+    <ul id="managerDropdown" class="list-group position-absolute w-100" style="z-index: 1000; display:none; max-height:200px; overflow-y:auto;"></ul>
+  </div>
+  
+
+  <div class="mb-3">
     <label>Role:</label>
-    <select name="role" class="form-control">
+    <select name="role" class="form-control" <%= disableRoleEdit ? 'disabled' : '' %>>
       <option value="employee" <%= userToEdit.role === 'employee' ? 'selected' : '' %>>Employee</option>
       <option value="okr_editor" <%= userToEdit.role === 'okr_editor' ? 'selected' : '' %>>OKR Editor</option>
       <option value="function_head" <%= userToEdit.role === 'function_head' ? 'selected' : '' %>>Function Head</option>
@@ -21,23 +49,76 @@
 
   <div class="mb-3">
     <label>Location:</label>
-    <input name="location" class="form-control" value="<%= userToEdit.location %>" />
+    <input name="location" class="form-control" value="<%= userToEdit.location || '' %>" />
   </div>
 
   <div class="mb-3">
     <label>Designation:</label>
-    <input name="designation" class="form-control" value="<%= userToEdit.designation %>" />
+    <input name="designation" class="form-control" value="<%= userToEdit.designation || '' %>" />
   </div>
 
   <div class="mb-3">
     <label>Band:</label>
-    <input name="band" class="form-control" value="<%= userToEdit.band %>" />
+    <input name="band" class="form-control" value="<%= userToEdit.band || '' %>" />
   </div>
 
   <div class="mb-3">
     <label>Gender:</label>
-    <input name="gender" class="form-control" value="<%= userToEdit.gender %>" />
+    <select name="gender" class="form-control">
+      <option value="Male" <%= userToEdit.gender === 'Male' ? 'selected' : '' %>>Male</option>
+      <option value="Female" <%= userToEdit.gender === 'Female' ? 'selected' : '' %>>Female</option>
+      <option value="Other" <%= userToEdit.gender === 'Other' ? 'selected' : '' %>>Other</option>
+      <option value="Prefer not to say" <%= userToEdit.gender === 'Prefer not to say' ? 'selected' : '' %>>Prefer not to say</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label>Joining Date:</label>
+    <input type="date" name="joiningDate" class="form-control" value="<%= userToEdit.joiningDate ? userToEdit.joiningDate.toISOString().split('T')[0] : '' %>" />
   </div>
 
   <button class="btn btn-success">Update User</button>
 </form>
+
+<script>
+  const managers = <%- JSON.stringify(allUsers) %>; // All available managers
+  const input = document.getElementById('managerSearch');
+  const hiddenInput = document.getElementById('managerId');
+  const dropdown = document.getElementById('managerDropdown');
+
+  input.addEventListener('input', function() {
+    const value = input.value.toLowerCase();
+    dropdown.innerHTML = '';
+    hiddenInput.value = '';
+
+    if (value.length >= 2) {
+      const matches = managers.filter(user => user.name.toLowerCase().includes(value));
+      
+      matches.forEach(user => {
+        const item = document.createElement('li');
+        item.classList.add('list-group-item', 'list-group-item-action');
+        item.innerText = `${user.name} (${user.email})`;
+        item.dataset.id = user._id;
+        
+        item.addEventListener('click', () => {
+          input.value = user.name;
+          hiddenInput.value = user._id;
+          dropdown.style.display = 'none';
+        });
+
+        dropdown.appendChild(item);
+      });
+
+      dropdown.style.display = matches.length > 0 ? 'block' : 'none';
+    } else {
+      dropdown.style.display = 'none';
+    }
+  });
+
+  // Hide dropdown if clicking outside
+  document.addEventListener('click', function(e) {
+    if (!dropdown.contains(e.target) && e.target !== input) {
+      dropdown.style.display = 'none';
+    }
+  });
+</script>

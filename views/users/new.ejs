@@ -1,13 +1,83 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Add Users' %>
+<style>
+  #loadingOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #e0eafc, #cfdef3);
+    z-index: 9999;
+    text-align: center;
+    padding-top: 20%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #0d6efd;
+  }
+  
+  .spinner-border {
+    animation: spin 1s linear infinite;
+    width: 4rem;
+    height: 4rem;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+
+  #loadingMessage {
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+</style>
+
 
 <h2>Add Users (Bulk)</h2>
 
-<form method="POST" action="/<%= orgName %>/users">
-  <div class="mb-3">
-    <label class="form-label">Paste user details (one per line):</label>
-    <textarea name="bulkUsers" class="form-control" rows="8" required placeholder="Name, Email, Role, Location, Designation, Band, Gender"></textarea>
-    <div class="form-text">Example:<br>John Doe, john.doe@suntec.com, employee, TVM, Developer, B2, Male</div>
+<form id="userUploadForm" method="POST" action="/<%= orgName %>/users" enctype="multipart/form-data">
+  <div class="form-text mt-2 text-warning">
+    ⚡ Tip: Please paste text OR upload a CSV — not both.
   </div>
-  <button class="btn btn-success">Create Users</button>
+  <div class="mb-3">
+    <label class="form-label">Paste user details (one per line) OR upload CSV:</label>
+    <textarea name="bulkUsers" class="form-control" rows="8" placeholder="Name, Email, Role, Location, Designation, Band, Gender, JoiningDate (YYYY-MM-DD), ManagerName (optional), Team"></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">OR Upload CSV file:</label>
+    <input type="file" name="csvFile" accept=".csv" class="form-control">
+    <div class="form-text mt-2">
+      Expected CSV format: Name, Email, Role, Location, Designation, Band, Gender, JoiningDate (YYYY-MM-DD), ManagerName (optional), Team
+    </div>
+  </div>
+  <button type="submit" class="btn btn-success">Create Users</button>
 </form>
+
+<!-- 🚀 Spinner Overlay -->
+<div id="loadingOverlay" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(255,255,255,0.8); z-index: 9999; text-align: center; padding-top: 20%;">
+  <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <h4 id="loadingMessage" class="mt-3">Uploading users...</h4>
+</div>
+
+<script>
+  const form = document.getElementById('userUploadForm');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingMessage = document.getElementById('loadingMessage');
+
+  form.addEventListener('submit', function() {
+    loadingOverlay.style.display = 'block';
+    loadingMessage.innerText = 'Creating users...'; // Default message
+  });
+</script>
+

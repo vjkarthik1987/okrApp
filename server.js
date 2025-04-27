@@ -9,6 +9,7 @@ const loadOrg = require('./middleware/loadOrg');
 const path = require('path');
 const engine = require('ejs-mate');
 const methodOverride = require('method-override');
+const User = require('./models/User');
 
 const app = express();
 
@@ -40,11 +41,16 @@ app.use(passport.session());
 
 app.use(flash());
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.user = req.user || null;
   res.locals.request = req;
+  if (req.user) {
+    res.locals.hasReportees = req.user.numberOfReportees > 0;
+  } else {
+    res.locals.hasReportees = false;
+  }
   next();
 });
 
@@ -61,6 +67,7 @@ app.use('/:orgName/initiatives', loadOrg, require('./routes/initiatives'));
 app.use('/:orgName/admin/cycles', loadOrg, require('./routes/cycles'));
 app.use('/:orgName/admin/weekcycles', loadOrg, require('./routes/weekcycles'));
 app.use('/:orgName/diary', loadOrg, require('./routes/diary'));
+app.use('/:orgName/manager-dashboard', loadOrg, require('./routes/managerDashboard'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}\n----------------------------------------------------------`));

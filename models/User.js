@@ -37,7 +37,11 @@ const userSchema = new mongoose.Schema({
     enum: ['Male', 'Female', 'Other', 'Prefer not to say'],
     default: 'Prefer not to say'
   },
-  joiningDate: Date
+  joiningDate: Date,
+  numberOfReportees: {
+    type: Number,
+    default: 0
+  },
 }, { timestamps: true });
 
 // Use email instead of username for passport
@@ -45,6 +49,6 @@ userSchema.plugin(passportLocalMongoose, {
   usernameField: 'email'
 });
 
-userSchema.index({ email: 1, organization: 1 });
+userSchema.index({ email: 1, organization: 1,reportingManager: 1 });
 
 module.exports = mongoose.model('User', userSchema);
