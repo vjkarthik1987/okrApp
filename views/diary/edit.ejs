@@ -5,10 +5,10 @@
 
 <form action="/<%= orgName %>/diary/<%= entry._id %>?_method=PUT" method="POST">
   <div class="mb-3">
-    <label for="weekCycleId">Select Week</label>
-    <select name="weekCycleId" id="weekCycleId" class="form-control" required>
+    <label for="weekCycleSelect" class="form-label">Select Week</label>
+    <select name="weekCycleId" id="weekCycleSelect" class="form-control" required>
       <% weeks.forEach(week => { %>
-        <option value="<%= week._id %>" <% if (week._id.equals(entry.weekCycle._id)) { %> selected <% } %> >
+        <option value="<%= week._id %>" <%= week._id.equals(entry.weekCycle._id) ? 'selected' : '' %>>
           <%= week.label %>
         </option>
       <% }) %>
@@ -16,7 +16,7 @@
   </div>
 
   <div class="mb-3">
-    <label for="content">Content</label>
+    <label for="content" class="form-label">Edit Your Work Summary</label>
     <textarea name="content" id="content" class="form-control" rows="6" required><%= entry.content %></textarea>
   </div>
 

@@ -5,7 +5,7 @@
 
 <form action="/<%= orgName %>/diary" method="POST">
   <div class="mb-3">
-    <label for="weekCycle">Select Week</label>
+    <label for="weekCycleSelect" class="form-label">Select Week</label>
     <select name="weekCycleId" id="weekCycleSelect" class="form-control" required onchange="updateEntryCount()">
       <% weeks.forEach(week => { %>
         <option value="<%= week._id %>"><%= week.label %></option>
@@ -16,8 +16,8 @@
   <div id="entryCountMessage" class="text-muted mb-3"></div>
 
   <div class="mb-3">
-    <label for="content">What did you work on?</label>
-    <textarea name="content" class="form-control" rows="6" required></textarea>
+    <label for="content" class="form-label">What did you work on?</label>
+    <textarea name="content" id="content" class="form-control" rows="6" required></textarea>
   </div>
 
   <button type="submit" class="btn btn-success">💾 Save Entry</button>
@@ -40,6 +40,5 @@
     }
   }
 
-  // Initialize on page load
   document.addEventListener('DOMContentLoaded', updateEntryCount);
 </script>

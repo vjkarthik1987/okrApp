@@ -1,25 +1,111 @@
-<% title = "My Diary Entries" %>
 <% layout('layouts/dashboard') %>
+<% title = 'My Diary Entries' %>
 
-<h2 class="mb-3">📓 My Diary Entries</h2>
+<h2 class="mb-4">📓 Diary Entries</h2>
 
-<a href="/<%= orgName %>/diary/new" class="btn btn-primary mb-3">➕ New Entry</a>
+<!-- Scope Tabs (My, Team, Org) -->
+<ul class="nav nav-tabs mb-4" style="border-bottom: 2px solid #dee2e6;">
+  <li class="nav-item">
+    <a class="nav-link <%= scope === 'my' ? 'active' : '' %>" 
+       href="/<%= orgName %>/diary?scope=my&weeks=<%= weeksFilter %>">
+       👤 <strong>My Diaries</strong>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <%= scope === 'team' ? 'active' : '' %>" 
+       href="/<%= orgName %>/diary?scope=team&weeks=<%= weeksFilter %>">
+       👥 <strong>Team Diaries</strong>
+    </a>
+  </li>
+  <% if (user.isSuperAdmin) { %>
+  <li class="nav-item">
+    <a class="nav-link <%= scope === 'org' ? 'active' : '' %>" 
+       href="/<%= orgName %>/diary?scope=org&weeks=<%= weeksFilter %>">
+       🏢 <strong>Org Diaries</strong>
+    </a>
+  </li>
+  <% } %>
+</ul>
 
-<% if (entries.length === 0) { %>
-  <p>No entries yet. Start by adding your first one.</p>
-<% } else { %>
-  <ul class="list-group">
-    <% entries.forEach(entry => { %>
-      <li class="list-group-item">
-        <strong><%= entry.date.toDateString() %> (<%= entry.weekCycle.label %>)</strong><br>
-        <div><%= entry.content %></div>
-        <div class="mt-2">
-          <a href="/<%= orgName %>/diary/<%= entry._id %>/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
-          <form action="/<%= orgName %>/diary/<%= entry._id %>?_method=DELETE" method="POST" style="display:inline;">
-            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this entry?')">Delete</button>
-          </form>
-        </div>
-      </li>
-    <% }) %>
-  </ul>
+<!-- Weeks Filter -->
+<div class="d-flex justify-content-start gap-3 mb-4">
+  <form id="filtersForm" class="form-inline" method="GET" action="/<%= orgName %>/diary">
+    <input type="hidden" name="scope" value="<%= scope %>">
+    <div class="form-group">
+      <label class="me-2"><strong>Weeks:</strong></label>
+      <select name="weeks" onchange="document.getElementById('filtersForm').submit()" class="form-select">
+        <option value="4" <%= weeksFilter == 4 ? 'selected' : '' %>>Last 4 Weeks</option>
+        <option value="8" <%= weeksFilter == 8 ? 'selected' : '' %>>Last 8 Weeks</option>
+        <option value="all" <%= weeksFilter == 'all' ? 'selected' : '' %>>All Time</option>
+      </select>
+    </div>
+  </form>
+</div>
+
+<!-- New Diary Entry Button -->
+<% if (scope === 'my') { %>
+  <a href="/<%= orgName %>/diary/new" class="btn btn-primary mb-4">➕ New Entry</a>
 <% } %>
+
+<!-- Diary Entries Table -->
+<div class="table-responsive">
+  <table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark sticky-top">
+      <tr>
+        <% if (scope !== 'my') { %>
+          <th>Employee</th>
+        <% } %>
+        <th>Week</th>
+        <th>Date</th>
+        <th>Content</th>
+        <% if (scope === 'my') { %>
+          <th>Actions</th>
+        <% } %>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (entries.length === 0) { %>
+        <tr><td colspan="<%= scope === 'my' ? 5 : 4 %>" class="text-center text-muted">No diary entries found.</td></tr>
+      <% } else { %>
+        <% entries.forEach(entry => { %>
+          <tr>
+            <% if (scope !== 'my') { %>
+              <td>
+                👤 <%= entry.user?.name || 'Unknown' %> <br>
+                <small class="text-muted"><%= entry.user?.email || '' %></small>
+              </td>
+            <% } %>
+            <td><%= entry.weekCycle?.label || '-' %></td>
+            <td><%= new Date(entry.date).toDateString() %></td>
+            <td>
+              <% if (entry.content.length <= 150) { %>
+                <%= entry.content %>
+              <% } else { %>
+                <%= entry.content.substring(0, 150) %>...
+                <details class="mt-1">
+                  <summary class="text-primary">Read Full</summary>
+                  <div style="white-space: pre-line;"><%= entry.content %></div>
+                </details>
+              <% } %>
+            </td>
+            <% if (scope === 'my') { %>
+              <td>
+                <a href="/<%= orgName %>/diary/<%= entry._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+                <form method="POST" action="/<%= orgName %>/diary/<%= entry._id %>?_method=DELETE" style="display:inline;" onsubmit="return confirmDelete()">
+                  <button class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+                </form>
+              </td>
+            <% } %>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Confirm Delete Script -->
+<script>
+function confirmDelete() {
+  return confirm('Are you sure you want to delete this diary entry?');
+}
+</script>

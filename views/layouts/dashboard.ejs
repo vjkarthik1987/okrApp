@@ -47,22 +47,32 @@
     <div class="sidebar">
       <h5><%= orgName.toUpperCase() %></h5>
       <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link text-danger" href="/<%= orgName %>/auth/logout">🚪 Logout</a>
+        </li>
         <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/dashboard">🏠 Dashboard</a></li>
         <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/objectives">🎯 Objectives</a></li>
         <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/initiatives">🚀 Initiatives</a></li>
-        <li class="nav-item">
-          <a class="nav-link" href="/<%= orgName %>/diary">
-            📓 My Diary
-          </a>
-        </li>
+        <li class="mt-2 mb-1"><b>My Zone</b></li>
         <% if (hasReportees) { %>
           <li class="nav-item">
-            <a class="nav-link" href="/<%= orgName %>/manager-dashboard">👥 My Team Dashboard</a>
+            <a class="nav-link" href="/<%= orgName %>/manager-dashboard">👥 My Team Space</a>
           </li>
         <% } %>
-        <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/actionItems">📋 My Action items</a></li>
-        
+        <li class="nav-item">
+          <a class="nav-link" href="/<%= orgName %>/diary">
+            📖 My Diary
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/<%= orgName %>/actionItems">
+            📋 My Action items
+          </a>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="#">🔧 Settings</a></li>
+        <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/auth/change-password">🔒 Change Password</a></li>
         <% if (user.isSuperAdmin) { %>
+          <li class="mt-2 mb-1"><b>Admin Zone</b></li>
           <li class="nav-item">
             <a href="/<%= orgName %>/admin/cycles" class="nav-link">
               🧭 OKR Cycles
@@ -83,11 +93,7 @@
             <a class="nav-link" href="/<%= orgName %>/superAdmins">🛡️ Super Admins</a>
           </li>
         <% } %>
-        <li class="nav-item"><a class="nav-link" href="#">🔧 Settings</a></li>
-        <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/auth/change-password">🔒 Change Password</a></li>
-        <li class="nav-item">
-          <a class="nav-link text-danger" href="/<%= orgName %>/auth/logout">🚪 Logout</a>
-        </li>
+        
       </ul>
     </div>
     <div class="flex-grow-1 d-flex flex-column">
