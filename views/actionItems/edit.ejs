@@ -1,87 +1,158 @@
 <% layout('layouts/dashboard') %>
-<% title = 'Edit Action Item' %>
+<% title = 'Update Action Item' %>
 
-<h2>✏️ Edit Action Item</h2>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">✏️ Update Action Item</h2>
+  <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary">
+    ⬅ Back
+  </a>
+</div>
 
-<form action="/<%= orgName %>/actionItems/<%= item._id %>?_method=PUT" method="POST">
-  <div class="mb-3">
-    <label for="title">Title <span class="text-danger">*</span></label>
-    <input type="text" name="title" id="title" value="<%= item.title %>" class="form-control" required>
+<!-- Alert Note -->
+<div class="alert alert-warning small">
+  <strong>Note:</strong> Manager Comments are maintained separately as part of Action Item history. Editing is not allowed for manager comments.
+</div>
+
+<!-- Update Form -->
+<form action="/<%= orgName %>/actionItems/<%= item._id %>?_method=PUT" method="POST" class="needs-validation" novalidate>
+
+  <!-- Updates Section -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      📋 Update Progress
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="updateText" class="form-label"><b>Update Notes</b></label>
+        <textarea name="updateText" id="updateText" class="form-control" rows="3" placeholder="e.g., Completed initial testing..." required></textarea>
+        <div class="form-text">Describe what changed since the last update.</div>
+      </div>
+
+      <h6 class="mt-4">📚 Previous Updates</h6>
+      <% if (item.updates && item.updates.length > 0) { %>
+        <ul class="list-group">
+          <% item.updates.slice().reverse().forEach(u => { %>
+            <li class="list-group-item d-flex justify-content-between">
+              <span><%= u.updateText %></span>
+              <small class="text-muted"><%= new Date(u.updateDate).toLocaleString() %></small>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p class="text-muted">No previous updates yet.</p>
+      <% } %>
+    </div>
   </div>
 
-  <div class="mb-3">
-    <label for="description">Description</label>
-    <textarea name="description" id="description" class="form-control" rows="3"><%= item.description %></textarea>
+  <!-- Manager Comments Section -->
+  <div class="card mb-4">
+    <div class="card-header bg-info text-white">
+      🧑‍💼 Manager Comments (Read-Only)
+    </div>
+    <div class="card-body">
+      <% if (item.comments && item.comments.length > 0) { %>
+        <ul class="list-group">
+          <% item.comments.slice().reverse().forEach(c => { %>
+            <li class="list-group-item d-flex justify-content-between">
+              <div>
+                <strong><%= c.commenter?.name || 'Manager' %>:</strong> <%= c.commentText %>
+                <% if (c.newStatus) { %>
+                  <span class="badge bg-warning ms-2">Status: <%= c.newStatus %></span>
+                <% } %>
+              </div>
+              <small class="text-muted"><%= new Date(c.commentDate).toLocaleString() %></small>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p class="text-muted">No manager comments yet.</p>
+      <% } %>
+    </div>
   </div>
 
-  <div class="mb-3">
-    <label for="initiativeId">Initiative (optional)</label>
-    <select name="initiativeId" id="initiativeId" class="form-control">
-      <option value="">-- None --</option>
-      <% initiatives.forEach(i => { %>
-        <option value="<%= i._id %>" <%= item.initiativeId?.toString() === i._id.toString() ? 'selected' : '' %>>
-          <%= i.title %>
-        </option>
-      <% }) %>
-    </select>
+  <!-- Edit Other Details Section -->
+  <div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+      ⚙️ Edit Action Item Details
+    </div>
+    <div class="card-body">
+
+      <div class="mb-3">
+        <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+        <input type="text" name="title" id="title" value="<%= item.title %>" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea name="description" id="description" class="form-control" rows="3"><%= item.description %></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="assignedTo" class="form-label">Assigned To</label>
+          <select name="assignedTo" class="form-select">
+            <% users.forEach(user => { %>
+              <option value="<%= user._id %>" <%= item.assignedTo.equals(user._id) ? 'selected' : '' %>>
+                <%= user.name || user.email %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="cycle" class="form-label">Cycle</label>
+          <select name="cycle" class="form-select">
+            <% cycles.forEach(c => { %>
+              <option value="<%= c._id %>" <%= item.cycle.equals(c._id) ? 'selected' : '' %>><%= c.label %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="initiativeId" class="form-label">Initiative (Optional)</label>
+          <select name="initiativeId" id="initiativeId" class="form-select">
+            <option value="">-- None --</option>
+            <% initiatives.forEach(i => { %>
+              <option value="<%= i._id %>" <%= item.initiativeId?.toString() === i._id.toString() ? 'selected' : '' %>>
+                <%= i.title %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="status" class="form-label">Status</label>
+          <select name="status" id="status" class="form-select">
+            <option value="Not Started" <%= item.status === 'Not Started' ? 'selected' : '' %>>Not Started</option>
+            <option value="In Progress" <%= item.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+            <option value="Completed" <%= item.status === 'Completed' ? 'selected' : '' %>>Completed</option>
+            <option value="Blocked" <%= item.status === 'Blocked' ? 'selected' : '' %>>Blocked</option>
+            <option value="Deferred" <%= item.status === 'Deferred' ? 'selected' : '' %>>Deferred</option>
+            <option value="On Hold" <%= item.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="dueDate" class="form-label">Due Date</label>
+          <input type="date" name="dueDate" class="form-control" value="<%= item.dueDate ? item.dueDate.toISOString().split('T')[0] : '' %>">
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label for="meeting" class="form-label">Meeting</label>
+          <input type="text" name="meeting" class="form-control" value="<%= item.meeting %>">
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="mb-3">
-    <label for="assignedTo">Assigned To</label>
-    <select name="assignedTo" class="form-control">
-      <% users.forEach(user => { %>
-        <option value="<%= user._id %>" <%= item.assignedTo.equals(user._id) ? 'selected' : '' %>><%= user.name || user.email %></option>
-      <% }) %>
-    </select>
+  <!-- Save Button -->
+  <div class="text-end">
+    <button type="submit" class="btn btn-success">💾 Update Action Item</button>
   </div>
 
-  <div class="mb-3">
-    <label for="cycle">Cycle</label>
-    <select name="cycle" class="form-control">
-      <% cycles.forEach(c => { %>
-        <option value="<%= c._id %>" <%= item.cycle.equals(c._id) ? 'selected' : '' %>><%= c.label %></option>
-      <% }) %>
-    </select>
-  </div>
-
-  <div class="mb-3">
-    <label for="status">Status</label>
-    <select name="status" id="status" class="form-control">
-      <option value="Not Started" <%= item.status === 'Not Started' ? 'selected' : '' %>>Not Started</option>
-      <option value="In Progress" <%= item.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
-      <option value="Completed" <%= item.status === 'Completed' ? 'selected' : '' %>>Completed</option>
-      <option value="Blocked" <%= item.status === 'Blocked' ? 'selected' : '' %>>Blocked</option>
-      <option value="Deferred" <%= item.status === 'Deferred' ? 'selected' : '' %>>Deferred</option>
-      <option value="On Hold" <%= item.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
-    </select>
-  </div>
-  
-  <div class="mb-3">
-    <label for="updateText">Update Notes</label>
-    <textarea name="updateText" id="updateText" class="form-control" rows="3" placeholder="e.g., Started development..."></textarea>
-    <small class="text-muted">Use this to describe what's changed with this update.</small>
-  </div>
-
-  <div class="mb-3">
-    <label for="dueDate">Due Date</label>
-    <input type="date" name="dueDate" class="form-control" value="<%= item.dueDate ? item.dueDate.toISOString().split('T')[0] : '' %>">
-  </div>
-
-  <div class="mb-3">
-    <label for="meeting">Meeting</label>
-    <input type="text" name="meeting" class="form-control" value="<%= item.meeting %>">
-  </div>
-
-  <button type="submit" class="btn btn-success mt-3">💾 Update</button>
-  <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary mt-3">⬅ Back</a>
-
-  <h5 class="mt-4">Update History</h5>
-  <ul class="list-group">
-    <% item.updates?.forEach(u => { %>
-      <li class="list-group-item d-flex justify-content-between">
-        <span><%= u.updateText %></span>
-        <small class="text-muted"><%= new Date(u.updateDate).toLocaleString() %></small>
-      </li>
-    <% }) %>
-  </ul>
 </form>

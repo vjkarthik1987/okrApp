@@ -1,6 +1,7 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Edit User' %>
 
+
 <h2>Edit User</h2>
 
 <form method="POST" action="/<%= orgName %>/users/<%= userToEdit._id %>?_method=PUT">
@@ -39,7 +40,7 @@
 
   <div class="mb-3">
     <label>Role:</label>
-    <select name="role" class="form-control" <%= disableRoleEdit ? 'disabled' : '' %>>
+    <select name="role" class="form-control <%= disableRoleEdit ? 'bg-light text-muted' : '' %>" <%= disableRoleEdit ? 'disabled' : '' %>>
       <option value="employee" <%= userToEdit.role === 'employee' ? 'selected' : '' %>>Employee</option>
       <option value="okr_editor" <%= userToEdit.role === 'okr_editor' ? 'selected' : '' %>>OKR Editor</option>
       <option value="function_head" <%= userToEdit.role === 'function_head' ? 'selected' : '' %>>Function Head</option>

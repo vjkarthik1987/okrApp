@@ -55,10 +55,13 @@
             📓 My Diary
           </a>
         </li>
-        <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/actionItems">📋 Action items</a></li>
-        <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/users">🙋 Users</a></li>
-        <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/teams">👥 Teams</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">🔧 Settings</a></li>
+        <% if (hasReportees) { %>
+          <li class="nav-item">
+            <a class="nav-link" href="/<%= orgName %>/manager-dashboard">👥 My Team Dashboard</a>
+          </li>
+        <% } %>
+        <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/actionItems">📋 My Action items</a></li>
+        
         <% if (user.isSuperAdmin) { %>
           <li class="nav-item">
             <a href="/<%= orgName %>/admin/cycles" class="nav-link">
@@ -70,12 +73,17 @@
               🧭 Week Cycles
             </a>
           </li>
-        <% } %>
-        <% if (hasReportees) { %>
           <li class="nav-item">
-            <a class="nav-link" href="/<%= orgName %>/manager-dashboard">👥 My Team</a>
+            <a class="nav-link" href="/<%= orgName %>/users">🙋 Users</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/<%= orgName %>/teams">👥 Teams</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/<%= orgName %>/superAdmins">🛡️ Super Admins</a>
           </li>
         <% } %>
+        <li class="nav-item"><a class="nav-link" href="#">🔧 Settings</a></li>
         <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/auth/change-password">🔒 Change Password</a></li>
         <li class="nav-item">
           <a class="nav-link text-danger" href="/<%= orgName %>/auth/logout">🚪 Logout</a>

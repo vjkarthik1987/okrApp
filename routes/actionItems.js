@@ -8,37 +8,98 @@ const KeyResult = require('../models/KeyResult');
 const { isLoggedIn } = require('../middleware/auth');
 const Initiative = require('../models/Initiative');
 
-// Index
+// Helper function to get all reportees recursively
+async function getAllReportees(userId) {
+  const directReports = await User.find({ manager: userId, isActive: true }).select('_id').lean();
+  let all = [...directReports];
+
+  for (let dr of directReports) {
+    const subReports = await getAllReportees(dr._id);
+    all = all.concat(subReports);
+  }
+
+  return all.map(u => u._id);
+}
+
+// Helper to recursively collect reportee IDs up to a certain depth
+async function collectReporteeIds(userId, maxLevel = 3, currentLevel = 1) {
+  if (currentLevel > maxLevel) return [];
+
+  const reportees = await User.find({ manager: userId }, '_id');
+  let ids = reportees.map(r => r._id);
+
+  for (const reportee of reportees) {
+    const childIds = await collectReporteeIds(reportee._id, maxLevel, currentLevel + 1);
+    ids = ids.concat(childIds);
+  }
+
+  return ids;
+}
+
+// GET Action Items with scope (my/team/org)
 router.get('/', isLoggedIn, async (req, res) => {
   const { orgName } = req.params;
+  const scope = req.query.scope || 'my'; // my/team/org
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = 25;
+  const filter = req.query.filter || 'pending'; // pending/completed/all
+  const level = parseInt(req.query.level) || 3;
 
-  const actionItems = await ActionItem.find({ organization: req.user.organization })
-    .populate('assignedTo cycle parent')
-    .lean(); // Make it plain JS for easier manipulation
+  try {
+    let userIds = [req.user._id]; // default: only my items
 
-  // Step 1: Group by _id for fast lookup
-  const byId = {};
-  actionItems.forEach(item => byId[item._id.toString()] = item);
-
-  // Step 2: Attach children
-  actionItems.forEach(item => {
-    if (item.parent) {
-      const parent = byId[item.parent._id.toString()];
-      if (parent) {
-        parent.children = parent.children || [];
-        parent.children.push(item);
-      }
+    if (scope === 'team') {
+      const reporteeIds = await collectReporteeIds(req.user._id, level);
+      userIds = [req.user._id, ...reporteeIds];
+    } else if (scope === 'org' && req.user.isSuperAdmin) {
+      userIds = []; // no filter on user
     }
-  });
 
-  // Step 3: Only keep root-level items
-  const rootItems = actionItems.filter(item => !item.parent);
+    // Build query
+    const query = {
+      organization: req.user.organization
+    };
 
-  res.render('actionItems/index', { orgName, actionItems: rootItems });
+    if (userIds.length > 0) {
+      query.assignedTo = { $in: userIds };
+    }
+
+    if (filter === 'pending') {
+      query.status = { $nin: ['Completed'] };
+    } else if (filter === 'completed') {
+      query.status = 'Completed';
+    }
+    // else 'all' - no status filter
+
+    const totalCount = await ActionItem.countDocuments(query);
+
+    const actionItems = await ActionItem.find(query)
+      .populate('assignedTo cycle parent')
+      .sort({ dueDate: 1 }) // nearest due date first
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean();
+
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    res.render('actionItems/index', {
+      orgName,
+      actionItems,
+      page,
+      totalPages,
+      scope,
+      filter,
+      level
+    });
+
+  } catch (err) {
+    console.error('Error loading Action Items:', err);
+    req.flash('error', 'Failed to load Action Items');
+    res.redirect(`/${orgName}/dashboard`);
+  }
 });
 
-
-// New
+// New Action Item
 router.get('/new', isLoggedIn, async (req, res) => {
   const { orgName } = req.params;
   const { initiativeId } = req.query;

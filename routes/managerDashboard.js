@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
 const User = require('../models/User');
+const ActionItem = require('../models/ActionItem');
 const { isLoggedIn } = require('../middleware/auth');
 const { isManager } = require('../middleware/checkRoles');
 
@@ -42,5 +43,190 @@ router.get('/', isLoggedIn, isManager, async (req, res) => {
         res.redirect(`/${req.organization.orgName}/dashboard`);
     }
 });
+
+router.get('/team-action-items', isLoggedIn, isManager, async (req, res) => {
+    try {
+        const allUsers = await User.find({
+        organization: req.organization._id,
+        isActive: true
+        }).lean();
+
+        // Build userMap for fast lookup
+        const userMap = {};
+        allUsers.forEach(user => {
+        user.reportees = [];
+        userMap[user._id.toString()] = user;
+        });
+
+        allUsers.forEach(user => {
+        if (user.manager && user._id.toString() !== user.manager.toString()) {
+            const manager = userMap[user.manager.toString()];
+            if (manager) {
+            manager.reportees.push(user);
+            }
+        }
+        });
+
+        // Get all reportee userIds (recursive, all levels)
+        const getAllReportees = (managerId) => {
+        const directReportees = userMap[managerId]?.reportees || [];
+        let all = [];
+        for (const reportee of directReportees) {
+            all.push(reportee._id);
+            all = all.concat(getAllReportees(reportee._id.toString()));
+        }
+        return all;
+        };
+
+        const teamUserIds = getAllReportees(req.user._id.toString());
+
+        // Fetch Action Items assigned to anyone under manager
+        const actionItems = await ActionItem.find({
+        assignedTo: { $in: teamUserIds },
+        organization: req.organization._id
+        })
+        .populate('assignedTo', 'name email') // Only pick name/email
+        .lean();
+
+        // Fetch Action Item updates for chat (only updates in last 4 weeks)
+        const fourWeeksAgo = new Date();
+        fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+
+        // We'll pull updates inside action items itself (each actionItem.updates array)
+        const chatUpdates = [];
+        for (const item of actionItems) {
+        if (item.updates && item.updates.length > 0) {
+            item.updates.forEach(update => {
+            if (update.updateDate >= fourWeeksAgo) {
+                chatUpdates.push({
+                actionItemTitle: item.title,
+                updatedBy: item.assignedTo?.name || 'Unknown',
+                updateText: update.updateText,
+                updateDate: update.updateDate
+                });
+            }
+            });
+        }
+        }
+
+        // Calculate summary
+        const pendingCount = actionItems.filter(ai => ai.status !== 'Completed').length;
+        const completedCount = actionItems.filter(ai => ai.status === 'Completed').length;
+        const overdueCount = actionItems.filter(ai => {
+        const due = new Date(ai.dueDate);
+        const now = new Date();
+        return ai.status !== 'Completed' && due < now;
+        }).length;
+
+        res.render('managerDashboard/teamActionItems', {
+        orgName: req.organization.orgName,
+        user: req.user,
+        actionItems,
+        chatUpdates,
+        pendingCount,
+        completedCount,
+        overdueCount
+        });
+
+    } catch (err) {
+        console.error('Error loading Team Action Items:', err);
+        req.flash('error', 'Failed to load Team Action Items.');
+        res.redirect(`/${req.organization.orgName}/dashboard`);
+    }
+});
+
+// View Action Item Details
+router.get('/action-items/:id', isLoggedIn, isManager, async (req, res) => {
+  try {
+    const { orgName } = req.params;
+    const actionItem = await ActionItem.findOne({ _id: req.params.id, organization: req.organization._id })
+      .populate('assignedTo assignedBy createdBy objectiveId keyResultId cycle initiativeId')
+      .lean();
+
+    if (!actionItem) {
+      req.flash('error', 'Action Item not found');
+      return res.redirect(`/${orgName}/manager-dashboard/team-action-items`);
+    }
+
+    res.render('managerDashboard/actionItemDetails', { orgName, item: actionItem });
+  } catch (err) {
+    console.error('Error fetching action item details:', err);
+    req.flash('error', 'Internal server error');
+    res.redirect(`/${req.params.orgName}/manager-dashboard/team-action-items`);
+  }
+});
+
+// POST: Add a comment + optional status update to ActionItem
+router.post('/action-items/:id/comment', isLoggedIn, isManager, async (req, res) => {
+    try {
+      const { commentText, newStatus } = req.body;
+      const actionItemId = req.params.id;
+  
+      // Fetch Action Item
+      const actionItem = await ActionItem.findOne({
+        _id: actionItemId,
+        organization: req.organization._id
+      });
+  
+      if (!actionItem) {
+        req.flash('error', 'Action Item not found.');
+        return res.redirect(`/${req.organization.orgName}/manager-dashboard/team-action-items`);
+      }
+  
+      // Security Check: Manager should be in reporting line
+      // (Get all team member IDs)
+      const allUsers = await User.find({ organization: req.organization._id, isActive: true }).lean();
+      const userMap = {};
+      allUsers.forEach(u => { userMap[u._id.toString()] = u; });
+  
+      const getAllReportees = (managerId) => {
+        const directReportees = allUsers.filter(u => u.manager && u.manager.toString() === managerId);
+        let all = [];
+        for (const r of directReportees) {
+          all.push(r._id.toString());
+          all = all.concat(getAllReportees(r._id.toString()));
+        }
+        return all;
+      };
+  
+      const teamUserIds = getAllReportees(req.user._id.toString());
+  
+      if (!teamUserIds.includes(actionItem.assignedTo.toString())) {
+        req.flash('error', 'You are not authorized to comment on this Action Item.');
+        return res.redirect(`/${req.organization.orgName}/manager-dashboard/team-action-items`);
+      }
+  
+      // Build new comment entry
+      const newComment = {
+        commenter: req.user._id,
+        commentText: commentText,
+        commentDate: new Date(),
+        newStatus: newStatus || null
+      };
+  
+      // Push comment into array
+      actionItem.comments.push(newComment);
+  
+      // Update status if provided
+      if (newStatus && newStatus !== actionItem.status) {
+        actionItem.status = newStatus;
+        
+        // If marked Completed, set closureDate
+        if (newStatus === 'Completed') {
+          actionItem.closureDate = new Date();
+        }
+      }
+  
+      await actionItem.save();
+  
+      req.flash('success', 'Comment added successfully.');
+      res.redirect(`/${req.organization.orgName}/manager-dashboard/team-action-items`);
+  
+    } catch (err) {
+      console.error('Error adding comment to ActionItem:', err);
+      req.flash('error', 'Failed to add comment.');
+      res.redirect(`/${req.organization.orgName}/manager-dashboard/team-action-items`);
+    }
+  });
 
 module.exports = router;

@@ -1,0 +1,89 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Action Item Details' %>
+
+<!-- Back Button -->
+<a href="/<%= orgName %>/manager-dashboard/team-action-items" class="btn btn-outline-secondary mb-4">
+  ⬅ Back to Team Action Items
+</a>
+
+<h2 class="mb-4">📝 <%= item.title %></h2>
+
+<!-- Basic Information -->
+<div class="row">
+  <div class="col-md-6">
+    <p><strong>Description:</strong> <%= item.description || '—' %></p>
+    <p><strong>Assigned To:</strong> <%= item.assignedTo?.name || item.assignedTo?.email || '—' %></p>
+    <p><strong>Assigned By:</strong> <%= item.assignedBy?.name || item.assignedBy?.email || '—' %></p>
+    <p><strong>Status:</strong> 
+      <% if (item.status === 'Completed') { %>
+        <span class="badge bg-success">✅ Completed</span>
+      <% } else if (item.status === 'In Progress') { %>
+        <span class="badge bg-warning text-dark">⏳ In Progress</span>
+      <% } else if (item.status === 'Blocked') { %>
+        <span class="badge bg-danger">🚫 Blocked</span>
+      <% } else if (item.status === 'Deferred') { %>
+        <span class="badge bg-secondary">🕐 Deferred</span>
+      <% } else if (item.status === 'On Hold') { %>
+        <span class="badge bg-info text-dark">⏸️ On Hold</span>
+      <% } else { %>
+        <span class="badge bg-primary">🆕 Not Started</span>
+      <% } %>
+    </p>
+    <p><strong>Due Date:</strong> <%= item.dueDate ? new Date(item.dueDate).toDateString() : '—' %></p>
+  </div>
+
+  <div class="col-md-6">
+    <p><strong>Meeting:</strong> <%= item.meeting || '—' %></p>
+    <p><strong>Cycle:</strong> <%= item.cycle?.label || '—' %></p>
+    <p><strong>Objective:</strong> <%= item.objectiveId?.title || '—' %></p>
+    <p><strong>Key Result:</strong> <%= item.keyResultId?.title || '—' %></p>
+    <p><strong>Initiative:</strong> <%= item.initiativeId?.title || '—' %></p>
+  </div>
+</div>
+
+<hr>
+
+<!-- Update History -->
+<h5>📚 Update History</h5>
+<% if (item.updates && item.updates.length > 0) { %>
+  <ul class="list-group mb-4">
+    <% item.updates.slice().reverse().forEach(u => { %>
+      <li class="list-group-item d-flex justify-content-between">
+        <span><%= u.updateText %></span>
+        <small class="text-muted"><%= new Date(u.updateDate).toLocaleString() %></small>
+      </li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p class="text-muted">No updates yet.</p>
+<% } %>
+
+<hr>
+
+<!-- Manager Comments -->
+<h5>🧑‍💼 Manager Comments</h5>
+<% if (item.comments && item.comments.length > 0) { %>
+  <ul class="list-group">
+    <% item.comments.slice().reverse().forEach(c => { %>
+      <li class="list-group-item d-flex justify-content-between">
+        <div>
+          <strong><%= c.commenter?.name || 'Manager' %>:</strong> <%= c.commentText %>
+          <% if (c.newStatus) { %>
+            <span class="badge bg-info ms-2">Status: <%= c.newStatus %></span>
+          <% } %>
+        </div>
+        <small class="text-muted"><%= new Date(c.commentDate).toLocaleString() %></small>
+      </li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p class="text-muted">No manager comments yet.</p>
+<% } %>
+
+<hr>
+
+<!-- Audit Metadata (Optional Nice Touch) -->
+<div class="small text-muted">
+  <p>Created on: <%= new Date(item.createdAt).toLocaleString() %></p>
+  <p>Last updated: <%= new Date(item.updatedAt).toLocaleString() %></p>
+</div>

@@ -68,6 +68,28 @@ const ActionItemSchema = new mongoose.Schema({
       }
     }
   ],
+  comments: [   // 🔥 NEW
+    {
+      commenter: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      commentText: {
+        type: String,
+        required: true,
+        trim: true
+      },
+      commentDate: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
+  closureDate: {   // 🔥 NEW
+    type: Date,
+    default: null
+  },
   status: {
     type: String,
     enum: ['Not Started', 'In Progress', 'Completed', 'Blocked', 'Deferred', 'On Hold'],

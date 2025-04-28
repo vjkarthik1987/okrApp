@@ -183,11 +183,16 @@ router.get('/:id/edit', isSuperAdmin, async (req, res) => {
     isActive: true
   }).sort({ name: 1 });
 
+  // 👇 Add logic to calculate disableRoleEdit
+  const superAdminCount = await User.countDocuments({ organization: req.organization._id, role: 'super_admin', isActive: true });
+  const disableRoleEdit = (userToEdit.role === 'super_admin' && superAdminCount <= 1);
+
   res.render('users/edit', {
     userToEdit,
     orgName: req.organization.orgName,
     user: req.user,
-    allUsers
+    allUsers,
+    disableRoleEdit // 🔥 Pass this
   });
 });
 

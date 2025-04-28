@@ -68,6 +68,7 @@ app.use('/:orgName/admin/cycles', loadOrg, require('./routes/cycles'));
 app.use('/:orgName/admin/weekcycles', loadOrg, require('./routes/weekcycles'));
 app.use('/:orgName/diary', loadOrg, require('./routes/diary'));
 app.use('/:orgName/manager-dashboard', loadOrg, require('./routes/managerDashboard'));
+app.use('/:orgName/superAdmins', loadOrg, require('./routes/superAdmins'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}\n----------------------------------------------------------`));
