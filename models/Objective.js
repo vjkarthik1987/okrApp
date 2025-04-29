@@ -3,8 +3,14 @@ const mongoose = require('mongoose');
 const objectiveSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
-  teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' }, // Creator of the Objective
+  assignedTeams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }], // Teams allowed to create/update KRs
+  editableBy: {
+    type: String,
+    enum: ['ownerOnly', 'ownerTeam', 'objectiveTeam', 'orgAdmins'],
+    default: 'ownerTeam'
+  },
 
   // ⬇️ Change here
   cycle: [{ type: String, required: true }], // now array!
@@ -33,5 +39,7 @@ const objectiveSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: Date
 });
+
+objectiveSchema.index({ assignedTeams: 1 });
 
 module.exports = mongoose.model('Objective', objectiveSchema);

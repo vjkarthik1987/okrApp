@@ -1,0 +1,75 @@
+<% layout('layouts/dashboard') %>
+<% title = 'View Key Result' %>
+
+
+<h2>📈 Key Result for: <%= objective.title %></h2>
+<div class="mb-2">
+    <a href="/<%= orgName %>/initiatives/new?keyResultId=<%= kr._id %>" class="btn btn-primary mt-3">
+        ➕ Create Initiative
+    </a>
+</div>
+<div>
+    <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary mb-3">⬅ Back to KRs</a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h4><%= kr.title %></h4>
+
+    <dl class="row mt-3">
+      <dt class="col-sm-3">Metric Type:</dt>
+      <dd class="col-sm-9"><%= kr.metricType %></dd>
+
+      <dt class="col-sm-3">Start Value:</dt>
+      <dd class="col-sm-9"><%= kr.startValue ?? '-' %></dd>
+
+      <dt class="col-sm-3">Target Value:</dt>
+      <dd class="col-sm-9"><%= kr.targetValue ?? '-' %></dd>
+
+      <dt class="col-sm-3">Progress:</dt>
+      <dd class="col-sm-9"><%= kr.progressValue %>%</dd>
+
+      <dt class="col-sm-3">Due Date:</dt>
+      <dd class="col-sm-9"><%= kr.dueDate ? kr.dueDate.toDateString() : '-' %></dd>
+
+      <dt class="col-sm-3">Actual Completion Date:</dt>
+      <dd class="col-sm-9"><%= kr.actualCompletionDate ? kr.actualCompletionDate.toDateString() : '-' %></dd>
+    </dl>
+
+    <% if (kr.metricType === 'milestone' && kr.milestones.length > 0) { %>
+      <h5 class="mt-4">🛤 Milestones</h5>
+      <ul class="list-group">
+        <% kr.milestones.forEach(m => { %>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span><%= m.label %> (<%= m.weight %>%)</span>
+            <span>
+              <% if (m.completed) { %>
+                ✅ Completed
+              <% } else { %>
+                ⏳ Pending
+              <% } %>
+              <% if (m.dueDate) { %>
+                <small class="text-muted ms-2">(<%= m.dueDate.toDateString() %>)</small>
+              <% } %>
+            </span>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+
+    <% if (kr.updates && kr.updates.length > 0) { %>
+      <h5 class="mt-4">📝 Updates</h5>
+      <ul class="list-group">
+        <% kr.updates.slice().reverse().forEach(update => { %>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span><%= update.updateText || 'No note' %></span>
+            <small class="text-muted"><%= new Date(update.updateDate).toLocaleString() %></small>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+
+  </div>
+</div>
+
+<a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/edit" class="btn btn-primary">✏️ Edit this KR</a>

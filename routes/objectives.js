@@ -8,6 +8,8 @@ const { isLoggedIn } = require('../middleware/auth');
 const KeyResult = require('../models/KeyResult');
 const calculateObjectiveProgress = require('../utils/calculateObjectiveProgress');
 const OKRCycle = require('../models/OKRCycle');
+const Initiative = require('../models/Initiative');
+const { checkKREditPermission } = require('../middleware/krPermissions');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -50,10 +52,11 @@ router.get('/', isLoggedIn, async (req, res) => {
   try {
     const filter = { organization: req.organization._id };
     if (req.query.cycle) {
-      filter.cycle = { $in: [req.query.cycle] }; // 🔥 Multi-cycle filter
+      filter.cycle = { $in: [req.query.cycle] };
     }
 
-    const objectives = await Objective.find(filter).populate('teamId createdBy');
+    const objectives = await Objective.find(filter)
+      .populate('teamId createdBy assignedTeams');
 
     const enabledCycles = await OKRCycle.find({
       organization: req.organization._id,
@@ -78,13 +81,9 @@ router.get('/', isLoggedIn, async (req, res) => {
 // ✅ CREATE OBJECTIVE
 router.post('/',
   isLoggedIn,
-  (req, res, next) => {
-    req.body.teamId = req.body.teamId;
-    next();
-  },
   isSuperAdminOrFunctionEditor,
   async (req, res) => {
-    const { title, description, cycle, teamId, parentObjective } = req.body;
+    const { title, description, cycle, teamId, parentObjective, assignedTeams } = req.body;
 
     if (!cycle || (Array.isArray(cycle) && cycle.length === 0)) {
       req.flash('error', 'At least one OKR Cycle must be selected');
@@ -101,6 +100,7 @@ router.post('/',
         cycle: cyclesArray,
         year,
         teamId,
+        assignedTeams: Array.isArray(assignedTeams) ? assignedTeams : [assignedTeams],
         organization: req.organization._id,
         createdBy: req.user._id,
         parentObjective: parentObjective || null
@@ -226,7 +226,7 @@ router.get('/:id/edit', isLoggedIn, async (req, res) => {
 // ✅ UPDATE OBJECTIVE (FORM POST)
 router.post('/:id', isLoggedIn, async (req, res) => {
   try {
-    const { title, description, cycle, teamId, parentObjective } = req.body;
+    const { title, description, cycle, teamId, parentObjective, assignedTeams } = req.body;
 
     const cyclesArray = Array.isArray(cycle) ? cycle : [cycle];
 
@@ -237,7 +237,8 @@ router.post('/:id', isLoggedIn, async (req, res) => {
         description,
         cycle: cyclesArray,
         teamId,
-        parentObjective: parentObjective || null
+        parentObjective: parentObjective || null,
+        assignedTeams: Array.isArray(assignedTeams) ? assignedTeams : [assignedTeams]
       }
     );
 
@@ -249,6 +250,7 @@ router.post('/:id', isLoggedIn, async (req, res) => {
     res.redirect(`/${req.organization.orgName}/objectives`);
   }
 });
+
 
 // ✅ Child objectives fetch
 router.get('/parent/:parentId', async (req, res) => {
@@ -323,10 +325,6 @@ function calculateProgress(kr, latestUpdateValue) {
   const target = Number(kr.targetValue);
   const current = Number(latestUpdateValue ?? kr.startValue);
 
-  console.log('📊 Start:', kr.startValue, 'Parsed:', start);
-  console.log('🎯 Target:', kr.targetValue, 'Parsed:', target);
-  console.log('📍 Current:', latestUpdateValue, 'Parsed:', current);
-
   if (isNaN(start) || isNaN(target) || isNaN(current)) return 0;
 
   const isIncrease = kr.direction === 'increase' || (kr.direction === 'auto' && target > start);
@@ -391,7 +389,12 @@ router.post('/:objectiveId/keyresults',
       return res.redirect(`/${req.organization.orgName}/objectives`);
     }
 
-    req.body.teamId = objective.teamId;
+    // ✅ Permission check: only assigned teams can create KRs
+    if (!objective.assignedTeams.map(id => id.toString()).includes(req.user.team.toString())) {
+      req.flash('error', 'Your team is not allowed to create Key Results for this Objective.');
+      return res.redirect(`/${req.organization.orgName}/objectives`);
+    }
+
     req.objective = objective;
     next();
   },
@@ -405,12 +408,32 @@ router.post('/:objectiveId/keyresults',
         createdBy: req.user._id
       });
 
-      if (kr.metricType === 'percent' || kr.metricType === 'number') {
-        kr.startValue = Number(req.body.startValue);
-        kr.targetValue = Number(req.body.targetValue);
+      // Milestone setup
+      if (kr.metricType === 'milestone' && Array.isArray(req.body.milestones)) {
+        kr.milestones = req.body.milestones
+          .filter(m => m.label?.trim())
+          .map(m => ({
+            label: m.label.trim(),
+            weight: Number(m.weight),
+            dueDate: m.dueDate ? new Date(m.dueDate) : undefined
+          }));
+      } else {
+        kr.milestones = [];
+      }
+
+      // Default due date from OKRCycle
+      if (!kr.dueDate) {
+        const cycle = await OKRCycle.findOne({
+          label: { $in: req.objective.cycle },
+          organization: req.organization._id
+        });
+        if (cycle) {
+          kr.dueDate = cycle.endDate;
+        }
       }
 
       kr.progressValue = calculateProgress(kr);
+
       await kr.save();
       await calculateObjectiveProgress(req.params.objectiveId);
 
@@ -422,6 +445,39 @@ router.post('/:objectiveId/keyresults',
     }
   }
 );
+
+// ✅ SHOW Key Result
+router.get('/:objectiveId/keyresults/:krId', isLoggedIn, async (req, res) => {
+  try {
+    const objective = await Objective.findOne({
+      _id: req.params.objectiveId,
+      organization: req.organization._id
+    });
+
+    const kr = await KeyResult.findOne({
+      _id: req.params.krId,
+      objectiveId: objective._id,
+      organization: req.organization._id
+    });
+
+    if (!kr || !objective) {
+      req.flash('error', 'Key Result or Objective not found');
+      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+
+    res.render('keyresults/show', {
+      orgName: req.organization.orgName,
+      user: req.user,
+      objective,
+      kr
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Could not load Key Result');
+    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+  }
+});
+
 
 // 🧠 AI Validate
 router.post('/:objectiveId/keyresults/validate-ai', isSuperAdminOrFunctionEditor, async (req, res) => {
@@ -528,19 +584,17 @@ router.post('/:objectiveId/keyresults/:krId',
       _id: req.params.krId,
       organization: req.organization._id
     });
-
     if (!kr) {
       req.flash('error', 'Key Result not found');
-      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+      return res.redirect(`/${req.organization.orgName}/objectives`);
     }
 
     const objective = await Objective.findOne({
       _id: kr.objectiveId,
       organization: req.organization._id
     });
-
     if (!objective) {
-      req.flash('error', 'Associated objective not found');
+      req.flash('error', 'Objective not found');
       return res.redirect(`/${req.organization.orgName}/objectives`);
     }
 
@@ -555,10 +609,17 @@ router.post('/:objectiveId/keyresults/:krId',
 
       kr.title = req.body.title;
       kr.metricType = req.body.metricType;
-      kr.startValue = Number(req.body.startValue);
-      kr.targetValue = Number(req.body.targetValue);
       kr.direction = req.body.direction || 'auto';
       kr.updatedAt = new Date();
+
+      // 🎯 Handle fields based on metricType
+      if (kr.metricType === 'milestone') {
+        kr.startValue = null;
+        kr.targetValue = null;
+      } else {
+        kr.startValue = Number(req.body.startValue);
+        kr.targetValue = Number(req.body.targetValue);
+      }
 
       if (Array.isArray(req.body.milestones)) {
         kr.milestones = req.body.milestones.map(m => ({
@@ -568,7 +629,16 @@ router.post('/:objectiveId/keyresults/:krId',
         }));
       }
 
+      // Progress calculation
       kr.progressValue = calculateProgress(kr);
+
+      // 🎯 Handle actualCompletionDate
+      if (kr.progressValue === 100 && !kr.actualCompletionDate) {
+        kr.actualCompletionDate = new Date();
+      } else if (kr.progressValue < 100 && kr.actualCompletionDate) {
+        kr.actualCompletionDate = undefined;
+      }
+
       await kr.save();
       await calculateObjectiveProgress(req.params.objectiveId);
 
@@ -623,8 +693,16 @@ router.post('/:objectiveId/keyresults/:krId/update',
         updatedBy: req.user._id
       });
 
+      // 🎯 Recalculate Progress
       kr.progressValue = calculateProgress(kr, parsedValue);
       kr.updatedAt = new Date();
+
+      // 🎯 Handle actualCompletionDate
+      if (kr.progressValue === 100 && !kr.actualCompletionDate) {
+        kr.actualCompletionDate = new Date();
+      } else if (kr.progressValue < 100 && kr.actualCompletionDate) {
+        kr.actualCompletionDate = undefined;
+      }
 
       await kr.save();
       await calculateObjectiveProgress(kr.objectiveId);
@@ -677,5 +755,107 @@ router.post('/:objectiveId/keyresults/:krId/delete',
     }
   }
 );
+
+// ✅ Toggle Milestone Completion
+router.post('/:objectiveId/keyresults/:krId/milestone/:index/toggle', isLoggedIn, async (req, res) => {
+  try {
+    const kr = await KeyResult.findOne({
+      _id: req.params.krId,
+      organization: req.organization._id
+    });
+
+    if (!kr || !kr.milestones[req.params.index]) {
+      req.flash('error', 'Milestone not found');
+      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+
+    kr.milestones[req.params.index].completed = !kr.milestones[req.params.index].completed;
+
+    // Update progress based on milestone weights
+    const totalWeight = kr.milestones.reduce((sum, m) => sum + (m.completed ? m.weight : 0), 0);
+    kr.progressValue = Math.round(totalWeight);
+
+    // Auto-set or unset actual completion date
+    const allDone = kr.milestones.every(m => m.completed);
+    kr.actualCompletionDate = allDone ? new Date() : null;
+
+    await kr.save();
+    await calculateObjectiveProgress(req.params.objectiveId);
+
+    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to update milestone');
+    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+  }
+});
+
+// ❌ Delete an update inside KeyResult
+router.post('/:objectiveId/keyresults/:krId/updates/:updateIndex/delete', isLoggedIn, async (req, res, next) => {
+  try {
+    const kr = await KeyResult.findOne({
+      _id: req.params.krId,
+      organization: req.organization._id
+    });
+
+    if (!kr) {
+      req.flash('error', 'Key Result not found');
+      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+
+    const updateIndex = parseInt(req.params.updateIndex, 10);
+    if (isNaN(updateIndex) || updateIndex < 0 || updateIndex >= kr.updates.length) {
+      req.flash('error', 'Invalid update selected.');
+      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+
+    // ❌ Remove the update at that index
+    kr.updates.splice(updateIndex, 1);
+
+    // 🔄 Recalculate progress based on the latest update left
+    const latestUpdate = kr.updates.length > 0 ? kr.updates[kr.updates.length - 1] : null;
+    kr.progressValue = calculateProgress(kr, latestUpdate ? latestUpdate.updateValue : undefined);
+
+    // 🔥 If KR is 100% earlier and now falls below 100%, reset actualCompletionDate
+    if (kr.progressValue < 100 && kr.actualCompletionDate) {
+      kr.actualCompletionDate = undefined;
+    }
+
+    await kr.save();
+    await calculateObjectiveProgress(kr.objectiveId);
+
+    req.flash('success', 'Update deleted successfully');
+    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to delete update');
+    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+  }
+});
+
+router.get('/:objectiveId/keyresults/:krId/initiatives', isLoggedIn, async (req, res) => {
+  const { orgName, krId } = req.params;
+
+  const keyResult = await KeyResult.findOne({
+    _id: krId,
+    organization: req.organization._id
+  });
+
+  if (!keyResult) {
+    req.flash('error', 'Key Result not found');
+    return res.redirect(`/${orgName}/objectives`);
+  }
+
+  const initiatives = await Initiative.find({
+    keyResultId: krId,
+    organization: req.organization._id
+  }).sort({ createdAt: -1 });
+
+  res.render('initiatives/byKR', {
+    orgName,
+    keyResult,
+    initiatives
+  });
+});
 
 module.exports = router;

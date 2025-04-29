@@ -7,11 +7,13 @@
     <div class="mb-3">
         <label for="keyResultId">Key Results</label>
         <select name="keyResultId" id="keyResultId" class="form-control">
-          <option value="">-- Select Key Result --</option>
-          <% keyResults.forEach(kr => { %>
-            <option value="<%= kr._id %>"><%= kr.title %></option>
-          <% }) %>
-        </select>
+            <option value="">-- Select Key Result --</option>
+            <% keyResults.forEach(kr => { %>
+                <option value="<%= kr._id %>" <%= (kr._id.toString() === preselectedKeyResultId) ? 'selected' : '' %>>
+                <%= kr.title %>
+                </option>
+            <% }) %>
+        </select> 
     </div>
 
     <div class="mb-3">

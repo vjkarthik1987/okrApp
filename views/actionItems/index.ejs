@@ -1,7 +1,13 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Action Items' %>
 
-<h2>📋 Action Items</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>📋 Action Items</h2>
+  <a href="/<%= orgName %>/actionItems/new" class="btn btn-success">
+    ➕ New Action Item
+  </a>
+</div>
 
 <!-- Scope Tabs (My, Team, Org) -->
 <ul class="nav nav-tabs mb-4" style="border-bottom: 2px solid #dee2e6;">

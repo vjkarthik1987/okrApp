@@ -34,18 +34,24 @@ function generateCycleDates(label, type, financialYearStartMonth) {
     const [q, yearStr] = label.split('-');
     let year = parseInt(yearStr);
     const quarterIndex = quarterDurations[q];
-
+  
     let startMonthIndex = ((financialYearStartMonth - 1) + quarterIndex * 3) % 12;
     let startYear = year;
     if (financialYearStartMonth !== 1 && startMonthIndex < (financialYearStartMonth - 1)) {
       startYear += 1; // cross over year
     }
     const startMonth = (startMonthIndex + 1).toString().padStart(2, '0');
-
+  
     const startDate = new Date(`${startYear}-${startMonth}-01`);
-
-    const endDate = new Date(new Date(startDate).setMonth(startDate.getMonth() + 3) - 1); // 1 day before next quarter
-
+  
+    // 🛠 Correct End Date calculation
+    const nextQuarterStart = new Date(startDate);
+    nextQuarterStart.setMonth(nextQuarterStart.getMonth() + 3);
+    nextQuarterStart.setDate(1);
+    nextQuarterStart.setHours(0, 0, 0, 0);
+  
+    const endDate = new Date(nextQuarterStart.getTime() - 1);
+  
     return { startDate, endDate };
   } else {
     throw new Error('Invalid OKR Cycle type.');

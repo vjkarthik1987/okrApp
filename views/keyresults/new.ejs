@@ -26,9 +26,7 @@
     <button type="button" onclick="generateMilestones()" class="btn btn-outline-primary">✨ Auto-Fill Milestones</button>
 
     <div id="milestoneLoader" class="mt-2" style="display: none;">
-      <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;">
-        <span class="visually-hidden">Loading...</span>
-      </div>
+      <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
       <span class="ms-2">Generating milestones...</span>
     </div>
 
@@ -38,7 +36,7 @@
     <small class="text-muted d-block mt-1">Total weightage must be exactly 100%</small>
   </div>
 
-  <div class="row">
+  <div id="valueSection" class="row">
     <div class="col-md-6 mb-3">
       <label for="startValue">Start Value</label>
       <input type="text" name="startValue" id="startValue" class="form-control" placeholder="e.g., 40">
@@ -48,6 +46,12 @@
       <label for="targetValue">Target Value</label>
       <input type="text" name="targetValue" id="targetValue" class="form-control" placeholder="e.g., 60">
     </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="dueDate">Due Date (for completing this Key Result)</label>
+    <input type="date" name="dueDate" id="dueDate" class="form-control">
+    <small class="text-muted">This is the target date for overall KR completion.</small>
   </div>
 
   <div class="mb-3">
@@ -72,18 +76,24 @@
 
   function handleMetricTypeChange(value) {
     const section = document.getElementById('milestonesSection');
-    section.style.display = value === 'milestone' ? 'block' : 'none';
+    const valueSection = document.getElementById('valueSection');
 
-    if (value === 'milestone' && milestoneCount === 0) {
-      for (let i = 0; i < 5; i++) {
-        addMilestone();
+    if (value === 'milestone') {
+      section.style.display = 'block';
+      valueSection.style.display = 'none';
+      if (milestoneCount === 0) {
+        for (let i = 0; i < 5; i++) {
+          addMilestone();
+        }
       }
+    } else {
+      section.style.display = 'none';
+      valueSection.style.display = 'flex';
     }
   }
 
   function addMilestone(label = '', weight = 20, date = '') {
     const container = document.getElementById('milestoneList');
-
     const row = document.createElement('div');
     row.className = 'row align-items-center mb-2';
     row.id = `milestone-row-${milestoneCount}`;

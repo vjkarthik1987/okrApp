@@ -1,0 +1,22 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Initiatives under ' + keyResult.title %>
+
+<h2>📌 Initiatives for KR: <%= keyResult.title %></h2>
+
+<a href="/<%= orgName %>/objectives/<%= keyResult.objectiveId %>/keyresults" class="btn btn-outline-secondary mb-3">⬅ Back to Key Results</a>
+
+<% if (initiatives.length === 0) { %>
+  <div class="alert alert-info">No initiatives linked to this Key Result.</div>
+<% } else { %>
+  <ul class="list-group">
+    <% initiatives.forEach(ini => { %>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong><%= ini.title %></strong> – <%= ini.status %>
+          <div class="text-muted small"><%= ini.expectedOutcome %></div>
+        </div>
+        <a href="/<%= orgName %>/initiatives/<%= ini._id %>" class="btn btn-sm btn-outline-primary">View</a>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>

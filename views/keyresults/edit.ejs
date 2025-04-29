@@ -47,21 +47,32 @@
   <div class="row">
     <div class="col-md-6 mb-3">
       <label for="startValue">Start Value</label>
-      <input type="text" name="startValue" id="startValue" class="form-control" value="<%= kr.startValue || '' %>">
+      <input type="text" name="startValue" id="startValue" class="form-control" value="<%= kr.startValue ?? '' %>">
     </div>
 
     <div class="col-md-6 mb-3">
       <label for="targetValue">Target Value</label>
-      <input type="text" name="targetValue" id="targetValue" class="form-control" value="<%= kr.targetValue || '' %>">
+      <input type="text" name="targetValue" id="targetValue" class="form-control" value="<%= kr.targetValue ?? '' %>">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="dueDate">Due Date</label>
+      <input type="date" name="dueDate" id="dueDate" class="form-control" value="<%= kr.dueDate ? kr.dueDate.toISOString().split('T')[0] : '' %>">
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="actualCompletionDate">Actual Completion Date</label>
+      <input type="date" name="actualCompletionDate" id="actualCompletionDate" class="form-control" value="<%= kr.actualCompletionDate ? kr.actualCompletionDate.toISOString().split('T')[0] : '' %>">
     </div>
   </div>
 
   <div class="mb-3">
     <label for="direction">Progress Direction</label>
     <select name="direction" id="direction" class="form-control">
-      <option value="auto" <%= kr.direction === 'auto' ? 'selected' : '' %>>Auto</option>
-      <option value="increase" <%= kr.direction === 'increase' ? 'selected' : '' %>>Increase is good</option>
-      <option value="decrease" <%= kr.direction === 'decrease' ? 'selected' : '' %>>Decrease is good</option>
+      <option value="auto" <%= kr.direction === 'auto' ? 'selected' : '' %>>Auto (based on values)</option>
+      <option value="increase" <%= kr.direction === 'increase' ? 'selected' : '' %>>Increase is better</option>
+      <option value="decrease" <%= kr.direction === 'decrease' ? 'selected' : '' %>>Decrease is better</option>
     </select>
   </div>
 
@@ -86,7 +97,7 @@
 
     row.innerHTML = `
       <div class="col-md-5">
-        <input type="text" name="milestones[${milestoneCount}][label]" class="form-control" placeholder="Milestone ${milestoneCount + 1}" value="${label}">
+        <input type="text" name="milestones[${milestoneCount}][label]" class="form-control" value="${label}">
       </div>
       <div class="col-md-2">
         <input type="number" name="milestones[${milestoneCount}][weight]" class="form-control weight-input" value="${weight}" onchange="validateMilestoneWeights()">
@@ -98,6 +109,7 @@
         <button type="button" class="btn btn-danger btn-sm" onclick="removeMilestone(${milestoneCount})">🗑️</button>
       </div>
     `;
+
     container.appendChild(row);
     milestoneCount++;
     validateMilestoneWeights();

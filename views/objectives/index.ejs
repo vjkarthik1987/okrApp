@@ -18,12 +18,13 @@
 <% if (objectives.length === 0) { %>
   <div class="alert alert-warning">No objectives found for this organization.</div>
 <% } else { %>
-  <table class="table table-bordered">
+  <table class="table table-bordered align-middle">
     <thead class="table-light">
       <tr>
         <th>Title</th>
-        <th>Team</th>
-        <th>Cycle</th>
+        <th>Created By</th>
+        <th>Assigned Teams</th>
+        <th>Cycle(s)</th>
         <th>Status</th>
         <th>Progress</th>
         <th>Key Results</th>
@@ -35,13 +36,30 @@
         <tr>
           <td><%= obj.title %></td>
           <td><%= obj.teamId?.name || 'N/A' %></td>
-          <td><%= obj.cycle %></td>
+          <td>
+            <% if (obj.assignedTeams && obj.assignedTeams.length > 0) { %>
+              <ul class="mb-0 ps-3">
+                <% obj.assignedTeams.forEach(team => { %>
+                  <li><%= team.name %></li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <span class="text-muted">None</span>
+            <% } %>
+          </td>
+          <td>
+            <% if (Array.isArray(obj.cycle)) { %>
+              <%= obj.cycle.join(', ') %>
+            <% } else { %>
+              <%= obj.cycle %>
+            <% } %>
+          </td>
           <td><%= obj.status %></td>
           <td><%= obj.progressValue %>%</td>
           <td>
             <a href="/<%= orgName %>/objectives/<%= obj._id %>/keyresults" class="btn btn-sm btn-outline-primary">📈 KRs</a>
           </td>
-          <td>
+          <td class="text-nowrap">
             <a href="/<%= orgName %>/objectives/<%= obj._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
             <form action="/<%= orgName %>/objectives/<%= obj._id %>/delete" method="POST" style="display:inline">
               <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑 Delete</button>

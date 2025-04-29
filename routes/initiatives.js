@@ -8,19 +8,30 @@ const { isLoggedIn } = require('../middleware/auth');
 // Get all Initaitives
 router.get('/', isLoggedIn, async (req, res) => {
   const { orgName } = req.params;
+  const keyResults = await KeyResult.find({ organization: req.organization._id });
 
   const initiatives = await Initiative.find({ organization: req.user.organization })
     .populate('keyResultId')
     .sort({ createdAt: -1 });
 
-  res.render('initiatives/index', { orgName, initiatives });
+  res.render('initiatives/index', { 
+    orgName, 
+    initiatives,
+    keyResults,
+  });
 });
 
 // Show form to create new initiative
 router.get('/new', isLoggedIn, async (req, res) => {
   const { orgName } = req.params;
   const keyResults = await KeyResult.find({ organization: req.user.organization });
-  res.render('initiatives/new', { orgName, keyResults });
+  const preselectedKeyResultId = req.query.keyResultId || '';
+
+  res.render('initiatives/new', { 
+    orgName, 
+    keyResults,
+    preselectedKeyResultId
+  });
 });
 
 // Create initiative
