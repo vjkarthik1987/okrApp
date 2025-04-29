@@ -42,7 +42,13 @@ const organizationSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  financialYearStartMonth: {  
+    type: Number,
+    min: 1,
+    max: 12,
+    default: 1 // January by default
+  },
 });
 
 module.exports = mongoose.model('Organization', organizationSchema);

@@ -15,14 +15,13 @@
   </div>
 
   <div class="mb-3">
-    <label for="cycle">OKR Cycle <span class="text-danger">*</span></label>
-    <select name="cycle" id="cycle" class="form-control" required>
-      <option value="">-- Select a cycle --</option>
+    <label for="cycle">OKR Cycle(s) <span class="text-danger">*</span></label>
+    <select name="cycle" id="cycle" class="form-control" required multiple>
       <% enabledCycles.forEach(cycle => { %>
         <option value="<%= cycle.label %>"><%= cycle.label %></option>
       <% }) %>
     </select>
-    <small class="text-muted">Only enabled cycles are shown</small>
+    <small class="text-muted">Hold Ctrl (Windows) / Command (Mac) to select multiple cycles.</small>
   </div>
 
   <div class="mb-3">

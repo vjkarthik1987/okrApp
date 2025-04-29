@@ -42,6 +42,7 @@ router.post('/', async (req, res) => {
       orgName,
       displayName,
       industry,
+      financialYearStartMonth: req.body.financialYearStartMonth || 1,
       licenseModel: 'free',
       licenseActivated: false,
       licenseStartDate,

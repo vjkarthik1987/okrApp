@@ -45,11 +45,13 @@ Respond in JSON format with verdict and suggestions.
   }
 });
 
-// ✅ GET ALL OBJECTIVES FOR ORG/TEAM
+// ✅ GET ALL OBJECTIVES
 router.get('/', isLoggedIn, async (req, res) => {
   try {
     const filter = { organization: req.organization._id };
-    if (req.query.cycle) filter.cycle = req.query.cycle;
+    if (req.query.cycle) {
+      filter.cycle = { $in: [req.query.cycle] }; // 🔥 Multi-cycle filter
+    }
 
     const objectives = await Objective.find(filter).populate('teamId createdBy');
 
@@ -64,7 +66,7 @@ router.get('/', isLoggedIn, async (req, res) => {
       user: req.user,
       objectives,
       cycle: req.query.cycle || '',
-      enabledCycles // ✅ Add this
+      enabledCycles
     });
   } catch (err) {
     console.error(err);
@@ -77,7 +79,6 @@ router.get('/', isLoggedIn, async (req, res) => {
 router.post('/',
   isLoggedIn,
   (req, res, next) => {
-    // Attach teamId explicitly for middleware to check access
     req.body.teamId = req.body.teamId;
     next();
   },
@@ -85,18 +86,19 @@ router.post('/',
   async (req, res) => {
     const { title, description, cycle, teamId, parentObjective } = req.body;
 
-    if (!cycle || cycle.trim() === '') {
-      req.flash('error', 'OKR Cycle is required');
+    if (!cycle || (Array.isArray(cycle) && cycle.length === 0)) {
+      req.flash('error', 'At least one OKR Cycle must be selected');
       return res.redirect(`/${req.organization.orgName}/objectives/new`);
     }
 
-    const year = cycle.includes('-') ? cycle.split('-')[1] : cycle;
+    const cyclesArray = Array.isArray(cycle) ? cycle : [cycle];
+    const year = cyclesArray[0].includes('-') ? cyclesArray[0].split('-')[1] : cyclesArray[0];
 
     try {
       const objective = new Objective({
         title,
         description,
-        cycle,
+        cycle: cyclesArray,
         year,
         teamId,
         organization: req.organization._id,
@@ -115,7 +117,7 @@ router.post('/',
   }
 );
 
-//Create a new objective
+// ✅ NEW OBJECTIVE FORM
 router.get('/new', isLoggedIn, async (req, res) => {
   try {
     const teams = await Team.find({ organization: req.organization._id });
@@ -123,8 +125,8 @@ router.get('/new', isLoggedIn, async (req, res) => {
     const enabledCycles = await OKRCycle.find({
       organization: req.organization._id,
       isEnabled: true,
-      type: 'quarter' // ✅ only fetch Q1/Q2/Q3/Q4 cycles
-    }).sort({ label: 1 })
+      type: 'quarter'
+    }).sort({ label: 1 });
 
     res.render('objectives/new', {
       orgName: req.organization.orgName,
@@ -155,7 +157,7 @@ router.get('/:objectiveId', async (req, res) => {
   }
 });
 
-// ✅ UPDATE OBJECTIVE
+// ✅ UPDATE OBJECTIVE (API)
 router.put('/:objectiveId',
   isLoggedIn,
   async (req, res, next) => {
@@ -183,7 +185,7 @@ router.put('/:objectiveId',
   }
 );
 
-// EDIT OBJECTIVES
+// ✅ EDIT OBJECTIVE FORM
 router.get('/:id/edit', isLoggedIn, async (req, res) => {
   try {
     const objective = await Objective.findOne({
@@ -191,21 +193,20 @@ router.get('/:id/edit', isLoggedIn, async (req, res) => {
       organization: req.organization._id
     });
 
-    const teams = await Team.find({ organization: req.organization._id });
-    const parentObjectives = await Objective.find({
-      organization: req.organization._id,
-      _id: { $ne: req.params.id } // exclude itself
-    });
-
-    const enabledCycles = await OKRCycle.find({
-      organization: req.organization._id,
-      isEnabled: true
-    }).sort({ label: 1 });
-
     if (!objective) {
       req.flash('error', 'Objective not found');
       return res.redirect(`/${req.organization.orgName}/objectives`);
     }
+
+    const teams = await Team.find({ organization: req.organization._id });
+    const parentObjectives = await Objective.find({
+      organization: req.organization._id,
+      _id: { $ne: req.params.id }
+    });
+    const enabledCycles = await OKRCycle.find({
+      organization: req.organization._id,
+      isEnabled: true
+    }).sort({ label: 1 });
 
     res.render('objectives/edit', {
       orgName: req.organization.orgName,
@@ -222,17 +223,19 @@ router.get('/:id/edit', isLoggedIn, async (req, res) => {
   }
 });
 
-//UPDATE OBJECTIVES
+// ✅ UPDATE OBJECTIVE (FORM POST)
 router.post('/:id', isLoggedIn, async (req, res) => {
   try {
     const { title, description, cycle, teamId, parentObjective } = req.body;
+
+    const cyclesArray = Array.isArray(cycle) ? cycle : [cycle];
 
     await Objective.findOneAndUpdate(
       { _id: req.params.id, organization: req.organization._id },
       {
         title,
         description,
-        cycle,
+        cycle: cyclesArray,
         teamId,
         parentObjective: parentObjective || null
       }
@@ -247,17 +250,17 @@ router.post('/:id', isLoggedIn, async (req, res) => {
   }
 });
 
-// ✅ FETCH CHILD OBJECTIVES
+// ✅ Child objectives fetch
 router.get('/parent/:parentId', async (req, res) => {
-    const parentId = req.params.parentId;
-    const children = await Objective.find({
-      parentObjective: parentId,
-      organization: req.organization._id
-    });
-    res.json(children);
+  const parentId = req.params.parentId;
+  const children = await Objective.find({
+    parentObjective: parentId,
+    organization: req.organization._id
+  });
+  res.json(children);
 });
   
-// ✅ DELETE (SOFT) OBJECTIVE
+// ✅ Soft Delete Objective
 router.delete('/:objectiveId',
   isLoggedIn,
   async (req, res, next) => {
@@ -286,7 +289,7 @@ router.delete('/:objectiveId',
   }
 );
 
-//DELETE OBJECTIVES
+// ✅ Hard Delete (UI Button POST)
 router.post('/:id/delete',
   isLoggedIn,
   async (req, res, next) => {
@@ -483,83 +486,6 @@ Return only the milestone steps as a numbered list.
   }
 });
 
-// ✏️ Edit KR form
-// To be deleted
-// router.get('/:objectiveId/keyresults/new', isLoggedIn, async (req, res) => {
-//   const objective = await Objective.findOne({
-//     _id: req.params.objectiveId,
-//     organization: req.organization._id
-//   });
-
-//   if (!objective) {
-//     req.flash('error', 'Objective not found');
-//     return res.redirect(`/${req.organization.orgName}/objectives`);
-//   }
-
-//   res.render('keyresults/new', {
-//     orgName: req.organization.orgName,
-//     user: req.user,
-//     objective,
-//     kr: null // ✅ Pass kr as null to avoid reference error
-//   });
-// });
-
-
-// 🔁 Update KR
-// To be deleted
-// router.post('/:objectiveId/keyresults/:krId',
-//   isLoggedIn,
-//   async (req, res, next) => {
-//     const kr = await KeyResult.findOne({
-//       _id: req.params.krId,
-//       organization: req.organization._id
-//     });
-
-//     if (!kr) {
-//       req.flash('error', 'Key Result not found');
-//       return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-//     }
-
-//     const objective = await Objective.findById(kr.objectiveId);
-//     if (!objective) {
-//       req.flash('error', 'Objective not found');
-//       return res.redirect(`/${req.organization.orgName}/objectives`);
-//     }
-
-//     req.body.teamId = objective.teamId;
-//     next();
-//   },
-//   isSuperAdminOrFunctionEditor,
-//   async (req, res) => {
-//     try {
-//       const kr = await KeyResult.findOneAndUpdate(
-//         {
-//           _id: req.params.krId,
-//           organization: req.organization._id
-//         },
-//         req.body,
-//         { new: true }
-//       );
-
-//       if (kr.metricType === 'percent' || kr.metricType === 'number') {
-//         kr.startValue = Number(req.body.startValue);
-//         kr.targetValue = Number(req.body.targetValue);
-//       }
-
-//       kr.progressValue = calculateProgress(kr);
-//       await kr.save();
-
-//       await calculateObjectiveProgress(req.params.objectiveId);
-
-//       req.flash('success', 'Key Result updated');
-//       res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-//     } catch (err) {
-//       console.error(err);
-//       req.flash('error', 'Failed to update Key Result');
-//       res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-//     }
-//   }
-// );
 
 // ✏️ GET: Edit a Key Result
 router.get('/:objectiveId/keyresults/:krId/edit', isLoggedIn, async (req, res) => {

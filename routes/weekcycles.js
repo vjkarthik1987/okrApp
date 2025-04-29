@@ -15,7 +15,6 @@ router.get('/', isLoggedIn, isSuperAdmin, async (req, res) => {
 
 // 🆕 GET /generate – Show form to generate weekly cycles
 router.get('/generate', isLoggedIn, isSuperAdmin, async (req, res) => {
-    console.log('Hitting get of generate route')
     const { orgName } = req.params;
     console.log(orgName)
 

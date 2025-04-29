@@ -15,10 +15,10 @@
   </div>
 
   <div class="mb-3">
-    <label>Cycle:</label>
-    <select name="cycle" class="form-control" required>
+    <label>OKR Cycle(s):</label>
+    <select name="cycle" class="form-control" required multiple>
       <% enabledCycles.forEach(c => { %>
-        <option value="<%= c.label %>" <%= objective.cycle === c.label ? 'selected' : '' %>><%= c.label %></option>
+        <option value="<%= c.label %>" <%= objective.cycle.includes(c.label) ? 'selected' : '' %>><%= c.label %></option>
       <% }) %>
     </select>
   </div>

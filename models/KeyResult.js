@@ -1,35 +1,23 @@
 const mongoose = require('mongoose');
 
 const keyResultSchema = new mongoose.Schema({
-  objectiveId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Objective',
-    required: true
-  },
-
+  objectiveId: { type: mongoose.Schema.Types.ObjectId, ref: 'Objective', required: true },
   title: { type: String, required: true },
-
-  metricType: {
-    type: String,
-    enum: ['percent', 'number', 'boolean', 'milestone'],
-    required: true
-  },
-
+  metricType: { type: String, enum: ['percent', 'number', 'boolean', 'milestone'], required: true },
   startValue: mongoose.Schema.Types.Mixed,
   targetValue: mongoose.Schema.Types.Mixed,
-
-  direction: {
-    type: String,
-    enum: ['increase', 'decrease', 'auto'],
-    default: 'auto'
-  },
-
+  direction: { type: String, enum: ['increase', 'decrease', 'auto'], default: 'auto' },
+  
+  dueDate: { type: Date }, // 🎯 New field
+  
+  actualCompletionDate: { type: Date }, // 🎯 New field
+  
   milestones: [
     {
       label: { type: String, required: true },
       completed: { type: Boolean, default: false },
       weight: { type: Number, default: 1 },
-      dueDate: { type: Date } // ✅ NEW FIELD
+      dueDate: { type: Date }
     }
   ],
 
@@ -43,41 +31,16 @@ const keyResultSchema = new mongoose.Schema({
   ],
 
   progressValue: { type: Number, default: 0 },
-
-  status: {
-    type: String,
-    enum: ['on track', 'at risk', 'off track'],
-    default: 'on track'
-  },
-
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-
-  visibility: {
-    type: String,
-    enum: ['private', 'team', 'organization'],
-    default: 'organization'
-  },
-
+  status: { type: String, enum: ['on track', 'at risk', 'off track'], default: 'on track' },
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  visibility: { type: String, enum: ['private', 'team', 'organization'], default: 'organization' },
   aiFeedback: {
     verdict: String,
     suggestedRewrite: String,
     issues: [String]
   },
-
-  deactivated: {
-    type: Boolean,
-    default: false
-  },
-
-  organization: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Organization',
-    required: true
-  },
-
+  deactivated: { type: Boolean, default: false },
+  organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: Date
 });
