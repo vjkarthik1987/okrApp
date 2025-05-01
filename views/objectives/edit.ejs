@@ -33,6 +33,19 @@
   </div>
 
   <div class="mb-3">
+    <label>Assigned Teams:</label>
+    <select name="assignedTeams" class="form-control" multiple>
+      <% teams.forEach(team => { %>
+        <option value="<%= team._id %>" 
+          <%= objective.assignedTeams?.map(t => t.toString()).includes(team._id.toString()) ? 'selected' : '' %>>
+          <%= team.name %>
+        </option>
+      <% }) %>
+    </select>
+    <small class="text-muted">Teams allowed to contribute Key Results to this Objective</small>
+  </div>
+
+  <div class="mb-3">
     <label>Parent Objective (optional):</label>
     <select name="parentObjective" class="form-control">
       <option value="">None</option>

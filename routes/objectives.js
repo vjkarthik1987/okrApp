@@ -10,6 +10,10 @@ const calculateObjectiveProgress = require('../utils/calculateObjectiveProgress'
 const OKRCycle = require('../models/OKRCycle');
 const Initiative = require('../models/Initiative');
 const { checkKREditPermission } = require('../middleware/krPermissions');
+const getAllSubTeams = require('../utils/getAllSubTeams');
+const getFunctionHeadAccessTeamIds = require('../utils/getFunctionHeadAccessTeamIds');
+const mongoose = require('mongoose');
+
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -51,8 +55,45 @@ Respond in JSON format with verdict and suggestions.
 router.get('/', isLoggedIn, async (req, res) => {
   try {
     const filter = { organization: req.organization._id };
-    if (req.query.cycle) {
-      filter.cycle = { $in: [req.query.cycle] };
+    const selectedCycle = req.query.cycle || '';
+    const selectedTeamId = req.query.teamId || '';
+
+    if (selectedCycle) {
+      filter.cycle = { $in: [selectedCycle] };
+    }
+
+    let accessibleTeamIds = [];
+
+    if (req.user.isSuperAdmin) {
+      // Super Admin can filter by team or see all
+      if (selectedTeamId) {
+        const teamObjectId = new mongoose.Types.ObjectId(selectedTeamId);
+        filter.$or = [
+          { teamId: teamObjectId },
+          { assignedTeams: teamObjectId }
+        ];
+      }
+      // Load all teams for dropdown
+      accessibleTeamIds = await Team.find({ organization: req.organization._id }, '_id').then(t => t.map(ti => ti._id));
+    } else {
+      accessibleTeamIds = await getFunctionHeadAccessTeamIds(req.user._id);
+
+      if (
+        selectedTeamId &&
+        accessibleTeamIds.map(id => id.toString()).includes(selectedTeamId)
+      ) {
+        const teamObjectId = new mongoose.Types.ObjectId(selectedTeamId);
+        filter.$or = [
+          { teamId: teamObjectId },
+          { assignedTeams: teamObjectId }
+        ];
+      } else {
+        // Default to all accessible teams
+        filter.$or = [
+          { teamId: { $in: accessibleTeamIds } },
+          { assignedTeams: { $in: accessibleTeamIds } }
+        ];
+      }
     }
 
     const objectives = await Objective.find(filter)
@@ -63,14 +104,19 @@ router.get('/', isLoggedIn, async (req, res) => {
       isEnabled: true
     }).sort({ label: 1 });
 
+    const accessibleTeams = await Team.find({ _id: { $in: accessibleTeamIds } });
+
     res.render('objectives/index', {
       title: 'Objectives',
       orgName: req.organization.orgName,
       user: req.user,
       objectives,
-      cycle: req.query.cycle || '',
-      enabledCycles
+      cycle: selectedCycle,
+      selectedTeamId,
+      enabledCycles,
+      accessibleTeams
     });
+
   } catch (err) {
     console.error(err);
     req.flash('error', 'Could not load objectives.');
@@ -94,13 +140,16 @@ router.post('/',
     const year = cyclesArray[0].includes('-') ? cyclesArray[0].split('-')[1] : cyclesArray[0];
 
     try {
+      const finalAssignedTeams = assignedTeams && assignedTeams.length > 0 
+        ? (Array.isArray(assignedTeams) ? assignedTeams : [assignedTeams])
+        : [teamId];
       const objective = new Objective({
         title,
         description,
         cycle: cyclesArray,
         year,
         teamId,
-        assignedTeams: Array.isArray(assignedTeams) ? assignedTeams : [assignedTeams],
+        assignedTeams: finalAssignedTeams,
         organization: req.organization._id,
         createdBy: req.user._id,
         parentObjective: parentObjective || null
@@ -120,7 +169,19 @@ router.post('/',
 // ✅ NEW OBJECTIVE FORM
 router.get('/new', isLoggedIn, async (req, res) => {
   try {
-    const teams = await Team.find({ organization: req.organization._id });
+    let teams = [];
+
+    if (req.user.isSuperAdmin) {
+      teams = await Team.find({ organization: req.organization._id });
+    } else {
+      const userTeam = await Team.findById(req.user.team);
+      if (!userTeam) throw new Error('User team not found');
+
+      // ✅ Fetch user's team + all subteams recursively
+      const subTeams = await getAllSubTeams(req.user.team);
+      teams = [userTeam, ...subTeams];
+    }
+
     const objectives = await Objective.find({ organization: req.organization._id });
     const enabledCycles = await OKRCycle.find({
       organization: req.organization._id,
@@ -141,6 +202,7 @@ router.get('/new', isLoggedIn, async (req, res) => {
     res.redirect(`/${req.organization.orgName}/objectives`);
   }
 });
+
   
 // ✅ GET ONE OBJECTIVE
 router.get('/:objectiveId', async (req, res) => {

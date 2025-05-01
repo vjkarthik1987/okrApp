@@ -50,6 +50,27 @@ async function updateNumberOfReportees() {
     process.exit(1); // Exit with error
   }
 }
+const Objective = require('./models/Objective');
+
+async function updateAssignedTeams() {
+  await mongoose.connect('mongodb://localhost:27017/okrApp'); // adjust URI
+
+  const updated = await Objective.findByIdAndUpdate(
+    '681097b379e8a292f5002fbf',
+    {
+      assignedTeams: [
+        new mongoose.Types.ObjectId('680bc73dd0ac86239597df60'),
+        new mongoose.Types.ObjectId('680bcf934d8f0b5c83c8352d')
+      ]
+    },
+    { new: true }
+  );
+
+  console.log('Updated Objective:', updated);
+  mongoose.disconnect();
+}
+
+updateAssignedTeams();
 
 //cleanUsers();
-updateNumberOfReportees();
+//updateNumberOfReportees();

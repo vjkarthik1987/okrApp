@@ -34,6 +34,17 @@
   </div>
 
   <div class="mb-3">
+    <label for="assignedTeams">Assigned Teams (Optional)</label>
+    <select name="assignedTeams" id="assignedTeams" class="form-control" multiple>
+      <% teams.forEach(team => { %>
+        <option value="<%= team._id %>"><%= team.name %></option>
+      <% }) %>
+    </select>
+    <small class="text-muted">Hold Ctrl (Windows) / Command (Mac) to select multiple teams.<br>
+      If none selected, the creating team will be assigned by default.</small>
+  </div>
+
+  <div class="mb-3">
     <label for="parentObjective">Parent Objective (Optional)</label>
     <select name="parentObjective" id="parentObjective" class="form-control">
       <option value="">-- None --</option>
