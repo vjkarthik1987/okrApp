@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const passportLocalMongoose = require('passport-local-mongoose');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -42,6 +44,8 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
 }, { timestamps: true });
 
 // Use email instead of username for passport
