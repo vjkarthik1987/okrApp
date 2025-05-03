@@ -66,7 +66,7 @@
 
             <% if (kr.updates && kr.updates.length > 0) { %>
               <ul class="small text-muted mt-2 mb-0">
-                <% kr.updates.map((upd, realIndex) => { %> <!-- Use realIndex here -->
+                <% [...kr.updates].reverse().forEach((upd, realIndex) => { %> <!-- Use realIndex here -->
                   <li>
                     <%= upd.updateDate.toDateString() %>: <%= upd.updateValue %> (<%= upd.updateText || 'No note' %>)
                     <form method="POST" action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/updates/<%= realIndex %>/delete" style="display:inline">

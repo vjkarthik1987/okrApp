@@ -28,36 +28,39 @@ exports.isSuperAdminOrFunctionEditor = async (req, res, next) => {
   if (user.isSuperAdmin) return next();
 
   try {
-    const teamId =
-      req.body.teamId ||
-      req.body.objective?.teamId ||
-      req.query.teamId ||
-      req.objective?.teamId;
+    const teamIds =
+      req.body.assignedTeams ||
+      req.body.objective?.assignedTeams ||
+      req.objective?.assignedTeams;
 
-    if (!teamId) {
-      req.flash('error', 'Team ID missing for access validation');
+    const normalizedTeamIds = Array.isArray(teamIds) ? teamIds : [teamIds].filter(Boolean);
+
+    if (!normalizedTeamIds || normalizedTeamIds.length === 0) {
+      req.flash('error', 'No assigned teams found for access check.');
       return res.redirect(`/${req.organization.orgName}/dashboard`);
     }
 
-    const team = await Team.findById(teamId);
-    if (!team) {
-      req.flash('error', 'Team not found');
-      return res.redirect(`/${req.organization.orgName}/dashboard`);
-    }
+    const teams = await Team.find({ _id: { $in: normalizedTeamIds } });
 
-    const isFunctionHead = team.functionHead?.toString() === user._id.toString();
-    const isEditor = team.okrEditors?.some(id => id.toString() === user._id.toString());
+    const hasAccess = teams.some(team => {
+      return (
+        team.functionHead?.toString() === user._id.toString() ||
+        team.okrEditors?.some(editorId => editorId.toString() === user._id.toString())
+      );
+    });
 
-    if (isFunctionHead || isEditor) return next();
+    if (hasAccess) return next();
 
-    req.flash('error', 'Access denied. Only Function Heads, OKR Editors, or Super Admins may create/edit for this team.');
+    req.flash('error', 'Access denied. You must be Function Head or OKR Editor of one of the assigned teams.');
     return res.redirect(`/${req.organization.orgName}/dashboard`);
+
   } catch (err) {
     console.error('Role check failed:', err);
     req.flash('error', 'Internal server error during role check.');
     return res.redirect(`/${req.organization.orgName}/dashboard`);
   }
 };
+
 
 exports.isManager = async (req, res, next) => {
   if (!req.user) {

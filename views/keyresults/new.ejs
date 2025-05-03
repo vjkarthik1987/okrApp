@@ -55,6 +55,26 @@
   </div>
 
   <div class="mb-3">
+    <label for="assignedTeams">Assigned Teams</label>
+    <select name="assignedTeams" id="assignedTeams" multiple class="form-control">
+      <% teams.forEach(team => { %>
+        <option value="<%= team._id %>"><%= team.name %></option>
+      <% }) %>
+    </select>
+    <small class="text-muted">Teams responsible for execution of this KR</small>
+  </div>
+
+  <div class="mb-3">
+    <label for="assignedTo">Assigned Users</label>
+    <select name="assignedTo" id="assignedTo" multiple class="form-control">
+      <% users.forEach(user => { %>
+        <option value="<%= user._id %>"><%= user.name %> (<%= user.email %>)</option>
+      <% }) %>
+    </select>
+    <small class="text-muted">Users individually responsible for this KR</small>
+  </div>
+
+  <div class="mb-3">
     <label for="direction">Progress Direction</label>
     <select name="direction" id="direction" class="form-control">
       <option value="auto" selected>Auto (based on start & target)</option>

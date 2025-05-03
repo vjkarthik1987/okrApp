@@ -1,0 +1,63 @@
+<% layout('layouts/dashboard') %>
+<% title = 'My Key Results' %>
+
+<h2 class="mb-4">🎯 Key Results</h2>
+
+<!-- Scope Tabs (My, Team, Org) -->
+<ul class="nav nav-tabs mb-4" style="border-bottom: 2px solid #dee2e6;">
+  <li class="nav-item">
+    <a class="nav-link <%= scope === 'my' ? 'active' : '' %>" href="/<%= orgName %>/mykeyresults?scope=my&filter=<%= filter %>">👤 <strong>My KRs</strong></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <%= scope === 'team' ? 'active' : '' %>" href="/<%= orgName %>/mykeyresults?scope=team&filter=<%= filter %>">👥 <strong>Team KRs</strong></a>
+  </li>
+  <% if (user.isSuperAdmin) { %>
+  <li class="nav-item">
+    <a class="nav-link <%= scope === 'org' ? 'active' : '' %>" href="/<%= orgName %>/mykeyresults?scope=org&filter=<%= filter %>">🏢 <strong>Org KRs</strong></a>
+  </li>
+  <% } %>
+</ul>
+
+<!-- Filter Tabs -->
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link <%= filter === 'active' ? 'active' : '' %>" href="/<%= orgName %>/mykeyresults?scope=<%= scope %>&filter=active">✅ Active</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <%= filter === 'completed' ? 'active' : '' %>" href="/<%= orgName %>/mykeyresults?scope=<%= scope %>&filter=completed">🏁 Completed</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <%= filter === 'all' ? 'active' : '' %>" href="/<%= orgName %>/mykeyresults?scope=<%= scope %>&filter=all">📋 All</a>
+  </li>
+</ul>
+
+<!-- Key Results Table -->
+<table class="table table-bordered table-striped">
+  <thead class="table-light">
+    <tr>
+      <th>Title</th>
+      <th>Progress</th>
+      <th>Due Date</th>
+      <th>Objective</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (keyResults.length === 0) { %>
+      <tr><td colspan="5" class="text-center text-muted">No Key Results found.</td></tr>
+    <% } else { %>
+      <% keyResults.forEach(kr => { %>
+        <tr>
+          <td><%= kr.title %></td>
+          <td><%= kr.progressValue %>%</td>
+          <td><%= kr.dueDate ? new Date(kr.dueDate).toDateString() : '-' %></td>
+          <td><%= kr.objectiveTitle || '-' %></td>
+          <td>
+            <a href="/<%= orgName %>/objectives/<%= kr.objectiveId %>/keyresults/<%= kr._id %>" class="btn btn-sm btn-outline-info">🔍 View</a>
+            <a href="/<%= orgName %>/objectives/<%= kr.objectiveId %>/keyresults/<%= kr._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+          </td>
+        </tr>
+      <% }) %>
+    <% } %>
+  </tbody>
+</table>

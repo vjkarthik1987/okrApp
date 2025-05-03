@@ -5,6 +5,8 @@ const keyResultSchema = new mongoose.Schema({
   title: { type: String, required: true },
   metricType: { type: String, enum: ['percent', 'number', 'boolean', 'milestone'], required: true },
   ownerTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' },
+  assignedTeams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }],
+  assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   editableBy: {
     type: String,
     enum: ['ownerOnly', 'ownerTeam', 'objectiveTeam', 'orgAdmins'],

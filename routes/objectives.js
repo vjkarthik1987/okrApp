@@ -13,7 +13,8 @@ const { checkKREditPermission } = require('../middleware/krPermissions');
 const getAllSubTeams = require('../utils/getAllSubTeams');
 const getFunctionHeadAccessTeamIds = require('../utils/getFunctionHeadAccessTeamIds');
 const mongoose = require('mongoose');
-
+const checkKREditAccess = require('../middleware/checkKREditAccess');
+const User = require('../models/User');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -399,6 +400,10 @@ function calculateProgress(kr, latestUpdateValue) {
   return isNaN(safeProgress) ? 0 : Math.max(0, Math.min(safeProgress, 100));
 }
 
+//---------------------------
+//Section for Key Results (KR)
+//----------------------------
+
 // 🚀 Show all KRs under an objective
 router.get('/:objectiveId/keyresults', isLoggedIn, async (req, res) => {
   const objective = await Objective.findOne({
@@ -426,6 +431,8 @@ router.get('/:objectiveId/keyresults/new', isLoggedIn, async (req, res) => {
     organization: req.organization._id
   });
 
+  const teams = await Team.find({ organization: req.organization._id });
+  const users = await User.find({ organization: req.organization._id, isActive: true });
   if (!objective) {
     req.flash('error', 'Objective not found');
     return res.redirect(`/${req.organization.orgName}/objectives`);
@@ -434,79 +441,94 @@ router.get('/:objectiveId/keyresults/new', isLoggedIn, async (req, res) => {
   res.render('keyresults/new', {
     orgName: req.organization.orgName,
     user: req.user,
-    objective
+    objective,
+    teams, 
+    users   
   });
 });
 
 // ✅ Create KR
-router.post('/:objectiveId/keyresults',
-  isLoggedIn,
-  async (req, res, next) => {
+router.post('/:objectiveId/keyresults', isLoggedIn, async (req, res) => {
+  try {
+    const { objectiveId } = req.params;
     const objective = await Objective.findOne({
-      _id: req.params.objectiveId,
+      _id: objectiveId,
       organization: req.organization._id
     });
+
     if (!objective) {
       req.flash('error', 'Objective not found');
       return res.redirect(`/${req.organization.orgName}/objectives`);
     }
 
-    // ✅ Permission check: only assigned teams can create KRs
-    if (!objective.assignedTeams.map(id => id.toString()).includes(req.user.team.toString())) {
-      req.flash('error', 'Your team is not allowed to create Key Results for this Objective.');
+    const userId = req.user._id.toString();
+    const isSuperAdmin = req.user.isSuperAdmin;
+
+    // ✅ Use assignedTeams from the Objective itself (not req.body)
+    const assignedTeamIds = (objective.assignedTeams || []).map(id => id.toString());
+
+    const teams = await Team.find({ _id: { $in: assignedTeamIds } });
+
+    const hasTeamPermission = teams.some(team =>
+      team.functionHead?.toString() === userId ||
+      (team.okrEditors || []).some(editorId => editorId.toString() === userId)
+    );
+
+    if (!isSuperAdmin && !hasTeamPermission) {
+      req.flash('error', 'Access denied. You must be a Function Head or OKR Editor of a team or a Super Adminassigned to this Objective.');
       return res.redirect(`/${req.organization.orgName}/objectives`);
     }
 
-    req.objective = objective;
-    next();
-  },
-  isSuperAdminOrFunctionEditor,
-  async (req, res) => {
-    try {
-      const kr = new KeyResult({
-        ...req.body,
-        organization: req.organization._id,
-        objectiveId: req.params.objectiveId,
-        createdBy: req.user._id
-      });
+    // ✅ Proceed to create KR
+    const assignedTeams = Array.isArray(req.body.assignedTeams)
+      ? req.body.assignedTeams
+      : [req.body.assignedTeams].filter(Boolean);
 
-      // Milestone setup
-      if (kr.metricType === 'milestone' && Array.isArray(req.body.milestones)) {
-        kr.milestones = req.body.milestones
-          .filter(m => m.label?.trim())
-          .map(m => ({
-            label: m.label.trim(),
-            weight: Number(m.weight),
-            dueDate: m.dueDate ? new Date(m.dueDate) : undefined
-          }));
-      } else {
-        kr.milestones = [];
-      }
+    const assignedTo = Array.isArray(req.body.assignedTo)
+      ? req.body.assignedTo
+      : [req.body.assignedTo].filter(Boolean);
 
-      // Default due date from OKRCycle
-      if (!kr.dueDate) {
-        const cycle = await OKRCycle.findOne({
-          label: { $in: req.objective.cycle },
-          organization: req.organization._id
-        });
-        if (cycle) {
-          kr.dueDate = cycle.endDate;
-        }
-      }
+    const kr = new KeyResult({
+      ...req.body,
+      assignedTeams,
+      assignedTo,
+      organization: req.organization._id,
+      objectiveId,
+      createdBy: req.user._id
+    });
 
-      kr.progressValue = calculateProgress(kr);
-
-      await kr.save();
-      await calculateObjectiveProgress(req.params.objectiveId);
-
-      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-    } catch (err) {
-      console.error(err);
-      req.flash('error', 'Failed to create Key Result');
-      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    if (kr.metricType === 'milestone' && Array.isArray(req.body.milestones)) {
+      kr.milestones = req.body.milestones
+        .filter(m => m.label?.trim())
+        .map(m => ({
+          label: m.label.trim(),
+          weight: Number(m.weight),
+          dueDate: m.dueDate ? new Date(m.dueDate) : undefined
+        }));
     }
+
+    if (!kr.dueDate) {
+      const cycle = await OKRCycle.findOne({
+        label: { $in: objective.cycle },
+        organization: req.organization._id
+      });
+      if (cycle) kr.dueDate = cycle.endDate;
+    }
+
+    kr.progressValue = calculateProgress(kr);
+
+    await kr.save();
+    await calculateObjectiveProgress(objectiveId);
+
+    req.flash('success', 'Key Result created successfully');
+    res.redirect(`/${req.organization.orgName}/objectives/${objectiveId}/keyresults`);
+
+  } catch (err) {
+    console.error('Error saving Key Result:', err.stack || err);
+    req.flash('error', 'Failed to create Key Result. Please check the form values.');
+    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
   }
-);
+});
 
 // ✅ SHOW Key Result
 router.get('/:objectiveId/keyresults/:krId', isLoggedIn, async (req, res) => {
@@ -606,99 +628,98 @@ Return only the milestone steps as a numbered list.
 
 
 // ✏️ GET: Edit a Key Result
-router.get('/:objectiveId/keyresults/:krId/edit', isLoggedIn, async (req, res) => {
-  try {
+router.get('/:objectiveId/keyresults/:krId/edit',
+  isLoggedIn,
+  checkKREditAccess,
+  async (req, res) => {
     const objective = await Objective.findOne({
       _id: req.params.objectiveId,
       organization: req.organization._id
     });
 
-    const kr = await KeyResult.findOne({
-      _id: req.params.krId,
-      objectiveId: req.params.objectiveId,
-      organization: req.organization._id
-    });
-
-    if (!kr || !objective) {
-      req.flash('error', 'Key Result or Objective not found');
-      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-    }
+    const teams = await Team.find({ organization: req.organization._id });
+    const users = await User.find({ organization: req.organization._id, isActive: true });
 
     res.render('keyresults/edit', {
       orgName: req.organization.orgName,
       user: req.user,
       objective,
-      kr
+      kr: req.keyResult,
+      teams,
+      users
     });
-  } catch (err) {
-    console.error(err);
-    req.flash('error', 'Could not load edit form');
-    res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
   }
-});
+);
 
 
-// ⬆️ Update Progress (inline)
+// ⬆️ Update Progress completely
 router.post('/:objectiveId/keyresults/:krId',
   isLoggedIn,
-  async (req, res, next) => {
-    const kr = await KeyResult.findOne({
-      _id: req.params.krId,
-      organization: req.organization._id
-    });
-    if (!kr) {
-      req.flash('error', 'Key Result not found');
-      return res.redirect(`/${req.organization.orgName}/objectives`);
-    }
-
-    const objective = await Objective.findOne({
-      _id: kr.objectiveId,
-      organization: req.organization._id
-    });
-    if (!objective) {
-      req.flash('error', 'Objective not found');
-      return res.redirect(`/${req.organization.orgName}/objectives`);
-    }
-
-    req.body.teamId = objective.teamId;
-    req.keyResult = kr;
-    next();
-  },
-  isSuperAdminOrFunctionEditor,
   async (req, res) => {
     try {
-      const kr = req.keyResult;
+      const kr = await KeyResult.findOne({
+        _id: req.params.krId,
+        organization: req.organization._id
+      }).populate('assignedTeams ownerTeam assignedTo');
+
+      if (!kr) {
+        req.flash('error', 'Key Result not found');
+        return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+      }
+
+      const userId = req.user._id.toString();
+      const userTeamId = req.user.team?.toString();
+
+      const isOwner = kr.owner?.toString() === userId;
+      const isOwnerTeam = kr.ownerTeam?.toString() === userTeamId;
+      const isAssignedTo = kr.assignedTo?.some(user => user._id.toString() === userId);
+
+      const assignedTeamAccess = kr.assignedTeams?.some(team => {
+        return (
+          team.functionHead?.toString() === userId ||
+          team.okrEditors?.some(editor => editor.toString() === userId)
+        );
+      });
+
+      const isSuperAdmin = req.user.isSuperAdmin;
+
+      if (!(isSuperAdmin || isOwner || isOwnerTeam || isAssignedTo || assignedTeamAccess)) {
+        req.flash('error', 'Access denied. You are not authorized to edit this Key Result.');
+        return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+      }
 
       kr.title = req.body.title;
       kr.metricType = req.body.metricType;
       kr.direction = req.body.direction || 'auto';
       kr.updatedAt = new Date();
 
-      // 🎯 Handle fields based on metricType
+      kr.assignedTeams = Array.isArray(req.body.assignedTeams)
+        ? req.body.assignedTeams
+        : [req.body.assignedTeams].filter(Boolean);
+
+      kr.assignedTo = Array.isArray(req.body.assignedTo)
+        ? req.body.assignedTo
+        : [req.body.assignedTo].filter(Boolean);
+
       if (kr.metricType === 'milestone') {
         kr.startValue = null;
         kr.targetValue = null;
-      } else {
-        kr.startValue = Number(req.body.startValue);
-        kr.targetValue = Number(req.body.targetValue);
-      }
-
-      if (Array.isArray(req.body.milestones)) {
         kr.milestones = req.body.milestones.map(m => ({
           label: m.label,
           weight: Number(m.weight),
           dueDate: m.dueDate ? new Date(m.dueDate) : undefined
         }));
+      } else {
+        kr.startValue = Number(req.body.startValue);
+        kr.targetValue = Number(req.body.targetValue);
       }
 
-      // Progress calculation
       kr.progressValue = calculateProgress(kr);
 
-      // 🎯 Handle actualCompletionDate
       if (kr.progressValue === 100 && !kr.actualCompletionDate) {
         kr.actualCompletionDate = new Date();
-      } else if (kr.progressValue < 100 && kr.actualCompletionDate) {
-        kr.actualCompletionDate = undefined;
+      } else if (kr.progressValue < 100) {
+        kr.actualCompletionDate = null;
       }
 
       await kr.save();
@@ -717,31 +738,45 @@ router.post('/:objectiveId/keyresults/:krId',
 // ⬆️ Inline Progress Update
 router.post('/:objectiveId/keyresults/:krId/update',
   isLoggedIn,
-  async (req, res, next) => {
-    const kr = await KeyResult.findOne({
-      _id: req.params.krId,
-      organization: req.organization._id
-    });
-
-    if (!kr) {
-      req.flash('error', 'Key Result not found');
-      return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
-    }
-
-    const objective = await Objective.findById(kr.objectiveId);
-    if (!objective) {
-      req.flash('error', 'Associated objective not found');
-      return res.redirect(`/${req.organization.orgName}/objectives`);
-    }
-
-    req.body.teamId = objective.teamId;
-    req.keyResult = kr;
-    next();
-  },
-  isSuperAdminOrFunctionEditor,
   async (req, res) => {
     try {
-      const kr = req.keyResult;
+      const kr = await KeyResult.findOne({
+        _id: req.params.krId,
+        organization: req.organization._id
+      }).populate('assignedTeams ownerTeam assignedTo');
+
+      if (!kr) {
+        req.flash('error', 'Key Result not found');
+        return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+      }
+
+      const objective = await Objective.findById(kr.objectiveId);
+      if (!objective) {
+        req.flash('error', 'Associated objective not found');
+        return res.redirect(`/${req.organization.orgName}/objectives`);
+      }
+
+      const userId = req.user._id.toString();
+      const userTeamId = req.user.team?.toString();
+
+      const isOwner = kr.owner?.toString() === userId;
+      const isOwnerTeam = kr.ownerTeam?.toString() === userTeamId;
+      const isAssignedTo = kr.assignedTo?.some(user => user._id.toString() === userId);
+
+      const assignedTeamAccess = kr.assignedTeams?.some(team => {
+        return (
+          team.functionHead?.toString() === userId ||
+          team.okrEditors?.some(editor => editor.toString() === userId)
+        );
+      });
+
+      const isSuperAdmin = req.user.isSuperAdmin;
+
+      if (!(isSuperAdmin || isOwner || isOwnerTeam || isAssignedTo || assignedTeamAccess)) {
+        req.flash('error', 'Access denied. You are not authorized to update progress.');
+        return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+      }
+
       const parsedValue = parseFloat(req.body.updateValue);
 
       if (isNaN(parsedValue)) {
@@ -755,11 +790,9 @@ router.post('/:objectiveId/keyresults/:krId/update',
         updatedBy: req.user._id
       });
 
-      // 🎯 Recalculate Progress
       kr.progressValue = calculateProgress(kr, parsedValue);
       kr.updatedAt = new Date();
 
-      // 🎯 Handle actualCompletionDate
       if (kr.progressValue === 100 && !kr.actualCompletionDate) {
         kr.actualCompletionDate = new Date();
       } else if (kr.progressValue < 100 && kr.actualCompletionDate) {
@@ -782,6 +815,7 @@ router.post('/:objectiveId/keyresults/:krId/update',
 // ❌ Delete (soft)
 router.post('/:objectiveId/keyresults/:krId/delete',
   isLoggedIn,
+  checkKREditAccess,
   async (req, res, next) => {
     const kr = await KeyResult.findOne({
       _id: req.params.krId,
@@ -819,7 +853,10 @@ router.post('/:objectiveId/keyresults/:krId/delete',
 );
 
 // ✅ Toggle Milestone Completion
-router.post('/:objectiveId/keyresults/:krId/milestone/:index/toggle', isLoggedIn, async (req, res) => {
+router.post('/:objectiveId/keyresults/:krId/milestone/:index/toggle', 
+isLoggedIn, 
+checkKREditAccess,
+async (req, res) => {
   try {
     const kr = await KeyResult.findOne({
       _id: req.params.krId,
@@ -853,7 +890,10 @@ router.post('/:objectiveId/keyresults/:krId/milestone/:index/toggle', isLoggedIn
 });
 
 // ❌ Delete an update inside KeyResult
-router.post('/:objectiveId/keyresults/:krId/updates/:updateIndex/delete', isLoggedIn, async (req, res, next) => {
+router.post('/:objectiveId/keyresults/:krId/updates/:updateIndex/delete', 
+isLoggedIn, 
+checkKREditAccess,
+async (req, res, next) => {
   try {
     const kr = await KeyResult.findOne({
       _id: req.params.krId,

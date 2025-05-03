@@ -1,8 +1,24 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Edit Key Result' %>
 
-<h2>Edit Key Result for: <%= objective.title %></h2>
+<h2>Edit Key Result for: <%= kr.title %></h2>
 
+<h3 class="mt-5">📈 Update Progress</h3>
+<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/update" method="POST">
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label for="updateValue">New Value</label>
+      <input type="number" step="any" name="updateValue" id="updateValue" class="form-control" required>
+    </div>
+    <div class="col-md-8 mb-3">
+      <label for="updateText">Update Summary</label>
+      <input type="text" name="updateText" id="updateText" class="form-control" required>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">📤 Submit Update</button>
+</form>
+
+<h3 class="mt-5">📈 Edit Key Result</h3>
 <form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>" method="POST" id="krForm">
   <div class="mb-3">
     <label for="title">Key Result Title <span class="text-danger">*</span></label>
@@ -65,6 +81,36 @@
       <label for="actualCompletionDate">Actual Completion Date</label>
       <input type="date" name="actualCompletionDate" id="actualCompletionDate" class="form-control" value="<%= kr.actualCompletionDate ? kr.actualCompletionDate.toISOString().split('T')[0] : '' %>">
     </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="assignedTeams">Assigned Teams</label>
+    <select name="assignedTeams" multiple class="form-control">
+      <% 
+        const assignedTeamIds = kr.assignedTeams.map(t => String(t._id));
+        teams.forEach(team => { 
+      %>
+        <option value="<%= team._id %>" 
+          <%= assignedTeamIds.includes(String(team._id)) ? 'selected' : '' %>>
+          <%= team.name %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label for="assignedTo">Assigned Users</label>
+    <select name="assignedTo" multiple class="form-control">
+      <% 
+        const assignedUserIds = kr.assignedTo.map(u => String(u._id));
+        users.forEach(user => {
+      %>
+        <option value="<%= user._id %>" 
+          <%= assignedUserIds.includes(String(user._id)) ? 'selected' : '' %>>
+          <%= user.name %> (<%= user.email %>)
+        </option>
+      <% }) %>
+    </select>
   </div>
 
   <div class="mb-3">
