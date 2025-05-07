@@ -1,12 +1,17 @@
 const mongoose = require('mongoose');
 
+const contextChunkSchema = new mongoose.Schema({
+  text: String,
+  embedding: [Number]
+});
+
 const contextFileSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+  title: String,
   description: String,
-  content: { type: String, required: true },
-  embedding: { type: [Number], default: [] },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
+  content: String, // raw content
+  chunks: [contextChunkSchema], // <== new field
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
   createdAt: { type: Date, default: Date.now }
 });
 

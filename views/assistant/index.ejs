@@ -2,6 +2,11 @@
 <% title = 'Ask Assistant' %>
 
 <h2 class="mb-4">🤖 Assistant</h2>
+<% if (user && user.isSuperAdmin) { %>
+  <div class="mb-3">
+    <a href="/<%= orgName %>/assistant/logs" class="btn btn-outline-primary">📜 View Assistant Logs</a>
+  </div>
+<% } %>
 
 <div class="card mb-4">
   <div class="card-body">

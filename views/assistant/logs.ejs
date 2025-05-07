@@ -1,0 +1,50 @@
+<% layout('layouts/dashboard') %>
+
+<style>
+    table td, table th {
+        word-wrap: break-word;
+        word-break: break-word;
+        vertical-align: top;
+    }
+
+    td pre, td code {
+        white-space: pre-wrap;       /* wrap text inside <pre> or <code> */
+        word-break: break-word;
+    }
+</style>
+
+<h2 class="mb-4">📜 Assistant Query Logs</h2>
+
+<div class="table-responsive">
+  <table class="table table-bordered table-striped">
+    <thead class="table-light">
+      <tr>
+        <th>User</th>
+        <th>Query</th>
+        <th>Response</th>
+        <th>Matched Context</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% logs.forEach(log => { %>
+        <tr>
+          <td><%= log.user?.email || 'N/A' %></td>
+          <td><pre class="mb-0"><%= log.query %></pre></td>
+          <td><pre class="mb-0"><%= log.response %></pre></td>
+          <td>
+            <ul class="mb-0" style="padding-left: 1rem;">
+              <% log.matchedChunks.forEach(chunk => { %>
+                <li>
+                  <div><strong>Score:</strong> <%= chunk.similarity.toFixed(3) %></div>
+                  <code style="font-size: 0.85em;"><%= chunk.text.slice(0, 200) %>...</code>
+                </li>
+              <% }) %>
+            </ul>
+          </td>
+          <td><%= log.createdAt.toLocaleString() %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>

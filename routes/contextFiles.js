@@ -9,6 +9,8 @@ const multer = require('multer');
 const mammoth = require('mammoth');
 const upload = multer({ dest: 'uploads/' }); // or configure storage if needed
 const fs = require('fs').promises;
+const chunkText = require('../utils/chunker');
+
 
 //SHOW ALL CONTEXT
 router.get('/', isLoggedIn, isSuperAdmin, async (req, res) => {
@@ -38,17 +40,18 @@ router.post('/', isLoggedIn, isSuperAdmin, upload.single('docxFile'), async (req
     }
 
     if (!finalContent) {
-      req.flash('error', 'No content provided or extracted');
+      req.flash('error', 'No content provided');
       return res.redirect('back');
     }
 
-    const embedding = await generateEmbedding(finalContent);
+    const chunks = chunkText(finalContent);
+    const chunkEmbeddings = await Promise.all(chunks.map(text => generateEmbedding(text)));
 
     const contextFile = new ContextFile({
       title,
       description,
       content: finalContent,
-      embedding,
+      chunks: chunks.map((text, i) => ({ text, embedding: chunkEmbeddings[i] })),
       createdBy: req.user._id,
       organization: req.user.organization
     });
@@ -62,7 +65,6 @@ router.post('/', isLoggedIn, isSuperAdmin, upload.single('docxFile'), async (req
     res.redirect('back');
   }
 });
-
 
 // EDIT FORM
 router.get('/:id/edit', isLoggedIn, isSuperAdmin, async (req, res) => {
