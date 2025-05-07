@@ -1,0 +1,69 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Ask Assistant' %>
+
+<h2 class="mb-4">🤖 Assistant</h2>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div id="chatBox" class="mb-3 p-3 border bg-light" style="height: 300px; overflow-y: auto;">
+      <!-- Chat messages will be appended here -->
+    </div>
+
+    <div class="input-group">
+      <textarea id="userQuery" class="form-control" rows="2" placeholder="Ask something..." required></textarea>
+      <button class="btn btn-primary" onclick="submitQuery()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const orgName = "<%= orgName %>";
+
+  async function askAssistant(query) {
+    const response = await fetch(`/${orgName}/assistant`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ query })
+    });
+
+    const data = await response.json();
+    return data.response;
+  }
+
+  async function submitQuery() {
+    const userInput = document.getElementById('userQuery').value.trim();
+    if (!userInput) return;
+
+    appendMessage('You', userInput);
+    document.getElementById('userQuery').value = '';
+    appendMessage('Assistant', 'Thinking...', true);
+
+    try {
+      const assistantResponse = await askAssistant(userInput);
+      updateLastMessage(assistantResponse);
+    } catch (err) {
+      updateLastMessage('❌ Error: ' + err.message);
+    }
+  }
+
+  function appendMessage(sender, message, isTemp = false) {
+    const chatBox = document.getElementById('chatBox');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'mb-2';
+    msgDiv.innerHTML = `<strong>${sender}:</strong> <span>${message}</span>`;
+    if (isTemp) msgDiv.classList.add('temp-message');
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function updateLastMessage(newText) {
+    const chatBox = document.getElementById('chatBox');
+    const tempMessage = chatBox.querySelector('.temp-message span');
+    if (tempMessage) {
+      tempMessage.textContent = newText;
+      tempMessage.parentElement.classList.remove('temp-message');
+    }
+  }
+</script>

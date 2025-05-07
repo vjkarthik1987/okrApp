@@ -15,6 +15,7 @@ const getFunctionHeadAccessTeamIds = require('../utils/getFunctionHeadAccessTeam
 const mongoose = require('mongoose');
 const checkKREditAccess = require('../middleware/checkKREditAccess');
 const User = require('../models/User');
+const WeekCycle = require('../models/WeekCycle');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -415,12 +416,18 @@ router.get('/:objectiveId/keyresults', isLoggedIn, async (req, res) => {
     objectiveId: objective._id,
     deactivated: false
   });
+  const weekCycles = await WeekCycle.find({ organization: req.organization._id }).sort({ startDate: -1 });
+  // Add this line to determine the current active cycle
+  const now = new Date();
+  const currentWeek = weekCycles.find(wc => wc.startDate <= now && wc.endDate >= now);
 
   res.render('keyresults/index', {
     orgName: req.organization.orgName,
     user: req.user,
     objective,
-    keyResults
+    keyResults,
+    weekCycles,
+    currentWeekCycleId: currentWeek ? currentWeek._id : null
   });
 });
 
@@ -491,6 +498,7 @@ router.post('/:objectiveId/keyresults', isLoggedIn, async (req, res) => {
     const kr = new KeyResult({
       ...req.body,
       assignedTeams,
+      ownerTeam: objective.teamId,
       assignedTo,
       organization: req.organization._id,
       objectiveId,
@@ -565,7 +573,6 @@ router.get('/:objectiveId/keyresults/:krId', isLoggedIn, async (req, res) => {
 
 // 🧠 AI Validate
 router.post('/:objectiveId/keyresults/validate-ai', isSuperAdminOrFunctionEditor, async (req, res) => {
-  console.log('Hitting Validate AI route')
   const { title, metricType, startValue, targetValue, objectiveTitle } = req.body;
 
   const prompt = `
@@ -639,14 +646,16 @@ router.get('/:objectiveId/keyresults/:krId/edit',
 
     const teams = await Team.find({ organization: req.organization._id });
     const users = await User.find({ organization: req.organization._id, isActive: true });
-
+    const weekCycles = await WeekCycle.find({ organization: req.organization._id }).sort({ startDate: -1 });
+    
     res.render('keyresults/edit', {
       orgName: req.organization.orgName,
       user: req.user,
       objective,
       kr: req.keyResult,
       teams,
-      users
+      users,
+      weekCycles,
     });
   }
 );
@@ -787,7 +796,8 @@ router.post('/:objectiveId/keyresults/:krId/update',
       kr.updates.push({
         updateValue: parsedValue,
         updateText: req.body.updateText,
-        updatedBy: req.user._id
+        updatedBy: req.user._id,
+        weekCycle: req.body.weekCycle,
       });
 
       kr.progressValue = calculateProgress(kr, parsedValue);
@@ -868,15 +878,24 @@ async (req, res) => {
       return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
     }
 
-    kr.milestones[req.params.index].completed = !kr.milestones[req.params.index].completed;
+    const index = parseInt(req.params.index, 10);
+    const currentStatus = kr.milestones[index].completed;
+    kr.milestones[index].completed = !currentStatus;
+
+    // ➕ Log milestone toggle with weekCycle
+    kr.milestoneUpdates.push({
+      milestoneIndex: index,
+      completed: !currentStatus,
+      updateDate: new Date(),
+      updatedBy: req.user._id,
+      weekCycle: req.body.weekCycle || null
+    });
 
     // Update progress based on milestone weights
     const totalWeight = kr.milestones.reduce((sum, m) => sum + (m.completed ? m.weight : 0), 0);
     kr.progressValue = Math.round(totalWeight);
 
-    // Auto-set or unset actual completion date
-    const allDone = kr.milestones.every(m => m.completed);
-    kr.actualCompletionDate = allDone ? new Date() : null;
+    kr.actualCompletionDate = kr.milestones.every(m => m.completed) ? new Date() : null;
 
     await kr.save();
     await calculateObjectiveProgress(req.params.objectiveId);
@@ -888,6 +907,142 @@ async (req, res) => {
     res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
   }
 });
+
+//Update milestone based KRs
+router.post('/:objectiveId/keyresults/:krId/milestones/update',
+  isLoggedIn,
+  checkKREditAccess,
+  async (req, res) => {
+    try {
+      const { krId, objectiveId } = req.params;
+      const { milestones = [], weekCycle } = req.body;
+      if (!weekCycle) {
+        req.flash('error', 'Please select a Week Cycle before saving milestone progress.');
+        return res.redirect(`/${req.organization.orgName}/objectives/${objectiveId}/keyresults`);
+      }
+      
+      const weekCycleExists = await WeekCycle.findOne({
+        _id: weekCycle,
+        organization: req.organization._id
+      });
+      
+      if (!weekCycleExists) {
+        req.flash('error', 'Selected Week Cycle is invalid.');
+        return res.redirect(`/${req.organization.orgName}/objectives/${objectiveId}/keyresults`);
+      }
+
+      const kr = await KeyResult.findOne({
+        _id: krId,
+        organization: req.organization._id
+      });
+
+      if (!kr || kr.metricType !== 'milestone') {
+        req.flash('error', 'Invalid Key Result or type');
+        return res.redirect(`/${req.organization.orgName}/objectives/${objectiveId}/keyresults`);
+      }
+
+      // 🔄 Rebuild milestone array
+      const updatedMilestones = Array.isArray(milestones)
+        ? milestones
+        : Object.values(milestones); // In case it's an object with numeric keys
+
+      kr.milestones = updatedMilestones.map(m => ({
+        label: m.label,
+        weight: Number(m.weight),
+        completed: m.completed === 'true' || m.completed === true
+      }));
+
+      // 🧮 Recalculate progress
+      const totalWeight = kr.milestones.reduce((sum, m) => sum + (m.completed ? m.weight : 0), 0);
+      kr.progressValue = Math.round(totalWeight);
+
+      // ✅ Log the update in updates[]
+      kr.updates.push({
+        updateValue: kr.progressValue,
+        updateText: 'Milestone progress updated',
+        updatedBy: req.user._id,
+        weekCycle
+      });
+
+      // 🎯 Set or unset completion date
+      const allDone = kr.milestones.every(m => m.completed);
+      kr.actualCompletionDate = allDone ? new Date() : null;
+
+      await kr.save();
+      await calculateObjectiveProgress(objectiveId);
+
+      req.flash('success', 'Milestone progress saved');
+      res.redirect(`/${req.organization.orgName}/objectives/${objectiveId}/keyresults`);
+    } catch (err) {
+      console.error(err);
+      req.flash('error', 'Failed to save milestone progress');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+  }
+);
+
+//Save milestones with correct text
+router.post('/:objectiveId/keyresults/:krId/milestones/save', 
+  isLoggedIn, 
+  checkKREditAccess, 
+  async (req, res) => {
+    try {
+      const kr = await KeyResult.findOne({
+        _id: req.params.krId,
+        organization: req.organization._id
+      });
+
+      if (!kr || !kr.milestones || kr.milestones.length === 0) {
+        req.flash('error', 'Key Result or milestones not found');
+        return res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+      }
+
+      const previous = kr.milestones.map(m => m.completed);
+      const changes = [];
+
+      // Update milestone completion from form
+      req.body.milestones?.forEach((m, i) => {
+        const nowCompleted = m.completed === 'true' || m.completed === true || m.completed === 'on';
+        const wasCompleted = previous[i];
+
+        if (wasCompleted !== nowCompleted) {
+          const action = nowCompleted ? 'Marked' : 'Unmarked';
+          changes.push(`${action} '${kr.milestones[i].label}'`);
+        }
+
+        kr.milestones[i].completed = nowCompleted;
+      });
+
+      // Recalculate progress based on milestone weights
+      const totalCompletedWeight = kr.milestones.reduce((sum, m) => sum + (m.completed ? m.weight : 0), 0);
+      kr.progressValue = Math.round(totalCompletedWeight);
+
+      // Add an update entry if there are changes
+      if (changes.length > 0) {
+        kr.updates.push({
+          updateDate: new Date(),
+          updateValue: kr.progressValue,
+          updateText: changes.join('; ') + '.',
+          updatedBy: req.user._id,
+          weekCycle: req.body.weekCycle || undefined
+        });
+      }
+
+      // Set or clear actualCompletionDate
+      const allDone = kr.milestones.every(m => m.completed);
+      kr.actualCompletionDate = allDone ? new Date() : null;
+
+      await kr.save();
+      await calculateObjectiveProgress(req.params.objectiveId);
+
+      req.flash('success', 'Milestones updated');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    } catch (err) {
+      console.error(err);
+      req.flash('error', 'Failed to update milestones');
+      res.redirect(`/${req.organization.orgName}/objectives/${req.params.objectiveId}/keyresults`);
+    }
+  });
 
 // ❌ Delete an update inside KeyResult
 router.post('/:objectiveId/keyresults/:krId/updates/:updateIndex/delete', 

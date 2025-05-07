@@ -1,0 +1,504 @@
+[
+  {
+    "_id": "67ff70fab44a5d44892337f7",
+    "name": "SunTec Business Solutions",
+    "functionHead": "67fe23207f0893c6d5725142",
+    "okrEditors": [
+      "67fe23207f0893c6d5725142",
+      "67fe25b7da2a2a4d6c1a9ee4"
+    ],
+    "subTeams": [
+      {
+        "_id": "67ff715cb44a5d44892337fb",
+        "name": "Revenue and CEG",
+        "functionHead": "67fe25b7da2a2a4d6c1a9ee4",
+        "okrEditors": [
+          "67fe25b7da2a2a4d6c1a9ee4"
+        ],
+        "subTeams": [
+          {
+            "_id": "67ff7188b44a5d44892337ff",
+            "name": "Client Excellence Group",
+            "functionHead": "67ff564bc181d504b6342107",
+            "okrEditors": [
+              "67ff564bc181d504b6342107"
+            ],
+            "subTeams": []
+          }
+        ]
+      },
+      {
+        "_id": "67ff71d4b44a5d4489233803",
+        "name": "Strategy and CEOs Office",
+        "functionHead": "67fe23207f0893c6d5725142",
+        "okrEditors": [
+          "67fe23207f0893c6d5725142"
+        ],
+        "subTeams": []
+      },
+      {
+        "_id": "6803028d4190fbc17623e821",
+        "name": "Talent",
+        "functionHead": "67ff564bc181d504b6342103",
+        "okrEditors": [
+          "67fe23207f0893c6d5725142"
+        ],
+        "subTeams": [
+          {
+            "_id": "680a1697d42b0f3892cadac3",
+            "name": "KMTD",
+            "functionHead": "6804004ad8706157998e656c",
+            "okrEditors": [
+              "6804004ad8706157998e656c"
+            ],
+            "subTeams": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "680bc73dd0ac86239597df60",
+    "name": "SunTec Group",
+    "functionHead": "680d32ce685b6621b348ff3f",
+    "okrEditors": [
+      "67fe23207f0893c6d5725142"
+    ],
+    "subTeams": [
+      {
+        "_id": "680bcf844d8f0b5c83c8351f",
+        "name": "Revenue and Client Excellence Group",
+        "functionHead": "680d32df685b6621b3490098",
+        "okrEditors": [
+          "680d32df685b6621b3490098"
+        ],
+        "subTeams": [
+          {
+            "_id": "680bd21af41ef2950f8605f5",
+            "name": "Sales and EM - APAC",
+            "functionHead": "680d32df685b6621b3490098",
+            "okrEditors": [
+              "680d32df685b6621b3490098"
+            ],
+            "subTeams": []
+          },
+          {
+            "_id": "680bd61998b03ed72d7bc732",
+            "name": "Sales and EM - Americas",
+            "functionHead": "680d32d2685b6621b348ff98",
+            "okrEditors": [
+              "680d32d2685b6621b348ff98"
+            ],
+            "subTeams": []
+          },
+          {
+            "_id": "680bd62398b03ed72d7bc741",
+            "name": "Sales and EM - EMEA",
+            "functionHead": "680d32df685b6621b349009c",
+            "okrEditors": [
+              "680d32df685b6621b349009c"
+            ],
+            "subTeams": []
+          },
+          {
+            "_id": "680c38fd2eb49ea5b5c63b36",
+            "name": "Solution Consulting",
+            "functionHead": "680d32e2685b6621b34900d8",
+            "okrEditors": [
+              "680d32e2685b6621b34900d8"
+            ],
+            "subTeams": []
+          },
+          {
+            "_id": "680c39062eb49ea5b5c63b48",
+            "name": "Strategic Accounts",
+            "functionHead": "680d32e2685b6621b34900dc",
+            "okrEditors": [
+              "680d32e2685b6621b34900dc"
+            ],
+            "subTeams": []
+          },
+          {
+            "_id": "680c39152eb49ea5b5c63b5a",
+            "name": "GSEMO",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680c3c8a2eb49ea5b5c63ba0",
+            "name": "Client Excellence Group",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": [
+              {
+                "_id": "680c3cc32eb49ea5b5c63bb2",
+                "name": "Global Delivery and Support",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": [
+                  {
+                    "_id": "680c8f7051e3330f05fc0c7e",
+                    "name": "Global Delivery and Support - Americas",
+                    "functionHead": "680d32d4685b6621b348ffb4",
+                    "okrEditors": [
+                      "680d32d4685b6621b348ffb4"
+                    ],
+                    "subTeams": []
+                  },
+                  {
+                    "_id": "680c8f7d51e3330f05fc0c90",
+                    "name": "Global Delivery and Support - EMEA and APAC",
+                    "functionHead": null,
+                    "okrEditors": null,
+                    "subTeams": [
+                      {
+                        "_id": "680c8fb451e3330f05fc0ca2",
+                        "name": "Delivery - EMEA and APAC",
+                        "functionHead": null,
+                        "okrEditors": null,
+                        "subTeams": []
+                      },
+                      {
+                        "_id": "680c8fbf51e3330f05fc0cb4",
+                        "name": "Support - APAC and EMEA",
+                        "functionHead": "680d32d6685b6621b348ffd8",
+                        "okrEditors": [
+                          "680d32d6685b6621b348ffd8"
+                        ],
+                        "subTeams": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "_id": "680c3ce62eb49ea5b5c63bd6",
+                "name": "SaaS - COE",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              },
+              {
+                "_id": "680c3d1b2eb49ea5b5c63c1c",
+                "name": "CTS",
+                "functionHead": "680d3326685b6621b3490718",
+                "okrEditors": [
+                  "680d3326685b6621b3490718"
+                ],
+                "subTeams": []
+              },
+              {
+                "_id": "680c3d482eb49ea5b5c63c40",
+                "name": "Client QA",
+                "functionHead": "680d32d6685b6621b348ffe4",
+                "okrEditors": [
+                  "680d32d6685b6621b348ffe4"
+                ],
+                "subTeams": []
+              },
+              {
+                "_id": "680c90b051e3330f05fc0cea",
+                "name": "Solution Engineering",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              }
+            ]
+          },
+          {
+            "_id": "680c3d302eb49ea5b5c63c2e",
+            "name": "Global DCS",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680c3e2d2eb49ea5b5c63ce9",
+            "name": "Partner Ecosystem",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          }
+        ]
+      },
+      {
+        "_id": "680bcf934d8f0b5c83c8352d",
+        "name": "Product Management",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": [
+          {
+            "_id": "680bd67f98b03ed72d7bc79d",
+            "name": "Agnostic Product",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680bd69b98b03ed72d7bc7ac",
+            "name": "Industry Product - BFSI",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680bd6ac98b03ed72d7bc7bb",
+            "name": "Industry Product - DCS",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680bd6bc98b03ed72d7bc7ca",
+            "name": "Industry Product - Taxation",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680bd6cf98b03ed72d7bc7d9",
+            "name": "Industry Product - Travel",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680bd6ea98b03ed72d7bc7e8",
+            "name": "Product Documentation",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680bd6f698b03ed72d7bc7f7",
+            "name": "Product Engineering",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": [
+              {
+                "_id": "680c3cd72eb49ea5b5c63bc4",
+                "name": "Architecture Group",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              },
+              {
+                "_id": "680c3d6d2eb49ea5b5c63c64",
+                "name": "Product Engineering Operations",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              }
+            ]
+          },
+          {
+            "_id": "680c3d062eb49ea5b5c63bfa",
+            "name": "Test Automation and PQA",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680c3e1e2eb49ea5b5c63cd7",
+            "name": "CAPT",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          }
+        ]
+      },
+      {
+        "_id": "680bcf9f4d8f0b5c83c8353b",
+        "name": "Platform Engineering",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": []
+      },
+      {
+        "_id": "680bcfad4d8f0b5c83c83549",
+        "name": "People",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": [
+          {
+            "_id": "680c371f2eb49ea5b5c63ad9",
+            "name": "HR",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": [
+              {
+                "_id": "680c3c6f2eb49ea5b5c63b7c",
+                "name": "Centre of Excellence",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              },
+              {
+                "_id": "680c3d802eb49ea5b5c63c76",
+                "name": "Talent Strategy",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              },
+              {
+                "_id": "680c3daf2eb49ea5b5c63c88",
+                "name": "Global Mobility",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              },
+              {
+                "_id": "680c3e122eb49ea5b5c63cc5",
+                "name": "Maternity Leave",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              },
+              {
+                "_id": "680c901251e3330f05fc0cc6",
+                "name": "Talent Acquisition",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              },
+              {
+                "_id": "680c902a51e3330f05fc0cd8",
+                "name": "Employee Experience",
+                "functionHead": null,
+                "okrEditors": null,
+                "subTeams": []
+              }
+            ]
+          },
+          {
+            "_id": "680c37292eb49ea5b5c63aeb",
+            "name": "KMTD",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          }
+        ]
+      },
+      {
+        "_id": "680bcff54d8f0b5c83c83587",
+        "name": "Finance, Legal, and Corporate Services",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": [
+          {
+            "_id": "680bd62d98b03ed72d7bc750",
+            "name": "Finance",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680bd63a98b03ed72d7bc75f",
+            "name": "Legal",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680bd64498b03ed72d7bc76e",
+            "name": "Corporate Services",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680c3d5f2eb49ea5b5c63c52",
+            "name": "Civil Infrastructure",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          }
+        ]
+      },
+      {
+        "_id": "680bd0414d8f0b5c83c83595",
+        "name": "Quality and ISMS",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": []
+      },
+      {
+        "_id": "680bd0504d8f0b5c83c835a3",
+        "name": "Marketing",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": [
+          {
+            "_id": "680c3cf62eb49ea5b5c63be8",
+            "name": "Content Marketing",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680c3dbf2eb49ea5b5c63c9a",
+            "name": "Demand Generation and Partner Marketing",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          }
+        ]
+      },
+      {
+        "_id": "680bd10e4d8f0b5c83c835c3",
+        "name": "CEOs Office and EPMO",
+        "functionHead": null,
+        "okrEditors": [
+          "680bc455d0ac86239597df2b"
+        ],
+        "subTeams": [
+          {
+            "_id": "680c373d2eb49ea5b5c63afd",
+            "name": "CEOs Office",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          },
+          {
+            "_id": "680c37462eb49ea5b5c63b0f",
+            "name": "EPMO",
+            "functionHead": null,
+            "okrEditors": null,
+            "subTeams": []
+          }
+        ]
+      },
+      {
+        "_id": "680bd18bf41ef2950f8605d2",
+        "name": "Information Technology",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": []
+      },
+      {
+        "_id": "680c3c7d2eb49ea5b5c63b8e",
+        "name": "Internal Tools",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": []
+      },
+      {
+        "_id": "680c3dfb2eb49ea5b5c63cb3",
+        "name": "Devops",
+        "functionHead": null,
+        "okrEditors": null,
+        "subTeams": []
+      }
+    ]
+  },
+  {
+    "_id": "68103283fb8b2f36570149aa",
+    "name": "The Dream Workplace",
+    "functionHead": "6810322efb8b2f365701495b",
+    "okrEditors": [
+      "6810322efb8b2f365701495b"
+    ],
+    "subTeams": []
+  }
+]

@@ -15,13 +15,14 @@ const keyResultSchema = new mongoose.Schema({
   startValue: { type: mongoose.Schema.Types.Mixed, default: null },
   targetValue: { type: mongoose.Schema.Types.Mixed, default: null },
   direction: { type: String, enum: ['increase', 'decrease', 'auto'], default: 'auto' },
-  
-  dueDate: { type: Date }, // 🎯 Should default to objective cycle end date
 
-  actualCompletionDate: { type: Date }, // 🎯 Set when progress hits 100%, clear otherwise
+  dueDate: { type: Date },
+
+  actualCompletionDate: { type: Date },
 
   milestones: [
     {
+      _id: false, // 🔒 Prevent Mongoose from creating unique IDs for each milestone
       label: { type: String, required: true },
       completed: { type: Boolean, default: false },
       weight: { type: Number, default: 1 },
@@ -34,13 +35,25 @@ const keyResultSchema = new mongoose.Schema({
       updateDate: { type: Date, default: Date.now },
       updateValue: mongoose.Schema.Types.Mixed,
       updateText: String,
-      updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+      updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      weekCycle: { type: mongoose.Schema.Types.ObjectId, ref: 'WeekCycle' }
+    }
+  ],
+
+  milestoneUpdates: [
+    {
+      index: Number,
+      label: String,
+      completed: Boolean,
+      updateDate: { type: Date, default: Date.now },
+      updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      weekCycle: { type: mongoose.Schema.Types.ObjectId, ref: 'WeekCycle' }
     }
   ],
 
   progressValue: { type: Number, default: 0 },
   status: { type: String, enum: ['on track', 'at risk', 'off track'], default: 'on track' },
-  
+
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   visibility: { type: String, enum: ['private', 'team', 'organization'], default: 'organization' },
 
@@ -52,7 +65,7 @@ const keyResultSchema = new mongoose.Schema({
 
   deactivated: { type: Boolean, default: false },
   organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true },
-  
+
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date }
 });

@@ -74,6 +74,9 @@
             📋 My Action items
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/<%= orgName %>/assistant">🤖 Ask Assistant</a>
+        </li>
         <li class="nav-item"><a class="nav-link" href="#">🔧 Settings</a></li>
         <li class="nav-item"><a class="nav-link" href="/<%= orgName %>/auth/change-password">🔒 Change Password</a></li>
         <% if (user.isSuperAdmin) { %>
@@ -85,7 +88,12 @@
           </li>
           <li class="nav-item">
             <a href="/<%= orgName %>/admin/weekcycles" class="nav-link">
-              🧭 Week Cycles
+              📅 Week Cycles
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/<%= orgName %>/weeklyUpdates/new" class="nav-link">
+              ✍️ Weekly Updates
             </a>
           </li>
           <li class="nav-item">
@@ -96,6 +104,9 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/<%= orgName %>/superAdmins">🛡️ Super Admins</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/<%= orgName %>/context-files">🧠 Upload Context</a>
           </li>
         <% } %>
         

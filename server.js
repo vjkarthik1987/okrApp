@@ -73,6 +73,9 @@ app.use('/:orgName/diary', loadOrg, require('./routes/diary'));
 app.use('/:orgName/manager-dashboard', loadOrg, require('./routes/managerDashboard'));
 app.use('/:orgName/superAdmins', loadOrg, require('./routes/superAdmins'));
 app.use('/:orgName/myKeyResults', loadOrg, require('./routes/myKeyResults'));
+app.use('/:orgName/weeklyUpdates', loadOrg, require('./routes/weekly-updates'));
+app.use('/:orgName/context-files', loadOrg, require('./routes/contextFiles'));
+app.use('/:orgName/assistant', loadOrg, require('./routes/assistant'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}\n----------------------------------------------------------`));

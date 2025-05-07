@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 const User = require('./models/User'); // Adjust path if needed
+const Organization = require('./models/Organization');
+const WeekCycle = require('./models/WeekCycle');
+const MONGO_URI = 'mongodb://localhost:27017/okrApp';
+
 
 // Replace this with your MongoDB connection string
 // const MONGODB_URI = 'mongodb://localhost:27017/okrApp'; // 👈 Update if needed
@@ -71,13 +75,13 @@ const User = require('./models/User'); // Adjust path if needed
 // }
 
 //updateAssignedTeams();
-
 //cleanUsers();
 //updateNumberOfReportees();
+
 const Team = require('./models/Team'); // Adjust path as needed
 require('dotenv').config(); // If you're using .env for DB connection
 
-const MONGO_URI = 'mongodb://localhost:27017/okrApp';
+//const MONGO_URI = 'mongodb://localhost:27017/okrApp';
 
 async function buildTeamHierarchy(allTeams, parentId = null) {
   const children = allTeams.filter(team => {
@@ -116,4 +120,33 @@ async function exportHierarchy() {
 }
 
 exportHierarchy();
+
+
+// async function addOrgIdToWeekCycles() {
+//   try {
+//     await mongoose.connect(MONGO_URI, {
+//       useNewUrlParser: true,
+//       useUnifiedTopology: true
+//     });
+
+//     const org = await Organization.findOne({ orgName: 'suntecgroup' }); // Replace with actual org name
+//     if (!org) {
+//       console.log('❌ Organization not found');
+//       return;
+//     }
+
+//     const result = await WeekCycle.updateMany(
+//       { organization: { $exists: false } },
+//       { $set: { organization: org._id } }
+//     );
+
+//     console.log(`✅ Updated ${result.modifiedCount} WeekCycle(s) with organization ID.`);
+//     mongoose.connection.close();
+//   } catch (err) {
+//     console.error('❌ Error during backfill:', err);
+//     mongoose.connection.close();
+//   }
+// }
+
+// addOrgIdToWeekCycles();
 

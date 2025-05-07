@@ -1,0 +1,23 @@
+<% layout('layouts/dashboard') %>
+<h2>📝 Upload Context File</h2>
+
+<form method="POST" action="/<%= orgName %>/context-files" enctype="multipart/form-data">
+  <div class="form-group">
+    <label>Title</label>
+    <input name="title" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Description</label>
+    <input name="description" class="form-control">
+  </div>
+  <div class="form-group">
+    <label>OR Paste Content</label>
+    <textarea name="content" rows="10" class="form-control"></textarea>
+  </div>
+  <div class="form-group mt-2">
+    <label>OR Upload a Word File (.docx)</label>
+    <input type="file" name="docxFile" class="form-control">
+  </div>
+  <button class="btn btn-success mt-3">💾 Save</button>
+</form>
+

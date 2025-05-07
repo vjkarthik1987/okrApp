@@ -1,0 +1,18 @@
+<% layout('layouts/dashboard') %>
+<h2>✏️ Edit Context File</h2>
+
+<form method="POST" action="/<%= orgName %>/context-files/<%= file._id %>?_method=PUT">
+  <div class="form-group">
+    <label>Title</label>
+    <input name="title" class="form-control" value="<%= file.title %>" required>
+  </div>
+  <div class="form-group">
+    <label>Description</label>
+    <input name="description" class="form-control" value="<%= file.description %>">
+  </div>
+  <div class="form-group">
+    <label>Content</label>
+    <textarea name="content" rows="10" class="form-control" required><%= file.content %></textarea>
+  </div>
+  <button class="btn btn-success mt-3">💾 Update</button>
+</form>

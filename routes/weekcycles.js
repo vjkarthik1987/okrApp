@@ -16,11 +16,9 @@ router.get('/', isLoggedIn, isSuperAdmin, async (req, res) => {
 // 🆕 GET /generate – Show form to generate weekly cycles
 router.get('/generate', isLoggedIn, isSuperAdmin, async (req, res) => {
     const { orgName } = req.params;
-    console.log(orgName)
 
     // First get the org ID (assuming you have org name -> org lookup middleware, else do this):
     const org = await Organization.findOne({ orgName: orgName });
-    console.log(org);
 
     if (!org) {
         req.flash('error', 'Organization not found.');
@@ -42,6 +40,13 @@ router.post('/generate', isLoggedIn, isSuperAdmin, async (req, res) => {
   const { orgName } = req.params;
   const { cycleId, startDate, numWeeks } = req.body;
 
+  // Fetch organization
+  const org = await Organization.findOne({ orgName });
+  if (!org) {
+    req.flash('error', 'Organization not found.');
+    return res.redirect('/');
+  }
+
   const weeks = [];
   let currentStart = new Date(startDate);
 
@@ -57,9 +62,10 @@ router.post('/generate', isLoggedIn, isSuperAdmin, async (req, res) => {
       weekStart,
       weekEnd,
       label,
+      organization: org._id // ✅ Fix: Add this field
     });
 
-    currentStart.setDate(currentStart.getDate() + 7); // next Wednesday
+    currentStart.setDate(currentStart.getDate() + 7);
   }
 
   await WeekCycle.insertMany(weeks);

@@ -9,6 +9,12 @@
     <div class="col-md-4 mb-3">
       <label for="updateValue">New Value</label>
       <input type="number" step="any" name="updateValue" id="updateValue" class="form-control" required>
+      <label for="weekCycle">Week Cycle</label>
+      <select name="weekCycle" id="weekCycle" class="form-control" required>
+        <% weekCycles.forEach(wc => { %>
+          <option value="<%= wc._id %>"><%= wc.label %></option>
+        <% }) %>
+      </select>
     </div>
     <div class="col-md-8 mb-3">
       <label for="updateText">Update Summary</label>

@@ -44,24 +44,52 @@
           <td colspan="5">
 
             <% if (kr.metricType === 'milestone' && kr.milestones.length > 0) { %>
-              <div class="row">
-                <% kr.milestones.forEach((m, i) => { %>
-                  <div class="col-md-6">
-                    <form method="POST" action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/milestone/<%= i %>/toggle">
+              <form method="POST" action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/milestones/save">
+                <div class="row">
+                  <% kr.milestones.forEach((m, i) => { %>
+                    <div class="col-md-6">
                       <label class="form-check-label d-flex align-items-center gap-2">
-                        <input type="checkbox" onchange="this.form.submit()" <%= m.completed ? 'checked' : '' %> />
+                        <input type="checkbox" name="milestones[<%= i %>][completed]" <%= m.completed ? 'checked' : '' %> />
                         <%= m.label %> (<%= m.weight %>%)
                       </label>
-                    </form>
+                      <input type="hidden" name="milestones[<%= i %>][label]" value="<%= m.label %>">
+                    </div>
+                  <% }) %>
+                </div>
+                <div class="row mt-3">
+                  <div class="col-md-4">
+                    <select name="weekCycle" class="form-select form-select-sm" required title="Select associated week">
+                      <option value="">📅 Week</option>
+                      <% weekCycles.forEach(wc => { %>
+                        <option value="<%= wc._id %>"><%= wc.label %></option>
+                      <% }) %>
+                    </select>
                   </div>
-                <% }) %>
-              </div>
-            <% } else { %>
-              <form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/update" method="POST" class="d-flex gap-2 align-items-start">
-                <input type="number" step="any" name="updateValue" class="form-control form-control-sm" required placeholder="Progress value" />
-                <input type="text" name="updateText" class="form-control form-control-sm" placeholder="Update note (optional)" />
-                <button type="submit" class="btn btn-sm btn-success">Update</button>
-              </form>
+                  <div class="col-md-2">
+                    <button type="submit" class="btn btn-success btn-sm">💾 Save Milestones</button>
+                  </div>
+                </div>
+              </form>              
+            <% } else { %>  
+              <form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/update" method="POST" class="row g-2 align-items-center mt-2 mb-3">
+                <div class="col-sm-2">
+                  <input type="number" step="any" name="updateValue" class="form-control form-control-sm" required placeholder="Progress" title="Enter progress value" />
+                </div>
+                <div class="col-sm-4">
+                  <input type="text" name="updateText" class="form-control form-control-sm" placeholder="Optional note" title="Add an update note" />
+                </div>
+                <div class="col-sm-4">
+                  <select name="weekCycle" class="form-select form-select-sm" required title="Select associated week">
+                    <option value="">📅 Week</option>
+                    <% weekCycles.forEach(wc => { %>
+                      <option value="<%= wc._id %>"><%= wc.label %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div class="col-sm-2 text-end">
+                  <button type="submit" class="btn btn-sm btn-success w-100">✅ Update</button>
+                </div>
+              </form>              
             <% } %>
 
             <% if (kr.updates && kr.updates.length > 0) { %>

@@ -1,0 +1,82 @@
+<% layout('layouts/dashboard') %>
+<% title = 'Generate Weekly Summary' %>
+
+<h2 class="mb-4">📘 Generate Team Weekly Summary</h2>
+
+<% if (success && success.length > 0) { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (error && error.length > 0) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<form method="POST" action="/<%= orgName %>/weeklyUpdates/generate">
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <label for="teamId" class="form-label">Team</label>
+      <select name="teamId" id="teamId" class="form-select" required>
+        <option value="">-- Select Team --</option>
+        <% teams.forEach(team => { %>
+          <option value="<%= team._id %>"><%= team.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-6">
+      <label for="weekCycle" class="form-label">Week Cycle</label>
+      <select name="weekCycle" id="weekCycle" class="form-select" required>
+        <option value="">-- Select Week --</option>
+        <% weekCycles.forEach(wc => { %>
+          <option value="<%= wc._id %>"><%= wc.label %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">🔄 Generate Summary</button>
+</form>
+
+<% if (preview) { %>
+  <hr>
+  <h4>Preview:</h4>
+
+  <p><strong>Team:</strong> <%= preview.teamName %></p>
+  <p><strong>Week:</strong> <%= preview.weekLabel %></p>
+
+  <h5>Objectives:</h5>
+  <ul>
+    <% preview.objectives.forEach(obj => { %>
+      <li><%= obj.title %></li>
+    <% }) %>
+  </ul>
+
+  <h5>Key Results:</h5>
+  <ul>
+    <% preview.keyResults.forEach(kr => { %>
+      <li><%= kr.title %> - <%= kr.progressValue %>%</li>
+    <% }) %>
+  </ul>
+
+  <h5>Action Items:</h5>
+  <ul>
+    <% preview.actionItems.forEach(ai => { %>
+      <li><%= ai.title %> - <%= ai.status %></li>
+    <% }) %>
+  </ul>
+
+  <h5>Diary Entries:</h5>
+  <ul>
+    <% preview.diaryEntries.forEach(entry => { %>
+      <li><%= entry.userName %>: <%= entry.summary %></li>
+    <% }) %>
+  </ul>
+
+  <% if (preview.nonCompliantUsers.length > 0) { %>
+    <h5>Non-Compliant Users (No Diary Entry):</h5>
+    <ul>
+      <% preview.nonCompliantUsers.forEach(u => { %>
+        <li><%= u.name %></li>
+      <% }) %>
+    </ul>
+  <% } %>
+<% } %>
