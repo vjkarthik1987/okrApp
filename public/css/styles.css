@@ -1,0 +1,197 @@
+/* ------------------ Fonts & Base ------------------ */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600&family=Poppins:wght@600;800&display=swap');
+
+html, body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #F9FAFB;
+    color: #1E1E1E;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+
+/* ------------------ Layout Containers ------------------ */
+.app-body {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+}
+
+.flex-grow-1 {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    height: 100vh;
+    margin-left: 240px;
+}
+@media (max-width: 991.98px) {
+    .flex-grow-1 {
+        margin-left: 0;
+        height: auto;
+      }
+}
+
+.main-content {
+    flex: 1;
+    padding: 1rem;
+  }
+  
+@media (max-width: 991.98px) {
+  .main-content {
+    margin-top: 56px;
+  }
+}
+
+/* ------------------ Sidebar ------------------ */
+.sidebar {
+  width: 240px;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+  border-right: 1px solid #dee2e6;
+}
+.offcanvas {
+  background-color: #f8f9fa;
+  padding: 1rem;
+}
+.offcanvas-start {
+  width: 100% !important;
+}
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .offcanvas-start {
+    width: 25% !important;
+  }
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+}
+
+/* ------------------ Typography ------------------ */
+h1, h2, h3, .btn, .badge {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ------------------ Buttons ------------------ */
+.btn-primary {
+  background-color: #FF6B6B;
+  border: none;
+  color: white;
+  border-radius: 12px;
+  font-weight: bold;
+  padding: 10px 20px;
+  transition: transform 0.2s ease;
+}
+.btn-primary:hover {
+  transform: scale(1.05);
+  background-color: #FF4B4B;
+}
+.btn-outline-primary {
+  color: #6C5CE7;
+  border: 1px solid #6C5CE7;
+}
+.btn-outline-primary:hover {
+  background-color: #6C5CE7;
+  color: white;
+}
+.btn-outline-secondary {
+  color: #6C757D;
+  border: 1px solid #6C757D;
+}
+.btn-outline-secondary:hover {
+  background-color: #6C757D;
+  color: white;
+}
+.btn-outline-danger {
+  color: #FF6B6B;
+  border: 1px solid #FF6B6B;
+}
+.btn-outline-danger:hover {
+  background-color: #FF6B6B;
+  color: white;
+}
+
+/* ------------------ Tables & Alerts ------------------ */
+.table thead {
+  background-color: #FFF3C4;
+  color: #1E1E1E;
+}
+.table-hover tbody tr:hover {
+  background-color: #FFFDE7;
+}
+.alert-warning {
+  background-color: #FFF3C4;
+  color: #8D6E63;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+/* ------------------ Progress & Badges ------------------ */
+.progress {
+  background-color: #E0E0E0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress-bar {
+  font-weight: bold;
+  line-height: 20px;
+}
+.badge.bg-success { background-color: #00B894; }
+.badge.bg-warning { background-color: #FFD93D; color: #1E1E1E; }
+.badge.bg-danger  { background-color: #FF6B6B; }
+.badge.bg-secondary { background-color: #6C757D; }
+
+/* ------------------ Forms ------------------ */
+form .form-label {
+  font-weight: 600;
+  color: #333;
+}
+select.form-select {
+  border-radius: 10px;
+}
+ul.ps-3 {
+  padding-left: 1rem;
+}
+
+/* ------------------ Footer ------------------ */
+footer {
+  flex-shrink: 0;
+  background-color: #111;
+  color: #f5f5f5;
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 1rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ------------------ Scrolling ------------------ */
+
+@media (max-width: 991.98px) {
+    html, body {
+      height: auto !important;
+      overflow-y: auto !important;
+    }
+  
+    .flex-grow-1 {
+      display: block !important;
+      margin-left: 0 !important;
+      width: 100%;
+    }
+  
+    .main-content {
+      overflow-y: visible !important;
+      margin-top: 56px; /* navbar height */
+    }
+  }
+  

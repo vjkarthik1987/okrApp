@@ -71,4 +71,11 @@
       tempMessage.parentElement.classList.remove('temp-message');
     }
   }
+
+  document.getElementById('userQuery').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitQuery();
+    }
+  });
 </script>

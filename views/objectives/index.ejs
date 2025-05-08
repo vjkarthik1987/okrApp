@@ -2,8 +2,10 @@
 <% title = 'Objectives' %>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2 class="mb-0">📋 Team Objectives</h2>
-  <a href="/<%= orgName %>/objectives/new" class="btn btn-primary">➕ New Objective</a>
+  <h2 class="mb-0"><i class="ph ph-clipboard-text"></i> Team Objectives</h2>
+  <a href="/<%= orgName %>/objectives/new" class="btn btn-primary">
+    <i class="ph ph-plus-circle"></i> New Objective
+  </a>
 </div>
 
 <form method="GET" class="row g-3 align-items-end mb-4">
@@ -34,21 +36,21 @@
 
 <% if (objectives.length === 0) { %>
   <div class="alert alert-warning text-center">
-    🚫 No objectives found for this cycle. Time to set some bold goals! 💥
+    <i class="ph ph-warning-circle"></i> No objectives found for this cycle. Time to set some bold goals!
   </div>
 <% } else { %>
   <div class="table-responsive">
     <table class="table table-hover table-bordered align-middle">
       <thead class="table-light">
         <tr>
-          <th>🎯 Title</th>
-          <th>👤 Created By</th>
-          <th>👥 Assigned Teams</th>
-          <th>📅 Cycle</th>
-          <th>📊 Status</th>
-          <th>📈 Progress</th>
-          <th>🔑 Key Results</th>
-          <th>⚙️ Actions</th>
+          <th><i class="ph ph-target"></i> Title</th>
+          <th><i class="ph ph-user-circle"></i> Created By</th>
+          <th><i class="ph ph-users-three"></i> Assigned Teams</th>
+          <th><i class="ph ph-calendar-blank"></i> Cycle</th>
+          <th><i class="ph ph-activity"></i> Status</th>
+          <th><i class="ph ph-chart-bar"></i> Progress</th>
+          <th><i class="ph ph-key"></i> Key Results</th>
+          <th><i class="ph ph-gear"></i> Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -57,7 +59,7 @@
             <td><strong><%= obj.title %></strong></td>
             <td><%= obj.teamId?.name || 'N/A' %></td>
             <td>
-              <% if (obj.assignedTeams && obj.assignedTeams.length > 0) { %>
+              <% if (obj.assignedTeams?.length > 0) { %>
                 <ul class="mb-0 ps-3">
                   <% obj.assignedTeams.forEach(team => { %>
                     <li><%= team.name %></li>
@@ -67,20 +69,14 @@
                 <span class="text-muted">—</span>
               <% } %>
             </td>
-            <td>
-              <% if (Array.isArray(obj.cycle)) { %>
-                <%= obj.cycle.join(', ') %>
-              <% } else { %>
-                <%= obj.cycle %>
-              <% } %>
-            </td>
+            <td><%= Array.isArray(obj.cycle) ? obj.cycle.join(', ') : obj.cycle %></td>
             <td>
               <% if (obj.status === 'On Track') { %>
-                <span class="badge bg-success">🟢 On Track</span>
+                <span class="badge bg-success"><i class="ph ph-check-circle"></i> On Track</span>
               <% } else if (obj.status === 'At Risk') { %>
-                <span class="badge bg-warning text-dark">🟡 At Risk</span>
+                <span class="badge bg-warning text-dark"><i class="ph ph-warning-circle"></i> At Risk</span>
               <% } else if (obj.status === 'Off Track') { %>
-                <span class="badge bg-danger">🔴 Off Track</span>
+                <span class="badge bg-danger"><i class="ph ph-x-circle"></i> Off Track</span>
               <% } else { %>
                 <span class="badge bg-secondary"><%= obj.status %></span>
               <% } %>
@@ -89,18 +85,24 @@
               <div class="progress" style="height: 20px;">
                 <div class="progress-bar 
                     <%= obj.progressValue >= 75 ? 'bg-success' : obj.progressValue >= 50 ? 'bg-info' : obj.progressValue >= 25 ? 'bg-warning text-dark' : 'bg-danger' %>"
-                    role="progressbar" style="width: <%= obj.progressValue %>%;">
+                    role="progressbar" style="width: <%= obj.progressValue %>%; min-width: 40px;">
                   <%= obj.progressValue %>%
                 </div>
               </div>
             </td>
             <td>
-              <a href="/<%= orgName %>/objectives/<%= obj._id %>/keyresults" class="btn btn-sm btn-outline-primary">📈 KRs</a>
+              <a href="/<%= orgName %>/objectives/<%= obj._id %>/keyresults" class="btn btn-sm btn-outline-primary">
+                <i class="ph ph-list-magnifying-glass"></i> KRs
+              </a>
             </td>
             <td class="text-nowrap">
-              <a href="/<%= orgName %>/objectives/<%= obj._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+              <a href="/<%= orgName %>/objectives/<%= obj._id %>/edit" class="btn btn-sm btn-outline-secondary">
+                <i class="ph ph-pencil-simple-line"></i> Edit
+              </a>
               <form action="/<%= orgName %>/objectives/<%= obj._id %>/delete" method="POST" style="display:inline">
-                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑 Delete</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">
+                  <i class="ph ph-trash"></i> Delete
+                </button>
               </form>
             </td>
           </tr>
@@ -115,7 +117,7 @@
         <div class="modal-dialog modal-dialog-scrollable">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="descLabel-<%= obj._id %>">📝 Objective Description</h5>
+              <h5 class="modal-title" id="descLabel-<%= obj._id %>"><i class="ph ph-note-pencil"></i> Objective Description</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

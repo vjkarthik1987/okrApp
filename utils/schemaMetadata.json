@@ -1,0 +1,1478 @@
+{
+  "Objective": {
+    "fields": [
+      "title",
+      "description",
+      "createdBy",
+      "teamId",
+      "assignedTeams",
+      "editableBy",
+      "cycle",
+      "year",
+      "progressValue",
+      "progressHistory",
+      "status",
+      "summaryUpdate",
+      "parentObjective",
+      "organization",
+      "createdAt",
+      "updatedAt",
+      "_id"
+    ],
+    "enums": {
+      "editableBy": [
+        "ownerOnly",
+        "ownerTeam",
+        "objectiveTeam",
+        "orgAdmins"
+      ],
+      "status": [
+        "on track",
+        "at risk",
+        "off track"
+      ]
+    },
+    "aliases": {}
+  },
+  "KeyResult": {
+    "fields": [
+      "objectiveId",
+      "title",
+      "metricType",
+      "ownerTeam",
+      "assignedTeams",
+      "assignedTo",
+      "editableBy",
+      "startValue",
+      "targetValue",
+      "direction",
+      "dueDate",
+      "actualCompletionDate",
+      "milestones",
+      "updates",
+      "milestoneUpdates",
+      "progressValue",
+      "status",
+      "owner",
+      "visibility",
+      "aiFeedback.verdict",
+      "aiFeedback.suggestedRewrite",
+      "aiFeedback.issues",
+      "deactivated",
+      "organization",
+      "createdAt",
+      "updatedAt",
+      "_id"
+    ],
+    "enums": {
+      "metricType": [
+        "percent",
+        "number",
+        "boolean",
+        "milestone"
+      ],
+      "editableBy": [
+        "ownerOnly",
+        "ownerTeam",
+        "objectiveTeam",
+        "orgAdmins"
+      ],
+      "direction": [
+        "increase",
+        "decrease",
+        "auto"
+      ],
+      "status": [
+        "on track",
+        "at risk",
+        "off track"
+      ],
+      "visibility": [
+        "private",
+        "team",
+        "organization"
+      ]
+    },
+    "aliases": {
+      "team": [
+        "teamId",
+        "ownerTeam",
+        "assignedTeams",
+        "assignedTeam"
+      ],
+      "teams": [
+        "teamId",
+        "ownerTeam",
+        "assignedTeams"
+      ],
+      "function": [
+        "teamId",
+        "ownerTeam",
+        "assignedTeams"
+      ],
+      "functions": [
+        "teamId",
+        "ownerTeam",
+        "assignedTeams"
+      ],
+      "department": [
+        "teamId",
+        "ownerTeam",
+        "assignedTeams"
+      ],
+      "departments": [
+        "teamId",
+        "ownerTeam",
+        "assignedTeams"
+      ],
+      "group": [
+        "teamId",
+        "ownerTeam",
+        "assignedTeams"
+      ],
+      "groups": [
+        "teamId",
+        "ownerTeam",
+        "assignedTeams"
+      ],
+      "unit": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "units": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "squad": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "squads": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "tribe": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "tribes": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "cell": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "division": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "vertical": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "practice": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "cluster": [
+        "teamId",
+        "ownerTeam"
+      ],
+      "user": [
+        "owner",
+        "assignedTo",
+        "assignedBy",
+        "createdBy"
+      ],
+      "users": [
+        "owner",
+        "assignedTo",
+        "assignedBy",
+        "createdBy"
+      ],
+      "person": [
+        "owner",
+        "assignedTo",
+        "createdBy"
+      ],
+      "people": [
+        "owner",
+        "assignedTo"
+      ],
+      "employee": [
+        "owner",
+        "assignedTo",
+        "createdBy"
+      ],
+      "employees": [
+        "owner",
+        "assignedTo"
+      ],
+      "assignee": [
+        "assignedTo"
+      ],
+      "assigned person": [
+        "assignedTo"
+      ],
+      "reportee": [
+        "assignedTo"
+      ],
+      "reporting person": [
+        "assignedTo"
+      ],
+      "manager": [
+        "assignedBy"
+      ],
+      "creator": [
+        "createdBy"
+      ],
+      "author": [
+        "createdBy"
+      ],
+      "requestor": [
+        "createdBy"
+      ],
+      "initiator": [
+        "createdBy"
+      ],
+      "objective": [
+        "objectiveId"
+      ],
+      "objectives": [
+        "objectiveId"
+      ],
+      "goal": [
+        "objectiveId"
+      ],
+      "goals": [
+        "objectiveId"
+      ],
+      "key result": [
+        "keyResultId"
+      ],
+      "key results": [
+        "keyResultId"
+      ],
+      "kr": [
+        "keyResultId"
+      ],
+      "krs": [
+        "keyResultId"
+      ],
+      "outcome": [
+        "keyResultId"
+      ],
+      "milestone": [
+        "keyResultId"
+      ],
+      "initiative": [
+        "initiativeId"
+      ],
+      "initiatives": [
+        "initiativeId"
+      ],
+      "project": [
+        "initiativeId"
+      ],
+      "projects": [
+        "initiativeId"
+      ],
+      "program": [
+        "initiativeId"
+      ],
+      "campaign": [
+        "initiativeId"
+      ],
+      "task": [
+        "title",
+        "description"
+      ],
+      "tasks": [
+        "title",
+        "description"
+      ],
+      "action": [
+        "title",
+        "description"
+      ],
+      "actions": [
+        "title",
+        "description"
+      ],
+      "action item": [
+        "title",
+        "description"
+      ],
+      "action items": [
+        "title",
+        "description"
+      ],
+      "item": [
+        "title",
+        "description"
+      ],
+      "entry": [
+        "title",
+        "description"
+      ],
+      "entries": [
+        "title",
+        "description"
+      ],
+      "note": [
+        "description"
+      ],
+      "notes": [
+        "description"
+      ],
+      "diary": [
+        "title",
+        "description"
+      ],
+      "log": [
+        "title",
+        "description"
+      ],
+      "update": [
+        "updates"
+      ],
+      "updates": [
+        "updates"
+      ],
+      "cycle": [
+        "cycle"
+      ],
+      "okr cycle": [
+        "cycle"
+      ],
+      "quarter": [
+        "cycle"
+      ],
+      "period": [
+        "cycle"
+      ],
+      "term": [
+        "cycle"
+      ],
+      "season": [
+        "cycle"
+      ],
+      "year": [
+        "year"
+      ],
+      "fiscal year": [
+        "year"
+      ],
+      "financial year": [
+        "year"
+      ],
+      "week": [
+        "weekCycle"
+      ],
+      "weekly": [
+        "weekCycle"
+      ],
+      "week cycle": [
+        "weekCycle"
+      ],
+      "week of": [
+        "weekCycle"
+      ],
+      "status": [
+        "status"
+      ],
+      "state": [
+        "status"
+      ],
+      "condition": [
+        "status"
+      ],
+      "stage": [
+        "status"
+      ],
+      "progress": [
+        "progressValue"
+      ],
+      "completion": [
+        "progressValue"
+      ],
+      "not started": [
+        "Not Started"
+      ],
+      "in progress": [
+        "In Progress",
+        "Started",
+        "Ongoing",
+        "Underway",
+        "Progressing"
+      ],
+      "started": [
+        "In Progress"
+      ],
+      "pending": [
+        "Not Started",
+        "In Progress"
+      ],
+      "working": [
+        "In Progress"
+      ],
+      "ongoing": [
+        "In Progress"
+      ],
+      "active": [
+        "In Progress"
+      ],
+      "doing": [
+        "In Progress"
+      ],
+      "completed": [
+        "Completed",
+        "Done",
+        "Finished",
+        "Resolved"
+      ],
+      "done": [
+        "Completed"
+      ],
+      "closed": [
+        "Closed",
+        "Completed"
+      ],
+      "resolved": [
+        "Completed"
+      ],
+      "on hold": [
+        "On Hold",
+        "Deferred",
+        "Paused"
+      ],
+      "paused": [
+        "On Hold"
+      ],
+      "deferred": [
+        "On Hold"
+      ],
+      "postponed": [
+        "On Hold"
+      ],
+      "dropped": [
+        "Dropped",
+        "Cancelled"
+      ],
+      "cancelled": [
+        "Dropped"
+      ],
+      "abandoned": [
+        "Dropped"
+      ],
+      "blocked": [
+        "Blocked",
+        "Stuck",
+        "Impeded"
+      ],
+      "stuck": [
+        "Blocked"
+      ],
+      "impeded": [
+        "Blocked"
+      ],
+      "overdue": [
+        "Overdue"
+      ],
+      "late": [
+        "Overdue"
+      ],
+      "high priority": [
+        "High",
+        "Urgent",
+        "Critical"
+      ],
+      "urgent": [
+        "High"
+      ],
+      "critical": [
+        "High"
+      ],
+      "low priority": [
+        "Low"
+      ],
+      "medium priority": [
+        "Medium"
+      ],
+      "normal": [
+        "Medium"
+      ],
+      "my team": "__MY_TEAM__",
+      "our team": "__MY_TEAM__",
+      "my group": "__MY_TEAM__",
+      "my department": "__MY_TEAM__",
+      "my squad": "__MY_TEAM__",
+      "my vertical": "__MY_TEAM__",
+      "me": "__MY_ID__",
+      "myself": "__MY_ID__",
+      "assigned to me": "__MY_ID__",
+      "assigned for me": "__MY_ID__",
+      "by me": "__MY_ID__",
+      "created by me": "__MY_ID__",
+      "this quarter": "__CURRENT_CYCLE__",
+      "current quarter": "__CURRENT_CYCLE__",
+      "present quarter": "__CURRENT_CYCLE__",
+      "last quarter": "__LAST_CYCLE__",
+      "previous quarter": "__LAST_CYCLE__",
+      "next quarter": "__NEXT_CYCLE__",
+      "upcoming quarter": "__NEXT_CYCLE__",
+      "this week": "__CURRENT_WEEK__",
+      "current week": "__CURRENT_WEEK__",
+      "last week": "__LAST_WEEK__",
+      "previous week": "__LAST_WEEK__",
+      "next week": "__NEXT_WEEK__",
+      "upcoming week": "__NEXT_WEEK__"
+    }
+  },
+  "ActionItem": {
+    "fields": [
+      "title",
+      "description",
+      "assignedTo",
+      "assignedBy",
+      "createdBy",
+      "cycle",
+      "organization",
+      "meeting",
+      "objectiveId",
+      "keyResultId",
+      "parent",
+      "dueDate",
+      "updates",
+      "comments",
+      "closureDate",
+      "status",
+      "initiativeId",
+      "_id",
+      "createdAt",
+      "updatedAt"
+    ],
+    "enums": {
+      "status": [
+        "Not Started",
+        "In Progress",
+        "Completed",
+        "Blocked",
+        "Deferred",
+        "On Hold"
+      ]
+    },
+    "aliases": {}
+  },
+  "DiaryEntry": {
+    "fields": [
+      "user",
+      "weekCycle",
+      "date",
+      "content",
+      "organization",
+      "createdAt",
+      "updatedAt",
+      "_id"
+    ],
+    "enums": {},
+    "aliases": {}
+  },
+  "Initiative": {
+    "fields": [
+      "title",
+      "description",
+      "expectedOutcome",
+      "outcomeAchieved",
+      "status",
+      "keyResultId",
+      "organization",
+      "createdBy",
+      "createdAt",
+      "updatedAt",
+      "_id"
+    ],
+    "enums": {
+      "status": [
+        "Initiated",
+        "Closed",
+        "Deferred/On Hold",
+        "Blocked",
+        "Dropped"
+      ]
+    },
+    "aliases": {}
+  },
+  "TeamWeeklyUpdate": {
+    "fields": [
+      "teamId",
+      "weekCycle",
+      "weekStart",
+      "weekEnd",
+      "summaryText",
+      "submittedBy",
+      "submittedAt",
+      "objectives",
+      "keyResults",
+      "okrSummary",
+      "okrSummaries",
+      "actionItems",
+      "actionItemSummary",
+      "diaryEntryStats.totalExpected",
+      "diaryEntryStats.submitted",
+      "diaryEntryStats.nonCompliant",
+      "diaryThemes",
+      "diarySummary",
+      "aiGenerated",
+      "isFinalized",
+      "organization",
+      "_id",
+      "createdAt",
+      "updatedAt"
+    ],
+    "enums": {},
+    "aliases": {}
+  },
+  "User": {
+    "fields": [
+      "name",
+      "email",
+      "manager",
+      "team",
+      "organization",
+      "isSuperAdmin",
+      "isActive",
+      "location",
+      "designation",
+      "band",
+      "gender",
+      "joiningDate",
+      "numberOfReportees",
+      "resetPasswordToken",
+      "resetPasswordExpires",
+      "_id",
+      "createdAt",
+      "updatedAt",
+      "hash",
+      "salt"
+    ],
+    "enums": {
+      "gender": [
+        "Male",
+        "Female",
+        "Other",
+        "Prefer not to say"
+      ]
+    },
+    "aliases": {}
+  },
+  "Team": {
+    "fields": [
+      "name",
+      "parentTeam",
+      "functionHead",
+      "okrEditors",
+      "organization",
+      "activeTeam",
+      "createdAt",
+      "_id"
+    ],
+    "enums": {},
+    "aliases": {}
+  },
+  "OKRCycle": {
+    "fields": [
+      "label",
+      "type",
+      "isEnabled",
+      "startDate",
+      "endDate",
+      "organization",
+      "_id"
+    ],
+    "enums": {
+      "type": [
+        "quarter",
+        "year"
+      ]
+    },
+    "aliases": {}
+  },
+  "WeekCycle": {
+    "fields": [
+      "cycle",
+      "weekStart",
+      "weekEnd",
+      "label",
+      "isActive",
+      "organization",
+      "_id"
+    ],
+    "enums": {},
+    "aliases": {}
+  },
+  "ContextFile": {
+    "fields": [
+      "title",
+      "description",
+      "content",
+      "chunks",
+      "createdBy",
+      "organization",
+      "createdAt",
+      "_id"
+    ],
+    "enums": {},
+    "aliases": {}
+  },
+  "QueryLog": {
+    "fields": [
+      "query",
+      "response",
+      "user",
+      "organization",
+      "matchedChunks",
+      "createdAt",
+      "_id"
+    ],
+    "enums": {},
+    "aliases": {}
+  },
+  "aliases": {
+    "Objective": {
+      "okr cycle": [
+        "cycle"
+      ],
+      "quarter": [
+        "cycle"
+      ],
+      "period": [
+        "cycle"
+      ],
+      "term": [
+        "cycle"
+      ],
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ],
+      "team": [
+        "teamId"
+      ],
+      "function": [
+        "teamId"
+      ],
+      "group": [
+        "teamId"
+      ],
+      "department": [
+        "teamId"
+      ],
+      "division": [
+        "teamId"
+      ],
+      "details": [
+        "description"
+      ],
+      "info": [
+        "description"
+      ],
+      "notes": [
+        "description"
+      ],
+      "content": [
+        "description"
+      ],
+      "explanation": [
+        "description"
+      ],
+      "creator": [
+        "createdBy"
+      ],
+      "author": [
+        "createdBy"
+      ],
+      "initiator": [
+        "createdBy"
+      ],
+      "completion": [
+        "progressValue"
+      ],
+      "progress": [
+        "progressValue"
+      ],
+      "percent_done": [
+        "progressValue"
+      ],
+      "name": [
+        "title"
+      ],
+      "goal": [
+        "title"
+      ],
+      "task": [
+        "title"
+      ],
+      "summary": [
+        "title"
+      ],
+      "headline": [
+        "title"
+      ],
+      "last updated": [
+        "updatedAt"
+      ],
+      "modification time": [
+        "updatedAt"
+      ],
+      "state": [
+        "status"
+      ],
+      "condition": [
+        "status"
+      ],
+      "progress_state": [
+        "status"
+      ],
+      "stage": [
+        "status"
+      ],
+      "current_status": [
+        "status"
+      ],
+      "my team": [
+        "teamId",
+        "assignedTeams"
+      ],
+      "our team": [
+        "teamId",
+        "assignedTeams"
+      ],
+      "pending": [
+        "Not Started",
+        "In Progress"
+      ],
+      "in progress": [
+        "In Progress"
+      ],
+      "not started": [
+        "Not Started"
+      ],
+      "completed": [
+        "Completed"
+      ],
+      "on hold": [
+        "On Hold"
+      ],
+      "blocked": [
+        "Blocked"
+      ],
+      "dropped": [
+        "Dropped"
+      ]
+    },
+    "KeyResult": {
+      "name": [
+        "title"
+      ],
+      "goal": [
+        "title",
+        "objectiveId"
+      ],
+      "task": [
+        "title"
+      ],
+      "summary": [
+        "title"
+      ],
+      "headline": [
+        "title"
+      ],
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ],
+      "deadline": [
+        "dueDate"
+      ],
+      "target date": [
+        "dueDate"
+      ],
+      "end date": [
+        "dueDate"
+      ],
+      "finish by": [
+        "dueDate"
+      ],
+      "completion": [
+        "progressValue"
+      ],
+      "progress": [
+        "progressValue"
+      ],
+      "percent_done": [
+        "progressValue"
+      ],
+      "last updated": [
+        "updatedAt"
+      ],
+      "modification time": [
+        "updatedAt"
+      ],
+      "state": [
+        "status"
+      ],
+      "condition": [
+        "status"
+      ],
+      "progress_state": [
+        "status"
+      ],
+      "stage": [
+        "status"
+      ],
+      "current_status": [
+        "status"
+      ],
+      "objective": [
+        "objectiveId"
+      ],
+      "parent goal": [
+        "objectiveId"
+      ],
+      "assignee": [
+        "assignedTo"
+      ],
+      "responsible": [
+        "assignedTo"
+      ],
+      "doer": [
+        "assignedTo"
+      ],
+      "executor": [
+        "assignedTo"
+      ],
+      "person": [
+        "assignedTo"
+      ],
+      "me": [
+        "assignedTo"
+      ],
+      "myself": [
+        "assignedTo"
+      ],
+      "assigned to me": [
+        "assignedTo"
+      ],
+      "my team": [
+        "teamId",
+        "assignedTeams"
+      ],
+      "our team": [
+        "teamId",
+        "assignedTeams"
+      ],
+      "pending": [
+        "Not Started",
+        "In Progress"
+      ],
+      "in progress": [
+        "In Progress"
+      ],
+      "not started": [
+        "Not Started"
+      ],
+      "completed": [
+        "Completed"
+      ],
+      "on hold": [
+        "On Hold"
+      ],
+      "blocked": [
+        "Blocked"
+      ],
+      "dropped": [
+        "Dropped"
+      ]
+    },
+    "ActionItem": {
+      "name": [
+        "title"
+      ],
+      "goal": [
+        "title",
+        "objectiveId"
+      ],
+      "task": [
+        "title"
+      ],
+      "summary": [
+        "title"
+      ],
+      "headline": [
+        "title"
+      ],
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ],
+      "creator": [
+        "createdBy"
+      ],
+      "author": [
+        "createdBy"
+      ],
+      "initiator": [
+        "createdBy"
+      ],
+      "deadline": [
+        "dueDate"
+      ],
+      "target date": [
+        "dueDate"
+      ],
+      "end date": [
+        "dueDate"
+      ],
+      "finish by": [
+        "dueDate"
+      ],
+      "kr": [
+        "keyResultId"
+      ],
+      "key result": [
+        "keyResultId"
+      ],
+      "metric": [
+        "keyResultId"
+      ],
+      "subgoal": [
+        "keyResultId"
+      ],
+      "details": [
+        "description"
+      ],
+      "info": [
+        "description"
+      ],
+      "notes": [
+        "description"
+      ],
+      "content": [
+        "description"
+      ],
+      "explanation": [
+        "description"
+      ],
+      "last updated": [
+        "updatedAt"
+      ],
+      "modification time": [
+        "updatedAt"
+      ],
+      "state": [
+        "status"
+      ],
+      "condition": [
+        "status"
+      ],
+      "progress_state": [
+        "status"
+      ],
+      "stage": [
+        "status"
+      ],
+      "current_status": [
+        "status"
+      ],
+      "objective": [
+        "objectiveId"
+      ],
+      "parent goal": [
+        "objectiveId"
+      ],
+      "okr cycle": [
+        "cycle"
+      ],
+      "quarter": [
+        "cycle"
+      ],
+      "period": [
+        "cycle"
+      ],
+      "term": [
+        "cycle"
+      ],
+      "manager": [
+        "assignedBy"
+      ],
+      "delegator": [
+        "assignedBy"
+      ],
+      "initiative": [
+        "initiativeId"
+      ],
+      "project": [
+        "initiativeId"
+      ],
+      "campaign": [
+        "initiativeId"
+      ],
+      "program": [
+        "initiativeId"
+      ],
+      "assignee": [
+        "assignedTo"
+      ],
+      "responsible": [
+        "assignedTo"
+      ],
+      "doer": [
+        "assignedTo"
+      ],
+      "executor": [
+        "assignedTo"
+      ],
+      "person": [
+        "assignedTo"
+      ],
+      "me": [
+        "assignedTo"
+      ],
+      "myself": [
+        "assignedTo"
+      ],
+      "assigned to me": [
+        "assignedTo"
+      ],
+      "pending": [
+        "Not Started",
+        "In Progress"
+      ],
+      "in progress": [
+        "In Progress"
+      ],
+      "not started": [
+        "Not Started"
+      ],
+      "completed": [
+        "Completed"
+      ],
+      "on hold": [
+        "On Hold"
+      ],
+      "blocked": [
+        "Blocked"
+      ],
+      "dropped": [
+        "Dropped"
+      ]
+    },
+    "DiaryEntry": {
+      "week": [
+        "weekCycle"
+      ],
+      "weekly cycle": [
+        "weekCycle"
+      ],
+      "sprint": [
+        "weekCycle"
+      ],
+      "iteration": [
+        "weekCycle"
+      ],
+      "last updated": [
+        "updatedAt"
+      ],
+      "modification time": [
+        "updatedAt"
+      ],
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ]
+    },
+    "Initiative": {
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ],
+      "details": [
+        "description"
+      ],
+      "info": [
+        "description"
+      ],
+      "notes": [
+        "description"
+      ],
+      "content": [
+        "description"
+      ],
+      "explanation": [
+        "description"
+      ],
+      "creator": [
+        "createdBy"
+      ],
+      "author": [
+        "createdBy"
+      ],
+      "initiator": [
+        "createdBy"
+      ],
+      "name": [
+        "title"
+      ],
+      "goal": [
+        "title"
+      ],
+      "task": [
+        "title"
+      ],
+      "summary": [
+        "title"
+      ],
+      "headline": [
+        "title"
+      ],
+      "last updated": [
+        "updatedAt"
+      ],
+      "modification time": [
+        "updatedAt"
+      ],
+      "state": [
+        "status"
+      ],
+      "condition": [
+        "status"
+      ],
+      "progress_state": [
+        "status"
+      ],
+      "stage": [
+        "status"
+      ],
+      "current_status": [
+        "status"
+      ],
+      "kr": [
+        "keyResultId"
+      ],
+      "key result": [
+        "keyResultId"
+      ],
+      "metric": [
+        "keyResultId"
+      ],
+      "subgoal": [
+        "keyResultId"
+      ],
+      "pending": [
+        "Not Started",
+        "In Progress"
+      ],
+      "in progress": [
+        "In Progress"
+      ],
+      "not started": [
+        "Not Started"
+      ],
+      "completed": [
+        "Completed"
+      ],
+      "on hold": [
+        "On Hold"
+      ],
+      "blocked": [
+        "Blocked"
+      ],
+      "dropped": [
+        "Dropped"
+      ]
+    },
+    "TeamWeeklyUpdate": {
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ],
+      "week": [
+        "weekCycle"
+      ],
+      "weekly cycle": [
+        "weekCycle"
+      ],
+      "sprint": [
+        "weekCycle"
+      ],
+      "iteration": [
+        "weekCycle"
+      ],
+      "team": [
+        "teamId"
+      ],
+      "function": [
+        "teamId"
+      ],
+      "group": [
+        "teamId"
+      ],
+      "department": [
+        "teamId"
+      ],
+      "division": [
+        "teamId"
+      ],
+      "last updated": [
+        "updatedAt"
+      ],
+      "modification time": [
+        "updatedAt"
+      ],
+      "my team": [
+        "teamId",
+        "assignedTeams"
+      ],
+      "our team": [
+        "teamId",
+        "assignedTeams"
+      ]
+    },
+    "User": {
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ],
+      "last updated": [
+        "updatedAt"
+      ],
+      "modification time": [
+        "updatedAt"
+      ]
+    },
+    "Team": {
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ]
+    },
+    "OKRCycle": {},
+    "WeekCycle": {
+      "okr cycle": [
+        "cycle"
+      ],
+      "quarter": [
+        "cycle"
+      ],
+      "period": [
+        "cycle"
+      ],
+      "term": [
+        "cycle"
+      ]
+    },
+    "ContextFile": {
+      "details": [
+        "description"
+      ],
+      "info": [
+        "description"
+      ],
+      "notes": [
+        "description"
+      ],
+      "content": [
+        "description"
+      ],
+      "explanation": [
+        "description"
+      ],
+      "creator": [
+        "createdBy"
+      ],
+      "author": [
+        "createdBy"
+      ],
+      "initiator": [
+        "createdBy"
+      ],
+      "name": [
+        "title"
+      ],
+      "goal": [
+        "title"
+      ],
+      "task": [
+        "title"
+      ],
+      "summary": [
+        "title"
+      ],
+      "headline": [
+        "title"
+      ],
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ]
+    },
+    "QueryLog": {
+      "created time": [
+        "createdAt"
+      ],
+      "start time": [
+        "createdAt"
+      ],
+      "begin date": [
+        "createdAt"
+      ]
+    }
+  }
+}
