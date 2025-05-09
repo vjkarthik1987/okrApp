@@ -1,12 +1,27 @@
-const { resolveUserId, resolveTeamId, resolveCycle, resolveWeekCycle } = require('./resolvers');
-const { mapAliasesToFields, mapEnumValue } = require('./aliasMapper');
-const { validateRequiredFields, getMissingFields } = require('./fieldValidator');
+// File: utils/expandSemanticFrame.js
+
+const {
+  resolveUserId,
+  resolveTeamId,
+  resolveCycle,
+  resolveWeekCycle
+} = require('./resolvers');
+
+const {
+  mapAliasesToFields,
+  mapEnumValue
+} = require('./aliasMapper');
+
+const {
+  validateRequiredFields,
+  getMissingFields
+} = require('./fieldValidator');
+
+const { buildExceptionPipeline } = require('./exceptionUtils');
+const { resolveAlias } = require('./aliasResolver');
+const { resolveTimeframe } = require('./timeframeParser');
 const schemaMetadata = require('./schemaMetadata.json');
 
-// Utility to determine if a value looks like an ObjectId
-const isObjectId = val => typeof val === 'string' && /^[0-9a-fA-F]{24}$/.test(val);
-
-// Handles fuzzy match logic
 function createFuzzyRegex(value) {
   return new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 }
@@ -14,146 +29,114 @@ function createFuzzyRegex(value) {
 async function expandSemanticFrame(intent, user) {
   const { action, model } = intent;
   const meta = schemaMetadata[model];
-  if (!meta) {
-    return { error: `Model '${model}' not recognized.` };
-  }
+  if (!meta) return { error: `Model '${model}' not found.` };
 
   const filter = { organization: user.organization };
   const autofill = {};
   const updateFields = {};
-  const errors = [];
-  const matchPreview = [];
+  let dimension = intent.dimension || 'status';
 
-  // Timeframe resolution
+  // Timeframe
   if (intent.timeframe) {
-    const cycle = await resolveCycle(intent.timeframe, user.organization);
+    const okrCycle = await resolveCycle(intent.timeframe, user.organization);
     const weekCycle = await resolveWeekCycle(intent.timeframe, user.organization);
-    if (meta.fields.includes('cycle') && cycle) filter.cycle = cycle;
+    if (meta.fields.includes('cycle') && okrCycle) filter.cycle = okrCycle;
     if (meta.fields.includes('weekCycle') && weekCycle) filter.weekCycle = weekCycle;
   }
 
-  // Subject resolution
+  // Subject (user or team)
   if (intent.subject) {
     const subjectList = Array.isArray(intent.subject) ? intent.subject : [intent.subject];
 
     for (const subject of subjectList) {
-      const teamId = await resolveTeamId(subject, user);
-      const userId = await resolveUserId(subject, user);
+      const resolved = resolveAlias(subject);
+      const teamId = await resolveTeamId(resolved, user);
+      const userId = await resolveUserId(resolved, user);
 
-      if (meta.fields.includes('assignedTo') && userId) {
-        filter.assignedTo = userId;
-      } else if (meta.fields.includes('teamId') && teamId) {
+      if (userId?.ambiguous) return { requiresClarification: true, options: userId.options, type: 'user' };
+
+      if (model === 'KeyResult' || model === 'ActionItem') {
+        if (userId) {
+          filter.assignedTo = userId;
+        } else if (teamId) {
+          filter.$or = [
+            { ownerTeam: teamId },
+            { assignedTeams: { $in: [teamId] } }
+          ];
+        }
+      }
+
+      if (model === 'Objective' && teamId) {
         filter.$or = [
           { teamId },
-          { assignedTeams: { $in: [teamId] } },
-          { ownerTeam: teamId }
+          { assignedTeams: { $in: [teamId] } }
         ];
       }
     }
   }
 
-  // Enum & alias resolution (e.g., status = at risk)
+  // Filters
   if (intent.filters) {
     for (const [key, value] of Object.entries(intent.filters)) {
-      const field = mapAliasesToFields(key, model);
-      if (!field) continue;
-
-      const schemaField = field[0];
-      const enumValue = mapEnumValue(value, model, schemaField);
-      if (enumValue) {
-        filter[schemaField] = enumValue;
-      } else {
-        filter[schemaField] = value;
-      }
+      const mappedField = mapAliasesToFields(key, model);
+      if (!mappedField) continue;
+      const enumVal = mapEnumValue(value, model, mappedField[0]);
+      filter[mappedField[0]] = enumVal || value;
     }
   }
 
-  // Handle actions
-  if (action === 'search') {
-    return { model, action, filter };
-  }
-
+  // Create
   if (action === 'create') {
-    const required = validateRequiredFields(model, intent.fields || {}, user);
-    const missing = getMissingFields(model, required, meta.fields);
-
-    const finalFields = {
-      ...required,
-      organization: user.organization,
-      createdBy: user._id,
-    };
-
-    if (missing.length > 0) {
+    const createFields = validateRequiredFields(model, intent.fields || {}, user);
+    const missingFields = getMissingFields(model, createFields, meta.fields);
+    if (missingFields.length > 0) {
       return {
         model,
         action,
-        createFields: finalFields,
-        missingFields: missing,
-        prompt: `Missing required fields: ${missing.join(', ')}.`
+        createFields,
+        missingFields,
+        prompt: `Missing: ${missingFields.join(', ')}`
       };
     }
-
-    return {
-      model,
-      action,
-      createFields: finalFields
-    };
+    return { model, action, createFields };
   }
 
+  // Update
   if (action === 'update') {
     if (!intent.filters || !intent.updateFields) {
-      return { error: 'Update requires both filters and updateFields.' };
+      return { error: 'Update requires filters and updateFields.' };
     }
+    const titleRegex = intent.filters.title ? createFuzzyRegex(intent.filters.title) : null;
+    if (titleRegex) filter.title = titleRegex;
 
-    // Prepare filter for update
-    const titleFilter = intent.filters.title ? createFuzzyRegex(intent.filters.title) : null;
-    if (titleFilter) filter.title = titleFilter;
-
-    // Prepare update fields (with enum normalization)
     for (const [key, value] of Object.entries(intent.updateFields)) {
-      const fieldMatch = mapAliasesToFields(key, model);
-      if (fieldMatch) {
-        const fieldName = fieldMatch[0];
-        const enumValue = mapEnumValue(value, model, fieldName);
-        updateFields[fieldName] = enumValue || value;
+      const mapped = mapAliasesToFields(key, model);
+      if (mapped) {
+        const enumVal = mapEnumValue(value, model, mapped[0]);
+        updateFields[mapped[0]] = enumVal || value;
       }
     }
-
-    return {
-      model,
-      action,
-      filter,
-      updateFields,
-      autofill,
-      matchPreview
-    };
+    return { model, action, filter, updateFields };
   }
 
-  // Summarize / Trend / Exception
-  if (['summarize', 'trend', 'exception'].includes(action)) {
-    const dimension = intent.dimension || 'status';
-    const dimField = mapAliasesToFields(dimension, model)?.[0] || dimension;
+  // Exception
+  if (action === 'exception') {
+    const pipeline = await buildExceptionPipeline(model, filter, user.organization);
+    return { model, action, pipeline, dimension: 'exceptionReason' };
+  }
 
+  // Summarize / Trend
+  if (['summarize', 'trend'].includes(action)) {
+    const dimField = mapAliasesToFields(dimension, model)?.[0] || dimension;
     const pipeline = [
       { $match: filter },
-      {
-        $group: {
-          _id: `$${dimField}`,
-          count: { $sum: 1 }
-        }
-      },
+      { $group: { _id: `$${dimField}`, count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ];
-
-    return {
-      model,
-      action,
-      pipeline,
-      dimension: dimField
-    };
+    return { model, action, pipeline, dimension: dimField };
   }
 
-  return { model, action, filter };
+  return { model, action: 'search', filter, timeframe: intent.timeframe };
 }
 
 module.exports = expandSemanticFrame;

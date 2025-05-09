@@ -1,3 +1,4 @@
+// File: utils/detectIntentGPT.js
 const { OpenAI } = require('openai');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -29,6 +30,7 @@ Respond ONLY with a valid JSON object. No markdown, no extra explanation.
   "model": "KeyResult",          // Required: Objective, KeyResult, ActionItem, Initiative, DiaryEntry, TeamWeeklyUpdate
   "action": "summarize",         // Required: search | summarize | trend | create | compare | exception
   "subject": "my team",          // Optional: a user, a team, "me", "my team", etc.
+  "filters": { "status": "on track" }, // Optional: semantic filters
   "dimension": "status",         // Optional: field to summarize or group by
   "timeframe": "this quarter",   // Optional: timeframe like "last week", "Q1-2024"
   "aggregation": "count",        // Optional: count, percent, average, total, etc.
@@ -70,7 +72,7 @@ User query: """${query}"""
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: 'You are a query-to-intent translator. Return only valid JSON as instructed.' },
         { role: 'user', content: prompt }
@@ -79,11 +81,9 @@ User query: """${query}"""
 
     let raw = completion.choices[0].message.content.trim();
 
-    if (raw.startsWith('```json')) {
-      raw = raw.replace(/^```json/, '').replace(/```$/, '').trim();
-    } else if (raw.startsWith('```')) {
-      raw = raw.replace(/^```/, '').replace(/```$/, '').trim();
-    }
+    // Strip markdown fencing if needed
+    if (raw.startsWith('```json')) raw = raw.replace(/^```json/, '').replace(/```$/, '').trim();
+    if (raw.startsWith('```')) raw = raw.replace(/^```/, '').replace(/```$/, '').trim();
 
     const parsed = JSON.parse(raw);
 
@@ -92,6 +92,7 @@ User query: """${query}"""
       model: parsed.model || null,
       action: parsed.action || null,
       subject: parsed.subject || null,
+      filters: parsed.filters || {},
       dimension: parsed.dimension || null,
       timeframe: parsed.timeframe || null,
       aggregation: parsed.aggregation || null,
@@ -105,6 +106,7 @@ User query: """${query}"""
       model: null,
       action: null,
       subject: null,
+      filters: {},
       dimension: null,
       timeframe: null,
       aggregation: null,
