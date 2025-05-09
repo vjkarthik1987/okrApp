@@ -1,38 +1,40 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Edit Initiative' %>
 
-<h2>✏️ Edit Initiative</h2>
+<h2 class="mb-4">✏️ Edit Initiative</h2>
 
-<form action="/<%= orgName %>/initiatives/<%= initiative._id %>?_method=PUT" method="POST">
+<form action="/<%= orgName %>/initiatives/<%= initiative._id %>?_method=PUT" method="POST" class="card p-4 shadow-sm border-0">
   <div class="mb-3">
-    <label for="title">Title</label>
+    <label for="title" class="form-label fw-bold">📌 Title</label>
     <input type="text" name="title" class="form-control" value="<%= initiative.title %>" required>
   </div>
 
   <div class="mb-3">
-    <label for="description">Description</label>
-    <textarea name="description" class="form-control"><%= initiative.description %></textarea>
+    <label for="description" class="form-label fw-bold">📝 Description</label>
+    <textarea name="description" class="form-control" rows="3"><%= initiative.description %></textarea>
   </div>
 
   <div class="mb-3">
-    <label for="expectedOutcome">Expected Outcome</label>
-    <textarea name="expectedOutcome" class="form-control"><%= initiative.expectedOutcome %></textarea>
+    <label for="expectedOutcome" class="form-label fw-bold">🎯 Expected Outcome</label>
+    <textarea name="expectedOutcome" class="form-control" rows="3"><%= initiative.expectedOutcome %></textarea>
   </div>
 
   <div class="mb-3">
-    <label for="outcomeAchieved">Outcome Achieved</label>
-    <textarea name="outcomeAchieved" class="form-control"><%= initiative.outcomeAchieved %></textarea>
+    <label for="outcomeAchieved" class="form-label fw-bold">✅ Outcome Achieved</label>
+    <textarea name="outcomeAchieved" class="form-control" rows="3"><%= initiative.outcomeAchieved %></textarea>
   </div>
 
   <div class="mb-3">
-    <label for="status">Status</label>
-    <select name="status" class="form-control">
-      <% ['Initiated', 'Closed', 'Deferred/On Hold', 'Blocked', 'Dropped'].forEach(statusOption => { %>
-        <option value="<%= statusOption %>" <%= initiative.status === statusOption ? 'selected' : '' %>><%= statusOption %></option>
+    <label for="status" class="form-label fw-bold">📍 Status</label>
+    <select name="status" class="form-select">
+      <% ['Initiated', 'Closed', 'Deferred/On Hold', 'Blocked', 'Dropped'].forEach(option => { %>
+        <option value="<%= option %>" <%= initiative.status === option ? 'selected' : '' %>><%= option %></option>
       <% }) %>
     </select>
   </div>
 
-  <button type="submit" class="btn btn-success mt-3">💾 Update</button>
-  <a href="/<%= orgName %>/initiatives/<%= initiative._id %>" class="btn btn-outline-secondary mt-3">⬅ Cancel</a>
+  <div class="text-end mt-4">
+    <button type="submit" class="btn btn-success">💾 Update Initiative</button>
+    <a href="/<%= orgName %>/initiatives/<%= initiative._id %>" class="btn btn-outline-secondary ms-2">⬅ Cancel</a>
+  </div>
 </form>

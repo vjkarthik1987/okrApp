@@ -1,17 +1,18 @@
 <% if (typeof depth === 'undefined') { var depth = 0; } %>
-<li>
+<li class="tree-node">
   <div>
-    Level <%= depth + 1 %>: 👤 <strong><%= member.name %></strong> 
-    (<%= member.email %>)
-    <% if (member.designation) { %>
-      — <em><%= member.designation %></em>
+    Level <%= depth + 1 %>: 👤 <strong><%= member.name %></strong>
+    <% if (member._id.toString() === currentUserId.toString()) { %>
+      <span class="badge bg-info ms-2">(You)</span>
     <% } %>
+    (<%= member.email %>)
+    <% if (member.designation) { %> — <em><%= member.designation %></em><% } %>
   </div>
 
   <% if (member.reportees && member.reportees.length > 0 && (!maxDepth || depth + 1 < maxDepth)) { %>
-    <ul class="ms-4 list-unstyled">
+    <ul class="list-unstyled">
       <% member.reportees.forEach(function(child) { %>
-        <%- include('./_teamNode', { member: child, depth: depth + 1, maxDepth: maxDepth }) %>
+        <%- include('./_teamNode', { member: child, depth: depth + 1, maxDepth: maxDepth, currentUserId }) %>
       <% }) %>
     </ul>
   <% } %>

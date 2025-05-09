@@ -1,113 +1,290 @@
 <% layout('layouts/main') %>
 <% title = 'Register Organization' %>
 
-<h2>Register Your Organization</h2>
-<form action="/register-org" method="POST" class="mt-4">
-  <div class="mb-3">
-    <label>Organization Name (URL-friendly, lowercase):</label>
-    <input type="text" name="orgName" class="form-control" required>
+<style>
+  .step-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 0;
+    list-style: none;
+    position: relative;
+    counter-reset: step;
+  }
+
+  .step-bar::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 15px;
+    right: 15px;
+    height: 3px;
+    background-color: #d1d5db;
+    z-index: 0;
+  }
+
+  .step-bar li {
+    text-align: center;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    color: #9ca3af;
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .step-bar::before {
+    content: '';
+    position: absolute;
+    top: 22px; /* ⬅️ increased from 14px to 22px */
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #d1d5db;
+    z-index: 0;
+  }
+
+
+  .step-bar li.active {
+    color: #111827;
+    font-weight: 700;
+  }
+
+  .step-bar li.active::before {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  .step-bar li.done::before {
+    content: '✓';
+    background-color: #10b981;
+    color: white;
+    border-color: #10b981;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .step-section {
+    display: none;
+  }
+
+  .step-section.active {
+    display: block;
+  }
+
+  .toggle-password {
+    position: absolute;
+    top: 38px;
+    right: 12px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #64748b;
+  }
+
+  .toggle-password:hover {
+    color: #3b82f6;
+  }
+</style>
+
+<h2>🚀 Register Your Organization</h2>
+
+<% if (error && error.length > 0) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+<% if (success && success.length > 0) { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+
+<ul class="step-bar mb-4">
+  <li class="active">Organization Info</li>
+  <li>Admin Details</li>
+  <li>Confirmation</li>
+</ul>
+
+<form id="orgForm" action="/register-org" method="POST">
+
+  <!-- Step 1 -->
+  <div class="step-section active" data-step="0">
+    <div class="mb-3">
+      <label>Organization Name (URL-friendly, lowercase):</label>
+      <input type="text" name="orgName" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Display Name:</label>
+      <input type="text" name="displayName" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Industry (optional):</label>
+      <input type="text" name="industry" class="form-control" list="industryList">
+      <datalist id="industryList">
+        <option value="Banking">
+        <option value="Insurance">
+        <option value="Retail">
+        <option value="Technology">
+        <option value="Healthcare">
+        <option value="Telecom">
+        <option value="Education">
+        <option value="Manufacturing">
+      </datalist>
+    </div>
+
+    <div class="mb-3">
+      <label>Financial Year Start Month:</label>
+      <select name="financialYearStartMonth" class="form-control">
+        <option value="">-- Select --</option>
+        <option value="1">January</option>
+        <option value="4">April</option>
+        <option value="7">July</option>
+      </select>
+      <small class="text-muted">Optional. Defaults to January if not selected.</small>
+    </div>
   </div>
 
-  <div class="mb-3">
-    <label>Display Name:</label>
-    <input type="text" name="displayName" class="form-control" required>
+  <!-- Step 2 -->
+  <div class="step-section" data-step="1">
+    <h4 class="mt-3">Admin Details</h4>
+
+    <div class="mb-3">
+      <label>Full Name:</label>
+      <input type="text" name="adminName" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label>Email:</label>
+      <input type="email" name="adminEmail" class="form-control" required>
+    </div>
+
+    <div class="mb-3 position-relative">
+      <label>Password:</label>
+      <input type="password" name="adminPassword" id="adminPassword" class="form-control" required>
+      <span class="toggle-password" onclick="toggleVisibility('adminPassword', this)">👁️</span>
+    </div>
+
+    <div class="mb-3 position-relative">
+      <label>Confirm Password:</label>
+      <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" required>
+      <span class="toggle-password" onclick="toggleVisibility('confirmPassword', this)">👁️</span>
+      <small id="matchMsg" style="display: block; margin-top: 4px;"></small>
+    </div>
+
+    <div class="mb-3">
+      <label>Designation:</label>
+      <input type="text" name="designation" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label>Band:</label>
+      <input type="text" name="band" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label>Location:</label>
+      <input type="text" name="location" class="form-control" list="locationList">
+      <datalist id="locationList">
+        <option value="Trivandrum">
+        <option value="Bangalore">
+        <option value="Chennai">
+        <option value="Mumbai">
+        <option value="Delhi">
+        <option value="New York">
+        <option value="London">
+        <option value="Singapore">
+      </datalist>
+    </div>
+
+    <div class="mb-3">
+      <label>Gender:</label>
+      <select name="gender" class="form-control">
+        <option value="">Select</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label>Joining Date:</label>
+      <input type="date" name="joiningDate" class="form-control">
+    </div>
   </div>
 
-  <div class="mb-3">
-    <label>Industry (optional):</label>
-    <input type="text" name="industry" class="form-control">
+  <!-- Step 3 (Confirmation placeholder) -->
+  <div class="step-section" data-step="2">
+    <div class="alert alert-info">
+      ✅ All details ready to go! Click <strong>Register</strong> to complete.
+    </div>
   </div>
 
-  <div class="mb-3">
-    <label>Financial Year Start Month:</label>
-    <select name="financialYearStartMonth" class="form-control">
-      <option value="">-- Select --</option>
-      <option value="1">January</option>
-      <option value="4">April</option>
-      <option value="7">July</option>
-    </select>
-    <small class="text-muted">Optional. Defaults to January if not selected.</small>
+  <!-- Buttons -->
+  <div class="d-flex justify-content-between mt-4">
+    <button type="button" class="btn btn-outline-secondary" id="prevBtn">⬅ Back</button>
+    <button type="button" class="btn btn-primary" id="nextBtn">Next ➡</button>
+    <button type="submit" class="btn btn-success d-none" id="submitBtn">✅ Register Organization</button>
   </div>
-
-  <hr>
-
-  <h4 class="mt-4">Admin Details</h4>
-
-  <div class="mb-3">
-    <label>Full Name:</label>
-    <input type="text" name="adminName" class="form-control" required>
-  </div>
-
-  <div class="mb-3">
-    <label>Email:</label>
-    <input type="email" name="adminEmail" class="form-control" required>
-  </div>
-
-  <div class="mb-3">
-    <label>Password:</label>
-    <input type="password" name="adminPassword" class="form-control" required>
-  </div>
-  
-  <div class="mb-3">
-    <label>Confirm Password:</label>
-    <input type="password" name="confirmPassword" class="form-control" required>
-  </div>
-
-  <div class="mb-3">
-    <label>Designation:</label>
-    <input type="text" name="designation" class="form-control">
-  </div>
-
-  <div class="mb-3">
-    <label>Band:</label>
-    <input type="text" name="band" class="form-control">
-  </div>
-
-  <div class="mb-3">
-    <label>Location:</label>
-    <input type="text" name="location" class="form-control">
-  </div>
-
-  <div class="mb-3">
-    <label>Gender:</label>
-    <select name="gender" class="form-control">
-      <option value="">Select</option>
-      <option value="Male">Male</option>
-      <option value="Female">Female</option>
-      <option value="Other">Other</option>
-    </select>
-  </div>
-
-  <div class="mb-3">
-    <label>Joining Date:</label>
-    <input type="date" name="joiningDate" class="form-control">
-  </div>
-
-  <button class="btn btn-success mt-3" type="submit">Register Organization</button>
 </form>
 
 <script>
-    const passwordInput = document.querySelector('input[name="adminPassword"]');
-    const confirmInput = document.querySelector('input[name="confirmPassword"]');
-  
-    const message = document.createElement('small');
-    message.style.fontSize = '0.9rem';
-    message.style.display = 'block';
-    confirmInput.parentNode.appendChild(message);
-  
-    confirmInput.addEventListener('input', () => {
-      if (!confirmInput.value) {
-        message.textContent = '';
+  const steps = document.querySelectorAll('.step-section');
+  const indicators = document.querySelectorAll('.step-bar li');
+  let currentStep = 0;
+
+  function showStep(n) {
+    steps.forEach((step, idx) => step.classList.toggle('active', idx === n));
+    indicators.forEach((dot, idx) => {
+      dot.classList.remove('active', 'done');
+      if (idx < n) dot.classList.add('done');
+      if (idx === n) dot.classList.add('active');
+    });
+
+    document.getElementById('prevBtn').style.display = n === 0 ? 'none' : 'inline-block';
+    document.getElementById('nextBtn').classList.toggle('d-none', n === steps.length - 1);
+    document.getElementById('submitBtn').classList.toggle('d-none', n !== steps.length - 1);
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    if (currentStep > 0) showStep(--currentStep);
+  });
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    const section = steps[currentStep];
+    const inputs = section.querySelectorAll('input[required], select[required]');
+    for (let input of inputs) {
+      if (!input.checkValidity()) {
+        input.reportValidity();
         return;
       }
-  
-      if (passwordInput.value === confirmInput.value) {
-        message.textContent = '✅ Passwords match';
-        message.style.color = 'green';
-      } else {
-        message.textContent = '❌ Passwords do not match';
-        message.style.color = 'red';
-      }
-    });
+    }
+    if (currentStep < steps.length - 1) showStep(++currentStep);
+  });
+
+  function toggleVisibility(fieldId, icon) {
+    const input = document.getElementById(fieldId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      icon.textContent = '👁️';
+    }
+  }
+
+  const passwordInput = document.getElementById('adminPassword');
+  const confirmInput = document.getElementById('confirmPassword');
+  const matchMsg = document.getElementById('matchMsg');
+  confirmInput.addEventListener('input', () => {
+    if (!confirmInput.value) return (matchMsg.textContent = '');
+    if (passwordInput.value === confirmInput.value) {
+      matchMsg.textContent = '✅ Passwords match';
+      matchMsg.style.color = 'green';
+    } else {
+      matchMsg.textContent = '❌ Passwords do not match';
+      matchMsg.style.color = 'red';
+    }
+  });
+
+  // Initialize
+  showStep(currentStep);
 </script>
-  

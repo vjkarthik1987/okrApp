@@ -1,10 +1,10 @@
 <% layout('layouts/dashboard') %>
 <% title = 'My Key Results' %>
 
-<h2 class="mb-4">🎯 Key Results</h2>
+<h2 class="mb-4 text-gradient">🎯 Key Results</h2>
 
 <!-- Scope Tabs (My, Team, Org) -->
-<ul class="nav nav-tabs mb-4" style="border-bottom: 2px solid #dee2e6;">
+<ul class="nav nav-tabs mb-3">
   <li class="nav-item">
     <a class="nav-link <%= scope === 'my' ? 'active' : '' %>" href="/<%= orgName %>/mykeyresults?scope=my&filter=<%= filter %>">👤 <strong>My KRs</strong></a>
   </li>
@@ -19,7 +19,7 @@
 </ul>
 
 <!-- Filter Tabs -->
-<ul class="nav nav-tabs mb-4">
+<ul class="nav nav-pills mb-4 gap-2">
   <li class="nav-item">
     <a class="nav-link <%= filter === 'active' ? 'active' : '' %>" href="/<%= orgName %>/mykeyresults?scope=<%= scope %>&filter=active">✅ Active</a>
   </li>
@@ -32,32 +32,41 @@
 </ul>
 
 <!-- Key Results Table -->
-<table class="table table-bordered table-striped">
-  <thead class="table-light">
-    <tr>
-      <th>Title</th>
-      <th>Progress</th>
-      <th>Due Date</th>
-      <th>Objective</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% if (keyResults.length === 0) { %>
-      <tr><td colspan="5" class="text-center text-muted">No Key Results found.</td></tr>
-    <% } else { %>
-      <% keyResults.forEach(kr => { %>
+<div class="table-responsive animated-form">
+  <table class="table table-hover table-striped align-middle shadow-sm border">
+    <thead class="table-light sticky-top">
+      <tr>
+        <th>🎯 Title</th>
+        <th>📊 Progress</th>
+        <th>📅 Due Date</th>
+        <th>🎯 Objective</th>
+        <th>🔧 Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (keyResults.length === 0) { %>
         <tr>
-          <td><%= kr.title %></td>
-          <td><%= kr.progressValue %>%</td>
-          <td><%= kr.dueDate ? new Date(kr.dueDate).toDateString() : '-' %></td>
-          <td><%= kr.objectiveTitle || '-' %></td>
-          <td>
-            <a href="/<%= orgName %>/objectives/<%= kr.objectiveId %>/keyresults/<%= kr._id %>" class="btn btn-sm btn-outline-info">🔍 View</a>
-            <a href="/<%= orgName %>/objectives/<%= kr.objectiveId %>/keyresults/<%= kr._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
-          </td>
+          <td colspan="5" class="text-center text-muted">No Key Results found.</td>
         </tr>
-      <% }) %>
-    <% } %>
-  </tbody>
-</table>
+      <% } else { %>
+        <% keyResults.forEach(kr => { %>
+          <tr>
+            <td><%= kr.title %></td>
+            <td>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: <%= kr.progressValue %>%;"></div>
+              </div>
+              <small><%= kr.progressValue %>%</small>
+            </td>
+            <td><%= kr.dueDate ? new Date(kr.dueDate).toDateString() : '—' %></td>
+            <td><%= kr.objectiveTitle || '—' %></td>
+            <td>
+              <a href="/<%= orgName %>/objectives/<%= kr.objectiveId %>/keyresults/<%= kr._id %>" class="btn btn-sm btn-outline-info">🔍 View</a>
+              <a href="/<%= orgName %>/objectives/<%= kr.objectiveId %>/keyresults/<%= kr._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+            </td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>

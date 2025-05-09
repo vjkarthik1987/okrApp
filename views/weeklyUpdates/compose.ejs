@@ -1,111 +1,115 @@
 <% layout('layouts/dashboard') %>
 <% title = '🧾 Compose Weekly Summary' %>
+
+<h2 class="mb-4 text-gradient">🧾 Compose Weekly Summary for <%= weekLabel %></h2>
+
+<% if (success && success.length > 0) { %>
+  <div class="alert alert-success funky-label"><%= success %></div>
+<% } %>
+<% if (error && error.length > 0) { %>
+  <div class="alert alert-danger funky-label"><%= error %></div>
+<% } %>
+
+<form method="POST" action="/<%= orgName %>/weeklyUpdates/ai-summary" class="animated-form">
+  <input type="hidden" name="teamId" value="<%= teamId %>">
+  <input type="hidden" name="weekCycle" value="<%= draftUpdate.weekCycle %>">
+
+  <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <button type="button" id="generateSummaryBtn" class="btn btn-outline-primary btn-sm d-none">🧠 Generate AI KR Summary</button>
+      <span id="summaryStatus" class="text-muted small"></span>
+    </div>
+    <label class="form-label funky-label">📈 Key Result (KR) Progress Summary</label>
+    <textarea id="okrSummary" name="okrSummary" rows="5" class="form-control input-pop" placeholder="Summarize KR progress..."><%= draftUpdate.okrSummary || '' %></textarea>
+  </div>
+
+  <div class="mb-4">
+    <label class="form-label funky-label">✅ Action Items Summary</label>
+    <textarea name="actionItemSummary" rows="4" class="form-control input-pop" placeholder="Progress on Action Items..."><%= draftUpdate.actionItemSummary || '' %></textarea>
+  </div>
+
+  <div class="mb-4">
+    <label class="form-label funky-label">📘 Diary Themes</label>
+    <input type="text" name="diaryThemes" class="form-control input-pop" value="<%= draftUpdate.diaryThemes.join(', ') %>" placeholder="e.g. Collaboration, AI, Client Escalations">
+  </div>
+
+  <div class="mb-4">
+    <label class="form-label funky-label">📘 Diary Summary</label>
+    <textarea name="diarySummary" rows="4" class="form-control input-pop" placeholder="What patterns emerged in diary entries?"><%= draftUpdate.diarySummary || '' %></textarea>
+  </div>
+
+  <button type="submit" class="btn btn-success">💾 Submit Weekly Summary</button>
+</form>
+
+<hr class="my-5">
+<h4 class="text-gradient">📊 Auto-Extracted Data</h4>
+
+<h5>🎯 Objectives</h5>
+<ul class="ps-3">
+  <% objectives.forEach(obj => { %>
+    <li><strong><%= obj.title %></strong></li>
+  <% }) %>
+</ul>
+
+<h5>📍 Key Results</h5>
+<ul class="ps-3">
+  <% keyResults.forEach(kr => { %>
+    <li><%= kr.title %> – <%= kr.progressValue %>%</li>
+  <% }) %>
+</ul>
+
+<h5>📋 Action Items</h5>
+<ul class="ps-3">
+  <% actionItems.forEach(ai => { %>
+    <li><%= ai.title %> – <%= ai.status %></li>
+  <% }) %>
+</ul>
+
+<h5>📝 Diary Submissions</h5>
+<p><%= draftUpdate.diaryEntryStats.submitted %> submitted out of <%= draftUpdate.diaryEntryStats.totalExpected %> expected</p>
+
+<% if (teamUsers && draftUpdate.diaryEntryStats.nonCompliant.length > 0) { %>
+  <h6 class="text-danger">❗ Non-Compliant:</h6>
+  <ul class="ps-3">
+    <% teamUsers
+        .filter(u => draftUpdate.diaryEntryStats.nonCompliant.includes(u._id.toString()))
+        .forEach(u => { %>
+      <li><%= u.name %></li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<!-- Spinner Overlay -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
 <style>
   #loadingOverlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: rgba(255, 255, 255, 0.95);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
   }
-
   .spinner {
     border: 6px solid #eee;
-    border-top: 6px solid #3498db;
+    border-top: 6px solid #6C5CE7;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 50px; height: 50px;
     animation: spin 1s linear infinite;
   }
-
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
 </style>
 
-
-<h2 class="mb-4">🧾 Compose Weekly Summary for <%= weekLabel %></h2>
-
-<form method="POST" action="/<%= orgName %>/weeklyUpdates/ai-summary">
-  <input type="hidden" name="teamId" value="<%= teamId %>">
-  <input type="hidden" name="weekCycle" value="<%= draftUpdate.weekCycle %>">
-
-  <div class="mb-4">
-    
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <button type="button" id="generateSummaryBtn" class="btn btn-outline-primary btn-sm d-none">🧠 Generate AI KR Summary</button>
-      <span id="summaryStatus" class="text-muted small"></span>
-    </div>
-    <label class="form-label">📈 Key Result (KR) Progress Summary</label>
-    <textarea id="okrSummary" name="okrSummary" rows="5" class="form-control" placeholder="Summarize KR progress..."><%= draftUpdate.okrSummary || '' %></textarea>
-  </div>
-
-  <div class="mb-4">
-    <label class="form-label">✅ Action Items Summary</label>
-    <textarea name="actionItemSummary" rows="4" class="form-control" placeholder="Progress on Action Items..."><%= draftUpdate.actionItemSummary || '' %></textarea>
-  </div>
-
-  <div class="mb-4">
-    <label class="form-label">📘 Diary Themes</label>
-    <input type="text" name="diaryThemes" class="form-control" value="<%= draftUpdate.diaryThemes.join(', ') %>" placeholder="Comma-separated e.g. Collaboration, AI, Client Escalations">
-  </div>
-
-  <div class="mb-4">
-    <label class="form-label">📘 Diary Summary</label>
-    <textarea name="diarySummary" rows="4" class="form-control" placeholder="What patterns emerged in diary entries?"><%= draftUpdate.diarySummary || '' %></textarea>
-  </div>
-
-  <button type="submit" class="btn btn-success">💾 Submit Weekly Summary</button>
-</form>
-
-<hr>
-<h4>📊 Auto-Extracted Data:</h4>
-
-<h5>Objectives</h5>
-<ul>
-  <% objectives.forEach(obj => { %>
-    <li><strong><%= obj.title %></strong></li>
-  <% }) %>
-</ul>
-
-<h5>Key Results</h5>
-<ul>
-  <% keyResults.forEach(kr => { %>
-    <li><%= kr.title %> – <%= kr.progressValue %>%</li>
-  <% }) %>
-</ul>
-
-<h5>Action Items</h5>
-<ul>
-  <% actionItems.forEach(ai => { %>
-    <li><%= ai.title %> – <%= ai.status %></li>
-  <% }) %>
-</ul>
-
-<h5>Diary Submissions</h5>
-<p><%= draftUpdate.diaryEntryStats.submitted %> submitted out of <%= draftUpdate.diaryEntryStats.totalExpected %> expected</p>
-
-<% if (teamUsers && draftUpdate.diaryEntryStats.nonCompliant.length > 0) { %>
-  <h6>❗ Non-Compliant:</h6>
-  <ul>
-    <% teamUsers.filter(u => draftUpdate.diaryEntryStats.nonCompliant.includes(u._id.toString())).forEach(u => { %>
-      <li><%= u.name %></li>
-    <% }) %>
-  </ul>
-<% } %>
-
-<div id="loadingOverlay">
-  <div class="spinner"></div>
-</div>
-
 <script>
-  document.getElementById('generateSummaryBtn').addEventListener('click', async () => {
+  document.getElementById('generateSummaryBtn')?.addEventListener('click', async () => {
     const btn = document.getElementById('generateSummaryBtn');
     const status = document.getElementById('summaryStatus');
     const textarea = document.getElementById('okrSummary');
@@ -116,9 +120,7 @@
     try {
       const response = await fetch(`/<%= orgName %>/weeklyUpdates/ai-summary`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           teamId: "<%= teamId %>",
           okrCycleId: "<%= keyResults[0]?.cycle %>",
@@ -149,9 +151,7 @@
     try {
       const response = await fetch(`/<%= orgName %>/weeklyUpdates/ai-summary`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           teamId: "<%= teamId %>",
           okrCycleId: "<%= keyResults[0]?.cycle %>",
@@ -174,5 +174,3 @@
     }
   });
 </script>
-
-

@@ -1,12 +1,12 @@
 <% title = "Edit Diary Entry" %>
 <% layout('layouts/dashboard') %>
 
-<h2 class="mb-4">✏️ Edit Diary Entry</h2>
+<h2 class="mb-4">📘 Edit Diary Entry</h2>
 
-<form action="/<%= orgName %>/diary/<%= entry._id %>?_method=PUT" method="POST">
+<form action="/<%= orgName %>/diary/<%= entry._id %>?_method=PUT" method="POST" class="card p-4 shadow-sm">
   <div class="mb-3">
-    <label for="weekCycleSelect" class="form-label">Select Week</label>
-    <select name="weekCycleId" id="weekCycleSelect" class="form-control" required>
+    <label for="weekCycleSelect" class="form-label fw-semibold">🗓️ Select Week</label>
+    <select name="weekCycleId" id="weekCycleSelect" class="form-select" required>
       <% weeks.forEach(week => { %>
         <option value="<%= week._id %>" <%= week._id.equals(entry.weekCycle._id) ? 'selected' : '' %>>
           <%= week.label %>
@@ -16,9 +16,11 @@
   </div>
 
   <div class="mb-3">
-    <label for="content" class="form-label">Edit Your Work Summary</label>
-    <textarea name="content" id="content" class="form-control" rows="6" required><%= entry.content %></textarea>
+    <label for="content" class="form-label fw-semibold">📝 Your Weekly Summary</label>
+    <textarea name="content" id="content" class="form-control" rows="6" placeholder="Write your accomplishments, blockers, and insights..." required><%= entry.content %></textarea>
   </div>
 
-  <button type="submit" class="btn btn-primary">💾 Update Entry</button>
+  <div class="text-end">
+    <button type="submit" class="btn btn-primary px-4">💾 Update Entry</button>
+  </div>
 </form>

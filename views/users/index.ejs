@@ -1,51 +1,34 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Users' %>
 
-<style>
-  /* Highlight active pagination button */
-  .pagination .page-item.active .page-link {
-    background-color: #0d6efd; /* Bootstrap primary blue */
-    border-color: #0d6efd;
-    color: white;
-  }
-
-  /* Optional: Slight hover effect on normal buttons */
-  .pagination .page-link:hover {
-    background-color: #e9ecef;
-  }
-</style>
-
-
 <div class="container-fluid">
-  
-  <h2 class="mb-4">👥 Users</h2>
+  <h2 class="mb-4 text-gradient">👥 All Users</h2>
 
-  <!-- ➕ Add New User and Download CSV Buttons -->
-  <div class="mb-3 d-flex justify-content-between align-items-center">
-    <a href="/<%= orgName %>/users/new" class="btn btn-primary">➕ Add New Users</a>
-    <button id="downloadCsv" class="btn btn-success">⬇️ Download Users CSV</button>
+  <!-- Actions -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="/<%= orgName %>/users/new" class="btn btn-primary funky-label">➕ Add User</a>
+    <button id="downloadCsv" class="btn btn-outline-primary">⬇️ Download CSV</button>
   </div>
 
-  <!-- 🔢 Active and Inactive Counts -->
-  <div class="mb-3">
-    <strong>Total Active Users:</strong> <%= users.length %> |
-    <strong>Total Deactivated Users:</strong> <%= inactiveUsers.length %>
+  <!-- Stats -->
+  <div class="mb-4 small text-muted">
+    <strong>Active:</strong> <%= users.length %> | 
+    <strong>Inactive:</strong> <%= inactiveUsers.length %>
   </div>
 
-  <!-- 🔍 Search Box -->
-  <div class="mb-3" style="max-width: 400px;">
-    <input type="text" id="searchInput" class="form-control" placeholder="Search users by name...">
+  <!-- Search -->
+  <div class="mb-4" style="max-width: 400px;">
+    <input type="text" id="searchInput" class="form-control input-pop" placeholder="🔍 Search by name...">
   </div>
 
+  <!-- Active Users -->
   <% if (users.length === 0) { %>
-    <div class="alert alert-warning">No active users found.</div>
+    <div class="alert alert-warning">⚠️ No active users found.</div>
   <% } else { %>
-
-    <!-- 🧹 Active Users Table inside Responsive -->
     <div class="table-responsive">
-      <table class="table table-bordered table-striped">
+      <table class="table table-bordered align-middle">
         <thead>
-          <tr>
+          <tr class="table-light">
             <th>Name</th>
             <th>Email</th>
             <th>Role</th>
@@ -58,19 +41,19 @@
         <tbody id="usersTableBody">
           <% users.forEach(u => { %>
             <tr>
-              <td><%= u.name %></td>
+              <td><strong><%= u.name %></strong></td>
               <td><%= u.email %></td>
               <td><%= u.role %></td>
               <td><%= u.band || '—' %></td>
               <td><%= u.location || '—' %></td>
               <td><%= u.gender || '—' %></td>
-              <td>
-                <a href="/<%= orgName %>/users/<%= u._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+              <td class="text-nowrap">
+                <a href="/<%= orgName %>/users/<%= u._id %>/edit" class="btn btn-sm btn-outline-primary">✏️</a>
                 <% if (!(u.role === 'super_admin' && user.role !== 'super_admin')) { %>
                   <form method="POST" action="/<%= orgName %>/users/<%= u._id %>?_method=DELETE" style="display:inline;">
-                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑 Delete</button>
-                  </form>                 
-                <% } %>           
+                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑</button>
+                  </form>
+                <% } %>
               </td>
             </tr>
           <% }) %>
@@ -78,21 +61,19 @@
       </table>
     </div>
 
-    <!-- 📄 Pagination Controls -->
     <nav class="d-flex justify-content-center mt-3">
       <ul id="pagination" class="pagination flex-wrap justify-content-start"></ul>
     </nav>
-
   <% } %>
 
-  <!-- 💤 Deactivated Users Section -->
-  <h5 class="mt-4">Deactivated Users</h5>
+  <!-- Inactive Users -->
+  <h5 class="mt-5 funky-label">💤 Deactivated Users</h5>
   <% if (inactiveUsers.length === 0) { %>
-    <div class="text-muted">No deactivated users</div>
+    <div class="text-muted">No deactivated users.</div>
   <% } else { %>
-    <div class="table-responsive">
+    <div class="table-responsive mt-2">
       <table class="table table-sm table-bordered">
-        <thead>
+        <thead class="table-light">
           <tr>
             <th>Name</th>
             <th>Email</th>
@@ -107,8 +88,8 @@
               <td><%= u.email %></td>
               <td><%= u.role %></td>
               <td>
-                <form method="POST" action="/<%= orgName %>/users/<%= u._id %>/reactivate" style="display:inline;">
-                  <button class="btn btn-sm btn-outline-success" onclick="return confirm('Reactivate this user?')">♻️ Reactivate</button>
+                <form method="POST" action="/<%= orgName %>/users/<%= u._id %>/reactivate">
+                  <button class="btn btn-sm btn-outline-success" onclick="return confirm('Reactivate this user?')">♻️</button>
                 </form>
               </td>
             </tr>
@@ -118,29 +99,23 @@
     </div>
   <% } %>
 
-  <!-- ⚡ Skipped Users Modal -->
+  <!-- Skipped Users -->
   <% if (skippedUsers && skippedUsers.length > 0) { %>
     <div class="alert alert-warning mt-4">
-      ⚡ <%= skippedUsers.length %> user(s) were skipped.
-      <a href="#" data-bs-toggle="modal" data-bs-target="#skippedUsersModal">View Details</a>
+      ⚡ <%= skippedUsers.length %> user(s) skipped.
+      <a href="#" data-bs-toggle="modal" data-bs-target="#skippedUsersModal">View</a>
     </div>
 
-    <div class="modal fade" id="skippedUsersModal" tabindex="-1" aria-labelledby="skippedUsersModalLabel" aria-hidden="true">
+    <div class="modal fade" id="skippedUsersModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="skippedUsersModalLabel">Skipped Users</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title">Skipped Users</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Reason</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Name</th><th>Email</th><th>Reason</th></tr></thead>
               <tbody>
                 <% skippedUsers.forEach(u => { %>
                   <tr>
@@ -156,69 +131,42 @@
       </div>
     </div>
   <% } %>
+</div>
 
-</div> <!-- End container-fluid -->
-
-<!-- ✨ Scripts Section -->
 <script>
-  // 🧹 CSV Download
-  document.getElementById('downloadCsv').addEventListener('click', function () {
-    const rows = [
-      ["Name", "Email", "Role", "Band", "Location", "Gender"]
-    ];
-
+  // CSV Download
+  document.getElementById('downloadCsv').addEventListener('click', () => {
+    const rows = [["Name", "Email", "Role", "Band", "Location", "Gender"]];
     <% users.forEach(u => { %>
-      rows.push([
-        "<%= u.name %>",
-        "<%= u.email %>",
-        "<%= u.role %>",
-        "<%= u.band || '' %>",
-        "<%= u.location || '' %>",
-        "<%= u.gender || '' %>"
-      ]);
+      rows.push(["<%= u.name %>", "<%= u.email %>", "<%= u.role %>", "<%= u.band || '' %>", "<%= u.location || '' %>", "<%= u.gender || '' %>"]);
     <% }) %>
-
-    let csvContent = "data:text/csv;charset=utf-8,"
-      + rows.map(e => e.join(",")).join("\n");
-
-    const encodedUri = encodeURI(csvContent);
+    const content = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "users_list.csv");
-    document.body.appendChild(link);
-
-    link.click();
-    document.body.removeChild(link);
+    link.setAttribute("href", encodeURI(content));
+    link.setAttribute("download", "users.csv");
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
   });
 
-  // 🔍 Live Search
-  const tableRows = document.querySelectorAll("#usersTableBody tr");
+  // Search
+  const rows = document.querySelectorAll("#usersTableBody tr");
   document.getElementById('searchInput').addEventListener('input', function () {
     const query = this.value.toLowerCase();
-    tableRows.forEach(row => {
-      const nameCell = row.children[0].textContent.toLowerCase();
-      row.style.display = nameCell.includes(query) ? '' : 'none';
+    rows.forEach(row => {
+      row.style.display = row.children[0].textContent.toLowerCase().includes(query) ? '' : 'none';
     });
   });
 
-  // 📄 Pagination
+  // Pagination
   const rowsPerPage = 10;
   const pagination = document.getElementById("pagination");
-
   function showPage(page) {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-
-    tableRows.forEach((row, index) => {
-      row.style.display = (index >= start && index < end) ? '' : 'none';
-    });
+    rows.forEach((row, index) => row.style.display = index >= start && index < end ? '' : 'none');
   }
-
   function setupPagination() {
-    const pageCount = Math.ceil(tableRows.length / rowsPerPage);
-
+    const pageCount = Math.ceil(rows.length / rowsPerPage);
     pagination.innerHTML = '';
-
     for (let i = 1; i <= pageCount; i++) {
       const li = document.createElement('li');
       li.className = 'page-item';
@@ -226,14 +174,10 @@
       a.className = 'page-link';
       a.href = '#';
       a.innerText = i;
-      a.addEventListener('click', () => {
-        showPage(i);
-      });
+      a.addEventListener('click', () => showPage(i));
       li.appendChild(a);
       pagination.appendChild(li);
     }
   }
-
-  setupPagination();
-  showPage(1); // Show first page by default
+  setupPagination(); showPage(1);
 </script>

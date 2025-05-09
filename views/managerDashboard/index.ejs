@@ -3,40 +3,79 @@
 
 <h2 class="mb-4">👥 Manager Dashboard</h2>
 
-<!-- Quick Action Buttons at Top -->
 <div class="d-flex justify-content-start gap-3 mb-4">
   <a href="/<%= orgName %>/manager-dashboard/team-okrs">🎯 Team OKRs (future)</a>
   <a href="/<%= orgName %>/manager-dashboard/team-action-items">📋 Team Action Items</a>
   <a href="/<%= orgName %>/manager-dashboard/team-diary-entries">📓 Team Diary Entries (future)</a>
 </div>
 
-<!-- Select Maximum Level to Show -->
 <form method="GET" action="/<%= orgName %>/manager-dashboard" class="mb-4">
-    <div class="d-flex align-items-center gap-2">
-        <label for="maxDepthSelect" class="form-label m-0">Show up to Level:</label>
-        <select id="maxDepthSelect" name="maxDepth" class="form-select w-auto" onchange="this.form.submit()">
-        <option value="">All Levels</option>
-        <% for (let i = 1; i <= 8; i++) { %>
-            <option value="<%= i %>" <%= maxDepth == i ? 'selected' : '' %>>Level <%= i %></option>
-        <% } %>
-        </select>
-    </div>
+  <div class="d-flex align-items-center gap-2">
+    <label for="maxDepthSelect" class="form-label m-0">Show up to Level:</label>
+    <select id="maxDepthSelect" name="maxDepth" class="form-select w-auto" onchange="this.form.submit()">
+      <option value="">All Levels</option>
+      <% for (let i = 1; i <= 8; i++) { %>
+        <option value="<%= i %>" <%= maxDepth == i ? 'selected' : '' %>>Level <%= i %></option>
+      <% } %>
+    </select>
+  </div>
 </form>
 
-<!-- Hierarchical Team View -->
 <div class="card">
-  <div class="card-header">
-    🧑‍🤝‍🧑 My Team Hierarchy
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>🧑‍🤝‍🧑 My Team Hierarchy</span>
+    <button class="btn btn-sm btn-outline-secondary" onclick="collapseAll()">📉 Collapse All</button>
   </div>
   <div class="card-body">
     <% if (teamTree.length === 0) { %>
       <p>No direct reports found.</p>
     <% } else { %>
-      <ul class="list-unstyled">
+      <ul class="tree-root list-unstyled">
         <% teamTree.forEach(function(member) { %>
-          <%- include('./_teamNode', { member: member, depth: 0 }) %> <!-- start depth at 0 -->
+          <%- include('./_teamNode', { member: member, depth: 0, maxDepth: maxDepth, currentUserId: user._id }) %>
         <% }) %>
       </ul>
     <% } %>
   </div>
 </div>
+
+<style>
+  .tree-root, .tree-root ul {
+    padding-left: 1rem;
+    position: relative;
+  }
+  .tree-root li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .tree-root li::before {
+    content: '';
+    position: absolute;
+    top: 0.75rem;
+    left: 0;
+    width: 1rem;
+    height: 1px;
+    background: #ccc;
+  }
+  .tree-root ul::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0.75rem;
+    width: 1px;
+    height: 100%;
+    background: #ccc;
+  }
+  .tree-node.collapsed > ul {
+    display: none;
+  }
+</style>
+
+<script>
+  function collapseAll() {
+    document.querySelectorAll('.tree-node').forEach(node => {
+      node.classList.add('collapsed');
+    });
+  }
+</script>

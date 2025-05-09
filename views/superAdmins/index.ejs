@@ -3,41 +3,43 @@
 
 <h2 class="mb-4">🛡️ Manage Super Admins</h2>
 
-<!-- Save Form -->
-<form id="superAdminForm" method="POST" action="/<%= orgName %>/superAdmins">
+<form id="superAdminForm" method="POST" action="/<%= orgName %>/superAdmins" class="animated-form">
   <input type="hidden" name="selectedSuperAdmins" id="selectedSuperAdmins">
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div class="w-75">
+  <!-- Search & Save -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="w-75 position-relative">
+      <label for="searchUserInput" class="form-label funky-label">➕ Add Super Admin</label>
       <input 
         type="text" 
         id="searchUserInput" 
-        class="form-control" 
-        placeholder="Type to add a Super Admin..."
+        class="form-control input-pop" 
+        placeholder="Type name or email..."
         autocomplete="off"
       >
-      <ul id="searchDropdown" class="list-group position-absolute w-50" style="z-index: 1000; display:none; max-height:200px; overflow-y:auto;"></ul>
+      <ul id="searchDropdown" class="list-group position-absolute w-100 shadow-sm mt-1" 
+          style="z-index: 1000; display:none; max-height:200px; overflow-y:auto;"></ul>
     </div>
 
-    <button type="submit" class="btn btn-success">💾 Save Changes</button>
+    <button type="submit" class="btn btn-success mt-4">💾 Save Changes</button>
   </div>
 
   <hr>
 
-  <h5>🔒 Current Super Admins</h5>
-  <ul id="superAdminList" class="list-group">
+  <!-- Current Admins List -->
+  <h5 class="mb-3">🔒 Current Super Admins</h5>
+  <ul id="superAdminList" class="list-group shadow-sm">
     <% superAdmins.forEach(admin => { %>
       <li class="list-group-item d-flex justify-content-between align-items-center">
-        <span><%= admin.name %> (<%= admin.email %>)</span>
-        <button type="button" class="btn btn-sm btn-danger remove-btn" data-id="<%= admin._id %>">Remove</button>
+        <span>👤 <strong><%= admin.name %></strong> <small class="text-muted">(<%= admin.email %>)</small></span>
+        <button type="button" class="btn btn-sm btn-outline-danger remove-btn" data-id="<%= admin._id %>">🗑 Remove</button>
       </li>
     <% }) %>
   </ul>
-
 </form>
 
 <script>
-  const allUsers = <%- JSON.stringify(allUsers) %>; // All active users
+  const allUsers = <%- JSON.stringify(allUsers) %>;
   let selectedSuperAdmins = <%- JSON.stringify(superAdmins.map(a => a._id)) %>;
 
   const input = document.getElementById('searchUserInput');
@@ -45,12 +47,10 @@
   const superAdminList = document.getElementById('superAdminList');
   const selectedField = document.getElementById('selectedSuperAdmins');
 
-  // Update hidden field before submit
-  document.getElementById('superAdminForm').addEventListener('submit', function(e) {
+  document.getElementById('superAdminForm').addEventListener('submit', function() {
     selectedField.value = JSON.stringify(selectedSuperAdmins);
   });
 
-  // Search as you type
   input.addEventListener('input', function() {
     const value = input.value.trim().toLowerCase();
     dropdown.innerHTML = '';
@@ -62,11 +62,11 @@
       );
 
       matches.forEach(user => {
-        if (selectedSuperAdmins.includes(user._id)) return; // Already added
+        if (selectedSuperAdmins.includes(user._id)) return;
 
         const item = document.createElement('li');
         item.classList.add('list-group-item', 'list-group-item-action');
-        item.innerText = `${user.name} (${user.email})`;
+        item.innerHTML = `👤 <strong>${user.name}</strong> <small class="text-muted">(${user.email})</small>`;
         item.dataset.id = user._id;
 
         item.addEventListener('click', () => {
@@ -90,28 +90,26 @@
     }
   });
 
-  // Add a Super Admin
   function addSuperAdmin(user) {
     selectedSuperAdmins.push(user._id);
 
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
     li.innerHTML = `
-      <span>${user.name} (${user.email})</span>
-      <button type="button" class="btn btn-sm btn-danger remove-btn" data-id="${user._id}">Remove</button>
+      <span>👤 <strong>${user.name}</strong> <small class="text-muted">(${user.email})</small></span>
+      <button type="button" class="btn btn-sm btn-outline-danger remove-btn" data-id="${user._id}">🗑 Remove</button>
     `;
     superAdminList.appendChild(li);
 
     attachRemoveHandlers();
   }
 
-  // Remove a Super Admin
   function attachRemoveHandlers() {
     const buttons = document.querySelectorAll('.remove-btn');
     buttons.forEach(btn => {
       btn.onclick = function() {
         if (selectedSuperAdmins.length <= 1) {
-          alert('At least one Super Admin must remain.');
+          alert('⚠️ At least one Super Admin must remain.');
           return;
         }
 
@@ -122,6 +120,5 @@
     });
   }
 
-  // Attach initially
   attachRemoveHandlers();
 </script>

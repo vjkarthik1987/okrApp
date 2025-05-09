@@ -88,7 +88,6 @@ h1, h2, h3, .btn, .badge {
   background-color: #FF6B6B;
   border: none;
   color: white;
-  border-radius: 12px;
   font-weight: bold;
   padding: 10px 20px;
   transition: transform 0.2s ease;
@@ -194,4 +193,133 @@ footer {
       margin-top: 56px; /* navbar height */
     }
   }
+  
+/* ------------------ Forms ------------------ */
+
+  .text-gradient {
+    background: linear-gradient(90deg, #FF6B6B, #6C5CE7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+  }
+  
+  .funky-label {
+    font-weight: 600;
+    color: #6C5CE7;
+  }
+  
+  .input-pop {
+    border-radius: 10px;
+    transition: box-shadow 0.2s ease;
+  }
+  .input-pop:focus {
+    box-shadow: 0 0 0 0.15rem rgba(255, 107, 107, 0.25);
+    border-color: #FF6B6B;
+  }
+  
+  .animated-form {
+    animation: float-in 0.4s ease;
+  }
+  
+  @keyframes float-in {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* ------------------ Chat Assistant ------------------ */
+
+  #chatBox {
+    background-color: #f9fafb;
+    padding: 20px;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 300px;
+    overflow-y: auto;
+  }
+  
+  .chat-message {
+    max-width: 760px;
+    padding: 6px 16px;
+    border-radius: 12px;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    word-break: break-word;
+  }
+  
+  .chat-message.user {
+    background-color: #e6f0ff;
+    color: #1e3a8a;
+    align-self: flex-end;
+    border-radius: 10px;
+    border-top-right-radius: 0;
+  }
+  
+  .chat-message.assistant {
+    background-color: #f4f4f5;
+    color: #111827;
+    align-self: flex-start;
+    border-radius: 10px;
+    border-top-left-radius: 0;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  
+  .chat-message strong {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #555;
+    font-size: 0.85rem;
+  }
+  
+  .input-group textarea {
+    border-radius: 10px;
+    resize: none;
+  }
+  
+  .input-group button {
+    border-radius: 10px;
+    padding: 0 24px;
+  }
+  
+  .temp-message {
+    opacity: 0.6;
+    font-style: italic;
+  }
+
+  .chat-message strong {
+    display: inline;
+    margin-right: 6px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.85rem;
+  }
+  
+  /*----------------------Send button for chat------------------*/
+  .btn-send {
+    background-color: lightcyan;
+    color: white;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    line-height: 1;
+  }
+  
+  .btn-send:hover {
+    background-color: #5a4cd4;
+  }
+  
+  
   

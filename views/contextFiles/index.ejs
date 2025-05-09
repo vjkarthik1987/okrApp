@@ -1,26 +1,30 @@
 <% layout('layouts/dashboard') %>
+<% title = 'Context Files' %>
 
-<h2 class="mb-4">📄 Context Files</h2>
-<a href="/<%= orgName %>/context-files/new" class="btn btn-primary mb-4">➕ Upload New Context File</a>
+<h2 class="mb-4">📄 Manage Context Files</h2>
+<a href="/<%= orgName %>/context-files/new" class="btn btn-success mb-4">➕ Upload New File</a>
 
-<div class="row row-cols-1 row-cols-md-2 g-4">
-  <% files.forEach(file => { %>
-    <div class="col">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="card-title"><%= file.title %></h5>
-          <p class="card-text text-muted"><%= file.description %></p>
-          <p class="card-text"><small class="text-muted">🕒 Uploaded on: <%= file.createdAt.toDateString() %></small></p>
-        </div>
-        
-        <div class="card-footer bg-white border-0 d-flex justify-content-end">
-            <a href="/<%= orgName %>/context-files/<%= file._id %>" class="btn btn-sm btn-outline-primary me-2">👁️ View</a>
-            <form action="/<%= orgName %>/context-files/<%= file._id %>?_method=DELETE" method="POST" class="me-2" onsubmit="return confirm('Are you sure you want to delete this context file?');">
-                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
-            </form>
+<% if (files.length === 0) { %>
+  <div class="alert alert-info">No context files uploaded yet. Get started by adding one!</div>
+<% } else { %>
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    <% files.forEach(file => { %>
+      <div class="col">
+        <div class="card h-100 shadow-sm border-0">
+          <div class="card-body">
+            <h5 class="card-title fw-bold"><%= file.title %></h5>
+            <p class="text-muted mb-2"><%= file.description %></p>
+            <p class="mb-0"><small class="text-muted">🕒 Uploaded on: <%= file.createdAt.toDateString() %></small></p>
+          </div>
+          <div class="card-footer bg-white border-top-0 d-flex justify-content-end gap-2">
+            <a href="/<%= orgName %>/context-files/<%= file._id %>" class="btn btn-sm btn-outline-primary">👁️ View</a>
             <a href="/<%= orgName %>/context-files/<%= file._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+            <form action="/<%= orgName %>/context-files/<%= file._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Are you sure you want to delete this context file?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
-  <% }) %>
-</div>
+    <% }) %>
+  </div>
+<% } %>

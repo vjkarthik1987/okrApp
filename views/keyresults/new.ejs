@@ -1,115 +1,93 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Add Key Result' %>
 
-<h2>Add Key Result to: <%= objective.title %></h2>
+<h2 class="mb-4 text-gradient">➕ Add Key Result to: <%= objective.title %></h2>
 
-<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" method="POST" id="krForm">
+<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" method="POST" id="krForm" class="animated-form">
+
   <div class="mb-3">
-    <label for="title">Key Result Title <span class="text-danger">*</span></label>
-    <input type="text" name="title" id="title" class="form-control" required placeholder="e.g., Increase NPS score to 60+">
-    <small class="text-muted">Be clear, specific, and outcome-focused.</small>
+    <label class="funky-label">Key Result Title *</label>
+    <input type="text" name="title" id="title" class="form-control input-pop" required placeholder="e.g., Increase NPS score to 60+">
   </div>
 
   <div class="mb-3">
-    <label for="metricType">Metric Type <span class="text-danger">*</span></label>
-    <select name="metricType" id="metricType" onchange="handleMetricTypeChange(this.value)" class="form-control">
+    <label class="funky-label">Metric Type *</label>
+    <select name="metricType" id="metricType" onchange="handleMetricTypeChange(this.value)" class="form-control input-pop">
       <option value="percent">Percent</option>
       <option value="number">Number</option>
       <option value="boolean">Boolean</option>
       <option value="milestone">Milestone</option>
     </select>
-    <small class="text-muted">Choose how progress is measured.</small>
   </div>
 
   <!-- Milestone Section -->
   <div id="milestonesSection" style="display: none;">
     <button type="button" onclick="generateMilestones()" class="btn btn-outline-primary">✨ Auto-Fill Milestones</button>
-
     <div id="milestoneLoader" class="mt-2" style="display: none;">
-      <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+      <div class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"></div>
       <span class="ms-2">Generating milestones...</span>
     </div>
-
     <div id="milestoneList" class="mt-3"></div>
-
     <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addMilestone()">➕ Add Milestone</button>
-    <small class="text-muted d-block mt-1">Total weightage must be exactly 100%</small>
+    <small class="text-muted d-block mt-1">Total milestone weight must be exactly 100%</small>
   </div>
 
   <div id="valueSection" class="row">
     <div class="col-md-6 mb-3">
-      <label for="startValue">Start Value</label>
-      <input type="text" name="startValue" id="startValue" class="form-control" placeholder="e.g., 40">
+      <label class="funky-label">Start Value</label>
+      <input type="text" name="startValue" id="startValue" class="form-control input-pop">
     </div>
-
     <div class="col-md-6 mb-3">
-      <label for="targetValue">Target Value</label>
-      <input type="text" name="targetValue" id="targetValue" class="form-control" placeholder="e.g., 60">
+      <label class="funky-label">Target Value</label>
+      <input type="text" name="targetValue" id="targetValue" class="form-control input-pop">
     </div>
   </div>
 
   <div class="mb-3">
-    <label for="dueDate">Due Date (for completing this Key Result)</label>
-    <input type="date" name="dueDate" id="dueDate" class="form-control">
-    <small class="text-muted">This is the target date for overall KR completion.</small>
+    <label class="funky-label">Due Date</label>
+    <input type="date" name="dueDate" id="dueDate" class="form-control input-pop">
   </div>
 
   <div class="mb-3">
-    <label for="assignedTeams">Assigned Teams</label>
-    <select name="assignedTeams" id="assignedTeams" multiple class="form-control">
+    <label class="funky-label">Assigned Teams</label>
+    <select name="assignedTeams" id="assignedTeams" multiple class="form-control" style="display:none;">
       <% teams.forEach(team => { %>
         <option value="<%= team._id %>"><%= team.name %></option>
       <% }) %>
     </select>
-    <small class="text-muted">Teams responsible for execution of this KR</small>
   </div>
 
   <div class="mb-3">
-    <label for="assignedTo">Assigned Users</label>
-    <select name="assignedTo" id="assignedTo" multiple class="form-control">
+    <label class="funky-label">Assigned Users</label>
+    <select name="assignedTo" id="assignedTo" multiple class="form-control" style="display:none;">
       <% users.forEach(user => { %>
         <option value="<%= user._id %>"><%= user.name %> (<%= user.email %>)</option>
       <% }) %>
     </select>
-    <small class="text-muted">Users individually responsible for this KR</small>
   </div>
 
   <div class="mb-3">
-    <label for="direction">Progress Direction</label>
-    <select name="direction" id="direction" class="form-control">
-      <option value="auto" selected>Auto (based on start & target)</option>
+    <label class="funky-label">Progress Direction</label>
+    <select name="direction" class="form-control input-pop">
+      <option value="auto" selected>Auto (based on values)</option>
       <option value="increase">Increase is good</option>
       <option value="decrease">Decrease is good</option>
     </select>
-    <small class="text-muted">Auto will assume direction based on values.</small>
   </div>
 
   <input type="hidden" name="objectiveId" value="<%= objective._id %>">
 
   <button type="submit" class="btn btn-success mt-3">✅ Save Key Result</button>
+  <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary mt-2">⬅ Back</a>
 </form>
 
-<a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary mt-2">⬅ Back to Key Results</a>
-
+<!-- Scripts -->
 <script>
   let milestoneCount = 0;
 
   function handleMetricTypeChange(value) {
-    const section = document.getElementById('milestonesSection');
-    const valueSection = document.getElementById('valueSection');
-
-    if (value === 'milestone') {
-      section.style.display = 'block';
-      valueSection.style.display = 'none';
-      if (milestoneCount === 0) {
-        for (let i = 0; i < 5; i++) {
-          addMilestone();
-        }
-      }
-    } else {
-      section.style.display = 'none';
-      valueSection.style.display = 'flex';
-    }
+    document.getElementById('milestonesSection').style.display = value === 'milestone' ? 'block' : 'none';
+    document.getElementById('valueSection').style.display = value === 'milestone' ? 'none' : 'flex';
   }
 
   function addMilestone(label = '', weight = 20, date = '') {
@@ -117,22 +95,20 @@
     const row = document.createElement('div');
     row.className = 'row align-items-center mb-2';
     row.id = `milestone-row-${milestoneCount}`;
-
     row.innerHTML = `
       <div class="col-md-5">
-        <input type="text" name="milestones[${milestoneCount}][label]" class="form-control" placeholder="Milestone ${milestoneCount + 1}" value="${label}">
+        <input type="text" name="milestones[${milestoneCount}][label]" class="form-control input-pop" value="${label}">
       </div>
       <div class="col-md-2">
-        <input type="number" name="milestones[${milestoneCount}][weight]" class="form-control weight-input" placeholder="%" value="${weight}" min="0" max="100" onchange="validateMilestoneWeights()">
+        <input type="number" name="milestones[${milestoneCount}][weight]" class="form-control weight-input input-pop" value="${weight}" onchange="validateMilestoneWeights()">
       </div>
       <div class="col-md-3">
-        <input type="date" name="milestones[${milestoneCount}][dueDate]" class="form-control" value="${date}">
+        <input type="date" name="milestones[${milestoneCount}][dueDate]" class="form-control input-pop" value="${date}">
       </div>
       <div class="col-md-2">
-        <button type="button" class="btn btn-danger btn-sm" onclick="removeMilestone(${milestoneCount})">🗑️</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMilestone(${milestoneCount})">🗑️</button>
       </div>
     `;
-
     container.appendChild(row);
     milestoneCount++;
     validateMilestoneWeights();
@@ -140,57 +116,97 @@
 
   function removeMilestone(index) {
     const row = document.getElementById(`milestone-row-${index}`);
-    if (row) {
-      row.remove();
-      validateMilestoneWeights();
-    }
+    if (row) row.remove();
+    validateMilestoneWeights();
   }
 
   function validateMilestoneWeights() {
-    const weightInputs = document.querySelectorAll('.weight-input');
-    let total = 0;
-
-    weightInputs.forEach(input => {
-      total += parseFloat(input.value) || 0;
-    });
-
-    if (total !== 100) {
-      document.getElementById('milestoneList').classList.add('border', 'border-danger');
-    } else {
-      document.getElementById('milestoneList').classList.remove('border', 'border-danger');
-    }
+    const weights = document.querySelectorAll('.weight-input');
+    const total = [...weights].reduce((sum, w) => sum + (parseFloat(w.value) || 0), 0);
+    document.getElementById('milestoneList').classList.toggle('border-danger', total !== 100);
   }
 
   async function generateMilestones() {
     const krTitle = document.getElementById('title').value;
     const loader = document.getElementById('milestoneLoader');
     const container = document.getElementById('milestoneList');
-
     loader.style.display = 'inline-flex';
     container.innerHTML = '';
     milestoneCount = 0;
 
     try {
-      const response = await fetch(`${window.location.pathname}/generate-milestones`, {
+      const res = await fetch(`${window.location.pathname}/generate-milestones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ krTitle })
       });
-
-      const data = await response.json();
+      const data = await res.json();
       loader.style.display = 'none';
-
       if (data.milestones && Array.isArray(data.milestones)) {
-        data.milestones.forEach(milestone => {
-          addMilestone(milestone, 20, '');
-        });
+        data.milestones.forEach(label => addMilestone(label, 20));
       } else {
-        container.innerHTML = '<p class="text-danger">⚠️ Could not generate milestones. Try again.</p>';
+        container.innerHTML = '<p class="text-danger">⚠️ Failed to generate milestones.</p>';
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       loader.style.display = 'none';
-      container.innerHTML = '<p class="text-danger">⚠️ Error contacting AI service. Please try again.</p>';
+      container.innerHTML = '<p class="text-danger">⚠️ Error contacting AI service.</p>';
     }
   }
+
+  function enhanceMultiSelect(selectId) {
+    const select = document.getElementById(selectId);
+    const wrapper = document.createElement('div');
+    const input = document.createElement('input');
+    const list = document.createElement('ul');
+
+    wrapper.className = 'multi-select-wrapper mb-2';
+    input.className = 'form-control mb-1';
+    input.placeholder = 'Type and press Enter...';
+    list.className = 'selected-list';
+
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(input);
+    wrapper.appendChild(list);
+    select.style.display = 'none';
+
+    const selected = new Set([...select.selectedOptions].map(opt => opt.value));
+    function renderChips() {
+      list.innerHTML = '';
+      [...select.options].forEach(opt => {
+        if (selected.has(opt.value)) {
+          const chip = document.createElement('li');
+          chip.className = 'selected-chip';
+          chip.textContent = opt.text;
+          chip.onclick = () => {
+            selected.delete(opt.value);
+            opt.selected = false;
+            renderChips();
+          };
+          list.appendChild(chip);
+        }
+      });
+    }
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const term = input.value.toLowerCase().trim();
+        const match = [...select.options].find(o => o.text.toLowerCase().includes(term) && !selected.has(o.value));
+        if (match) {
+          selected.add(match.value);
+          match.selected = true;
+          input.value = '';
+          renderChips();
+        }
+      }
+    });
+
+    renderChips();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    enhanceMultiSelect('assignedTeams');
+    enhanceMultiSelect('assignedTo');
+  });
 </script>

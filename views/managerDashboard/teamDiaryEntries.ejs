@@ -1,85 +1,70 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Team Diary Entries' %>
 
-<h2 class="mb-4">📓 Team Diary Entries</h2>
+<h2 class="mb-4 text-gradient">📓 Team Diary Entries</h2>
 
 <!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mb-4">
-  <ol class="breadcrumb">
+  <ol class="breadcrumb bg-light px-3 py-2 rounded">
     <li class="breadcrumb-item"><a href="/<%= orgName %>/manager-dashboard">Manager Dashboard</a></li>
     <li class="breadcrumb-item active" aria-current="page">Team Diary Entries</li>
   </ol>
 </nav>
 
 <div class="row">
-  <!-- Left Section (Compliance + Table) -->
-  <div class="col-md-8" style="max-height: 80vh; overflow-y: auto; padding-right: 20px;">
+  <!-- Left Column -->
+  <div class="col-md-8" style="max-height: 80vh; overflow-y: auto;">
     
     <!-- Compliance Summary -->
-    <div class="mb-5">
-      <h4>📈 Team Diary Compliance</h4>
-      <div class="row">
-        <% complianceData.forEach(data => { %>
-          <div class="col-md-3 mb-3">
-            <div class="card shadow-sm h-100">
-              <div class="card-body text-center d-flex flex-column justify-content-center">
-                <h6 class="card-title"><%= data.weekLabel %></h6>
-                <h2><%= data.compliancePercent %>%</h2>
-                <% if (data.compliancePercent >= 80) { %>
-                  <span class="badge bg-success">✅ Excellent</span>
-                <% } else if (data.compliancePercent >= 50) { %>
-                  <span class="badge bg-warning text-dark">⚠️ Needs Improvement</span>
-                <% } else { %>
-                  <span class="badge bg-danger">❌ Poor</span>
-                <% } %>
-                <div class="progress mt-3" style="height: 8px;">
-                  <div class="progress-bar 
-                    <%= data.compliancePercent >= 80 ? 'bg-success' : data.compliancePercent >= 50 ? 'bg-warning' : 'bg-danger' %>" 
-                    role="progressbar"
-                    style="width: <%= data.compliancePercent %>%;">
-                  </div>
+    <h4 class="mb-3 funky-label">📈 Diary Compliance Overview</h4>
+    <div class="row mb-4">
+      <% complianceData.forEach(data => { %>
+        <div class="col-md-3 mb-3">
+          <div class="card text-center shadow-sm">
+            <div class="card-body">
+              <h6 class="text-muted"><%= data.weekLabel %></h6>
+              <h2 class="text-gradient"><%= data.compliancePercent %>%</h2>
+              <span class="badge 
+                <%= data.compliancePercent >= 80 ? 'bg-success' : data.compliancePercent >= 50 ? 'bg-warning text-dark' : 'bg-danger' %>">
+                <%= data.compliancePercent >= 80 ? '✅ Excellent' : data.compliancePercent >= 50 ? '⚠️ Needs Improvement' : '❌ Poor' %>
+              </span>
+              <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar 
+                  <%= data.compliancePercent >= 80 ? 'bg-success' : data.compliancePercent >= 50 ? 'bg-warning' : 'bg-danger' %>" 
+                  style="width: <%= data.compliancePercent %>%;">
                 </div>
               </div>
             </div>
           </div>
-        <% }) %>
-      </div>
+        </div>
+      <% }) %>
     </div>
 
     <!-- Week Selector -->
-    <form method="GET" action="/<%= orgName %>/manager-dashboard/team-diary-entries" class="mb-4">
-      <div class="d-flex align-items-center gap-2">
-        <label for="weekCycleId" class="form-label m-0">Select Week:</label>
-        <select id="weekCycleId" name="weekCycleId" class="form-select w-auto" onchange="this.form.submit()" required>
-          <option value="">--Select Week--</option>
-          <% weeks.forEach(week => { %>
-            <option value="<%= week._id %>" <%= selectedWeekCycleId == week._id.toString() ? 'selected' : '' %>><%= week.label %></option>
-          <% }) %>
-        </select>
-      </div>
+    <form method="GET" action="/<%= orgName %>/manager-dashboard/team-diary-entries" class="mb-3 d-flex align-items-center gap-2">
+      <label for="weekCycleId" class="form-label mb-0">Select Week:</label>
+      <select id="weekCycleId" name="weekCycleId" class="form-select w-auto input-pop" onchange="this.form.submit()">
+        <option value="">--Select Week--</option>
+        <% weeks.forEach(week => { %>
+          <option value="<%= week._id %>" <%= selectedWeekCycleId == week._id.toString() ? 'selected' : '' %>><%= week.label %></option>
+        <% }) %>
+      </select>
     </form>
 
-    <!-- Download Button -->
+    <!-- CSV Export -->
     <% if (selectedWeekCycleId) { %>
-      <div class="mb-4">
-        <a href="/<%= orgName %>/manager-dashboard/team-diary-entries/download-csv?weekCycleId=<%= selectedWeekCycleId %>" 
-           class="btn btn-outline-success">
-          📥 Download Entries as CSV
-        </a>
-      </div>
+      <a href="/<%= orgName %>/manager-dashboard/team-diary-entries/download-csv?weekCycleId=<%= selectedWeekCycleId %>" class="btn btn-outline-success mb-3">
+        📥 Download CSV
+      </a>
     <% } %>
 
-    <!-- Team Diary Entries Table with Filter -->
+    <!-- Filter and Table -->
     <% if (!selectedWeekCycleId) { %>
-      <div class="alert alert-info">
-        🎯 Select a week above to view your team's diary achievements!
-      </div>
+      <div class="alert alert-info mt-4">🎯 Select a week above to view your team's diary entries.</div>
     <% } else { %>
-      
-      <!-- Filter -->
       <div class="d-flex align-items-center mb-3">
         <label for="statusFilter" class="form-label me-2">Filter:</label>
-        <select id="statusFilter" class="form-select w-auto" onchange="filterEntries()">
+        <select id="statusFilter" class="form-select w-auto input-pop" onchange="filterEntries()">
           <option value="all">Show All</option>
           <option value="submitted">Only Submitted</option>
           <option value="notsubmitted">Only Not Submitted</option>
@@ -87,7 +72,7 @@
       </div>
 
       <div class="table-responsive">
-        <table id="diaryTable" class="table table-bordered table-striped align-middle">
+        <table id="diaryTable" class="table table-bordered table-striped align-middle shadow-sm">
           <thead class="table-dark sticky-top">
             <tr>
               <th>Employee</th>
@@ -96,87 +81,78 @@
             </tr>
           </thead>
           <tbody>
-            <% if (teamUserIds.length === 0) { %>
-              <tr><td colspan="3" class="text-center">No team members found.</td></tr>
-            <% } else { %>
-              <% teamUserIds.forEach(userId => {
-                const entry = diaryEntries.find(e => e.user._id.toString() === userId);
-                const name = entry ? entry.user.name : (userMap[userId]?.name || 'Unknown');
-                const email = entry ? entry.user.email : (userMap[userId]?.email || 'Unknown');
-                const content = entry ? entry.content : '';
-                const submittedClass = entry ? 'submitted' : 'notsubmitted';
-              %>
-                <tr class="entry-row <%= submittedClass %>">
-                  <td>
-                    👤 <strong><%= name %></strong><br>
-                    <small class="text-muted"><%= email %></small>
-                  </td>
-                  <td class="text-center">
-                    <% if (entry) { %>
-                      <span class="badge bg-success">✅ Submitted</span>
-                    <% } else { %>
-                      <span class="badge bg-danger">❌ Not Submitted</span>
-                    <% } %>
-                  </td>
-                  <td>
-                    <% if (entry) { %>
-                      <details>
-                        <summary class="text-primary">View Entry</summary>
-                        <div style="white-space: pre-line;" class="mt-2"><%= content %></div>
-                      </details>
-                    <% } else { %>
-                      <span class="text-muted">—</span>
-                    <% } %>
-                  </td>
-                </tr>
-              <% }) %>
-            <% } %>
+            <% teamUserIds.forEach(userId => {
+              const entry = diaryEntries.find(e => e.user._id.toString() === userId);
+              const name = entry ? entry.user.name : (userMap[userId]?.name || 'Unknown');
+              const email = entry ? entry.user.email : (userMap[userId]?.email || 'Unknown');
+              const content = entry ? entry.content : '';
+              const submittedClass = entry ? 'submitted' : 'notsubmitted';
+            %>
+              <tr class="entry-row <%= submittedClass %>">
+                <td>
+                  👤 <strong><%= name %></strong><br>
+                  <small class="text-muted"><%= email %></small>
+                </td>
+                <td class="text-center">
+                  <span class="badge 
+                    <%= entry ? 'bg-success' : 'bg-danger' %>">
+                    <%= entry ? '✅ Submitted' : '❌ Not Submitted' %>
+                  </span>
+                </td>
+                <td>
+                  <% if (entry) { %>
+                    <details>
+                      <summary class="text-primary">View Entry</summary>
+                      <div style="white-space: pre-line;" class="mt-2"><%= content %></div>
+                    </details>
+                  <% } else { %>
+                    <span class="text-muted">—</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
           </tbody>
         </table>
       </div>
     <% } %>
-
   </div>
 
-  <!-- Right Section (WhatsApp-Style Feed) -->
+  <!-- Right Column: WhatsApp-style Diary Feed -->
   <div class="col-md-4" style="max-height: 80vh; overflow-y: auto; border-left: 1px solid #dee2e6;">
-    <h4 class="mb-3">💬 Diary Updates (Last 4 Weeks)</h4>
+    <h4 class="mb-3 funky-label">💬 Recent Diary Updates</h4>
 
-    <% if (recentDiaryEntries.length > 0) { %>
+    <% if (recentDiaryEntries.length === 0) { %>
+      <p class="text-muted">No diary submissions in the last 4 weeks.</p>
+    <% } else { %>
       <% recentDiaryEntries.forEach(entry => { %>
-        <div class="mb-3 p-2 rounded bg-light shadow-sm">
-          <small class="text-muted"><%= new Date(entry.createdAt).toLocaleDateString() %> | <%= new Date(entry.createdAt).toLocaleTimeString() %></small>
-          <div class="fw-bold mt-1"><%= entry.user.name %></div>
+        <div class="chat-message assistant mb-3">
+          <strong><%= entry.user.name %>:</strong><br>
+          <small class="text-muted"><%= new Date(entry.createdAt).toLocaleString() %></small><br>
           <div class="mt-1">
             <% if (entry.content.length <= 150) { %>
               <%= entry.content %>
             <% } else { %>
               <%= entry.content.substring(0, 150) %>...
-              <details>
-                <summary class="text-primary">Read Full</summary>
+              <details class="mt-1">
+                <summary class="text-primary">Read More</summary>
                 <div style="white-space: pre-line;"><%= entry.content %></div>
               </details>
             <% } %>
           </div>
         </div>
       <% }) %>
-    <% } else { %>
-      <p class="text-muted">No diary submissions in the last 4 weeks.</p>
     <% } %>
   </div>
 </div>
 
-<!-- JavaScript for Filtering -->
+<!-- JavaScript Filter -->
 <script>
 function filterEntries() {
-  const filterValue = document.getElementById('statusFilter').value;
+  const filter = document.getElementById('statusFilter').value;
   const rows = document.querySelectorAll('.entry-row');
 
   rows.forEach(row => {
-    row.style.display = 
-      (filterValue === 'all' || row.classList.contains(filterValue))
-      ? ''
-      : 'none';
+    row.style.display = (filter === 'all' || row.classList.contains(filter)) ? '' : 'none';
   });
 }
 </script>

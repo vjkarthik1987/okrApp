@@ -1,18 +1,18 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Create Team' %>
 
-<h2>Create New Team</h2>
+<h2 class="mb-4">➕ Create New Team</h2>
 
 <form action="/<%= orgName %>/teams" method="POST">
   <div class="mb-3">
-    <label>Team Name:</label>
-    <input type="text" name="name" class="form-control" required>
+    <label for="name" class="form-label funky-label">🏷️ Team Name</label>
+    <input type="text" name="name" id="name" class="form-control input-pop" required placeholder="e.g., Product Engineering">
   </div>
 
   <div class="mb-3">
-    <label>Parent Team (optional):</label>
-    <select name="parentTeam" class="form-select">
-      <option value="">Parent Team (Optional)</option>
+    <label for="parentTeam" class="form-label funky-label">🧩 Parent Team (optional)</label>
+    <select name="parentTeam" id="parentTeam" class="form-select input-pop">
+      <option value="">None</option>
       <% allTeams.forEach(t => { %>
         <option value="<%= t._id %>" <%= preselectedParentTeamId && t._id.toString() === preselectedParentTeamId ? 'selected' : '' %>>
           <%= t.name %>
@@ -22,8 +22,8 @@
   </div>
 
   <div class="mb-3">
-    <label>Function Head:</label>
-    <select name="functionHead" class="form-control">
+    <label for="functionHead" class="form-label funky-label">👤 Function Head</label>
+    <select name="functionHead" id="functionHead" class="form-select input-pop">
       <option value="">Select</option>
       <% users.forEach(u => { %>
         <option value="<%= u._id %>"><%= u.name %> (<%= u.email %>)</option>
@@ -32,14 +32,15 @@
   </div>
 
   <div class="mb-3">
-    <label>OKR Editors (multi-select):</label>
-    <select name="okrEditors" class="form-control" multiple>
+    <label for="okrEditors" class="form-label funky-label">✍️ OKR Editors</label>
+    <select name="okrEditors" id="okrEditors" class="form-select input-pop" multiple>
       <% users.forEach(u => { %>
         <option value="<%= u._id %>"><%= u.name %> (<%= u.email %>)</option>
       <% }) %>
     </select>
-    <small class="form-text text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
+    <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple users.</small>
   </div>
 
-  <button class="btn btn-success">Create Team</button>
+  <button type="submit" class="btn btn-success mt-3">✅ Create Team</button>
+  <a href="/<%= orgName %>/teams" class="btn btn-outline-secondary mt-3 ms-2">⬅ Back</a>
 </form>

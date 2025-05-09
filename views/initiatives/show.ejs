@@ -1,32 +1,49 @@
 <% layout('layouts/dashboard') %>
 <% title = initiative.title %>
 
-<h2>🚀 <%= initiative.title %></h2>
+<h2 class="mb-4">🚀 <%= initiative.title %></h2>
 
-<p><strong>Description:</strong> <%= initiative.description || '—' %></p>
-<p><strong>Expected Outcome:</strong> <%= initiative.expectedOutcome %></p>
-<p><strong>Outcome Achieved:</strong> <%= initiative.outcomeAchieved || '—' %></p>
-<p><strong>Status:</strong> <span class="badge bg-dark"><%= initiative.status %></span></p>
-<p><strong>Key Result:</strong> <%= initiative.keyResultId?.title || '—' %></p>
+<div class="mb-4">
+  <p><strong>Description:</strong><br> <%= initiative.description || '—' %></p>
+  <p><strong>🎯 Expected Outcome:</strong><br> <%= initiative.expectedOutcome %></p>
+  <p><strong>✅ Outcome Achieved:</strong><br> <%= initiative.outcomeAchieved || '—' %></p>
+  <p><strong>Status:</strong>
+    <% const statusClass = {
+         'Initiated': 'info',
+         'Closed': 'success',
+         'Deferred/On Hold': 'warning',
+         'Blocked': 'danger',
+         'Dropped': 'secondary'
+       }[initiative.status] || 'dark'; %>
+    <span class="badge bg-<%= statusClass %>"><%= initiative.status %></span>
+  </p>
+  <p><strong>🔗 Key Result:</strong> <%= initiative.keyResultId?.title || '—' %></p>
+</div>
 
 <hr>
 
-<h5>🧩 Linked Action Items</h5>
-<a href="/<%= orgName %>/actionItems/new?initiativeId=<%= initiative._id %>" class="btn btn-primary mt-3 mb-3">
-  ➕ Add Action Item to This Initiative
+<h5 class="mb-3">🧩 Linked Action Items</h5>
+
+<a href="/<%= orgName %>/actionItems/new?initiativeId=<%= initiative._id %>" class="btn btn-primary mb-3">
+  ➕ Add Action Item
 </a>
+
 <% if (actionItems.length > 0) { %>
   <ul class="list-group">
     <% actionItems.forEach(ai => { %>
-      <li class="list-group-item d-flex justify-content-between">
-        <span><%= ai.title %></span>
-        <span class="text-muted"><%= ai.status || 'Not Started' %></span>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong><%= ai.title %></strong>
+        </div>
+        <span class="badge bg-secondary"><%= ai.status || 'Not Started' %></span>
       </li>
     <% }) %>
   </ul>
 <% } else { %>
-  <p class="text-muted">No action items linked to this initiative yet.</p>
+  <div class="text-muted">No action items linked to this initiative yet.</div>
 <% } %>
 
-<a href="/<%= orgName %>/initiatives/<%= initiative._id %>/edit" class="btn btn-outline-primary mt-3">✏️ Edit</a>
-<a href="/<%= orgName %>/initiatives" class="btn btn-outline-secondary mt-3">⬅ Back</a>
+<div class="mt-4">
+  <a href="/<%= orgName %>/initiatives/<%= initiative._id %>/edit" class="btn btn-outline-primary me-2">✏️ Edit</a>
+  <a href="/<%= orgName %>/initiatives" class="btn btn-outline-secondary">⬅ Back</a>
+</div>

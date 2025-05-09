@@ -4,33 +4,36 @@
 <h2 class="mb-4">📝 New Diary Entry</h2>
 
 <form action="/<%= orgName %>/diary" method="POST">
+  <!-- Week Selection -->
   <div class="mb-3">
-    <label for="weekCycleSelect" class="form-label">Select Week</label>
-    <select name="weekCycleId" id="weekCycleSelect" class="form-control" required onchange="updateEntryCount()">
+    <label for="weekCycleSelect" class="form-label fw-semibold">📅 Select Week</label>
+    <select name="weekCycleId" id="weekCycleSelect" class="form-select" required onchange="updateEntryCount()">
       <% weeks.forEach(week => { %>
         <option value="<%= week._id %>"><%= week.label %></option>
       <% }) %>
     </select>
+    <div id="entryCountMessage" class="form-text mt-1 text-muted"></div>
   </div>
 
-  <div id="entryCountMessage" class="text-muted mb-3"></div>
-
+  <!-- Diary Content -->
   <div class="mb-3">
-    <label for="content" class="form-label">What did you work on?</label>
-    <textarea name="content" id="content" class="form-control" rows="6" required></textarea>
+    <label for="content" class="form-label fw-semibold">🧾 What did you work on this week?</label>
+    <textarea name="content" id="content" class="form-control" rows="6" placeholder="Summarize your week’s work..." required></textarea>
   </div>
 
+  <!-- Submit -->
   <button type="submit" class="btn btn-success">💾 Save Entry</button>
 </form>
 
+<!-- JavaScript -->
 <script>
   const diaryCounts = <%- JSON.stringify(diaryCounts) %>;
 
   function updateEntryCount() {
     const selectedWeekId = document.getElementById('weekCycleSelect').value;
     const count = diaryCounts[selectedWeekId] || 0;
-
     const messageDiv = document.getElementById('entryCountMessage');
+
     if (count === 0) {
       messageDiv.innerText = "No entries yet for this week.";
     } else if (count === 1) {

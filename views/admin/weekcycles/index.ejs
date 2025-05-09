@@ -1,28 +1,38 @@
 <% title = 'Generate WeekCycles' %>
 <% layout('layouts/dashboard') %>
-<h2>All WeekCycles</h2>
 
-<a href="/<%= orgName %>/admin/weekcycles/generate" class="btn btn-success mb-3">➕ Generate New WeekCycles</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0 text-gradient">📆 All WeekCycles</h2>
+  <a href="/<%= orgName %>/admin/weekcycles/generate" class="btn btn-primary">➕ Generate New WeekCycles</a>
+</div>
 
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>Cycle</th>
-      <th>Label</th>
-      <th>Start</th>
-      <th>End</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% cycles.forEach(w => { %>
+<% if (cycles.length === 0) { %>
+  <div class="alert alert-warning">🚫 No WeekCycles found yet.</div>
+<% } else { %>
+  <table class="table table-bordered table-hover shadow-sm align-middle">
+    <thead class="table-light">
       <tr>
-        <td><%= w.cycle.name %></td>
-        <td><%= w.label %></td>
-        <td><%= w.weekStart.toDateString() %></td>
-        <td><%= w.weekEnd.toDateString() %></td>
-        <td><%= w.isActive ? "✅" : "⛔" %></td>
+        <th>📘 Cycle</th>
+        <th>🏷️ Label</th>
+        <th>📅 Start</th>
+        <th>📅 End</th>
+        <th>📍 Status</th>
       </tr>
-    <% }) %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% cycles.forEach(w => { %>
+        <tr>
+          <td><%= w.cycle.label %></td>
+          <td><span class="fw-bold"><%= w.label %></span></td>
+          <td><%= w.weekStart.toDateString() %></td>
+          <td><%= w.weekEnd.toDateString() %></td>
+          <td>
+            <span class="badge <%= w.isActive ? 'bg-success' : 'bg-secondary' %>">
+              <%= w.isActive ? '✅ Active' : '⛔ Inactive' %>
+            </span>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>

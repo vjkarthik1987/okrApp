@@ -1,7 +1,7 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Ask Assistant' %>
 
-<h2 class="mb-4">🤖 Assistant</h2>
+<h2 class="mb-4">🤖 JaanGo</h2>
 <% if (user && user.isSuperAdmin) { %>
   <div class="mb-3">
     <a href="/<%= orgName %>/assistant/logs" class="btn btn-outline-primary">📜 View Assistant Logs</a>
@@ -16,7 +16,9 @@
 
     <div class="input-group">
       <textarea id="userQuery" class="form-control" rows="2" placeholder="Ask something..." required></textarea>
-      <button class="btn btn-primary" onclick="submitQuery()">Send</button>
+      <button class="btn btn-send" onclick="submitQuery()" title="Send">
+        ✈️
+      </button>
     </div>
   </div>
 </div>
@@ -43,7 +45,7 @@
 
     appendMessage('You', userInput);
     document.getElementById('userQuery').value = '';
-    appendMessage('Assistant', 'Thinking...', true);
+    appendMessage('JaanGo', 'Thinking...', true);
 
     try {
       const assistantResponse = await askAssistant(userInput);
@@ -56,21 +58,27 @@
   function appendMessage(sender, message, isTemp = false) {
     const chatBox = document.getElementById('chatBox');
     const msgDiv = document.createElement('div');
-    msgDiv.className = 'mb-2';
-    msgDiv.innerHTML = `<strong>${sender}:</strong> <span>${message}</span>`;
+    msgDiv.className = 'chat-message d-inline-block';
+
+    if (sender === 'You') msgDiv.classList.add('user');
+    else msgDiv.classList.add('assistant');
+
+    msgDiv.innerHTML = `<strong><b>${sender}:</strong> </b><div>${message}</div>`;
     if (isTemp) msgDiv.classList.add('temp-message');
+
     chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
   function updateLastMessage(newText) {
     const chatBox = document.getElementById('chatBox');
-    const tempMessage = chatBox.querySelector('.temp-message span');
+    const tempMessage = chatBox.querySelector('.temp-message div');
     if (tempMessage) {
       tempMessage.textContent = newText;
       tempMessage.parentElement.classList.remove('temp-message');
     }
   }
+
 
   document.getElementById('userQuery').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {

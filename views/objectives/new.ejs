@@ -1,22 +1,23 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Add Objective' %>
 
-<h2>&#x1F3AF; Add Objective</h2>
+<h2 class="mb-4">🎯 Add New Objective</h2>
 
-<form action="/<%= orgName %>/objectives" method="POST">
+<form action="/<%= orgName %>/objectives" method="POST" class="animated-form">
+
   <div class="mb-3">
-    <label for="title">Objective Title <span class="text-danger">*</span></label>
-    <input type="text" name="title" id="title" class="form-control" required placeholder="e.g., Improve customer satisfaction">
+    <label for="title" class="form-label funky-label">🏷️ Objective Title <span class="text-danger">*</span></label>
+    <input type="text" name="title" id="title" class="form-control input-pop" required placeholder="e.g., Improve customer satisfaction">
   </div>
 
   <div class="mb-3">
-    <label for="description">Description</label>
-    <textarea name="description" id="description" class="form-control" rows="3" placeholder="Brief description of this objective"></textarea>
+    <label for="description" class="form-label funky-label">📝 Description</label>
+    <textarea name="description" id="description" class="form-control input-pop" rows="3" placeholder="Brief description of this objective"></textarea>
   </div>
 
   <div class="mb-3">
-    <label for="cycle">OKR Cycle(s) <span class="text-danger">*</span></label>
-    <select name="cycle" id="cycle" class="form-control" required multiple>
+    <label for="cycle" class="form-label funky-label">📆 OKR Cycle(s) <span class="text-danger">*</span></label>
+    <select name="cycle" id="cycle" class="form-select input-pop" multiple required>
       <% enabledCycles.forEach(cycle => { %>
         <option value="<%= cycle.label %>"><%= cycle.label %></option>
       <% }) %>
@@ -25,8 +26,8 @@
   </div>
 
   <div class="mb-3">
-    <label for="teamId">Team <span class="text-danger">*</span></label>
-    <select name="teamId" id="teamId" class="form-control" required>
+    <label for="teamId" class="form-label funky-label">👥 Owning Team <span class="text-danger">*</span></label>
+    <select name="teamId" id="teamId" class="form-select input-pop" required>
       <% teams.forEach(team => { %>
         <option value="<%= team._id %>"><%= team.name %></option>
       <% }) %>
@@ -34,27 +35,27 @@
   </div>
 
   <div class="mb-3">
-    <label for="assignedTeams">Assigned Teams (Optional)</label>
-    <select name="assignedTeams" id="assignedTeams" class="form-control" multiple>
+    <label for="assignedTeams" class="form-label funky-label">🤝 Assigned Teams</label>
+    <select name="assignedTeams" id="assignedTeams" class="form-select input-pop" multiple>
       <% teams.forEach(team => { %>
         <option value="<%= team._id %>"><%= team.name %></option>
       <% }) %>
     </select>
     <small class="text-muted">Hold Ctrl (Windows) / Command (Mac) to select multiple teams.<br>
-      If none selected, the creating team will be assigned by default.</small>
+    If left blank, the creating team is automatically assigned.</small>
   </div>
 
   <div class="mb-3">
-    <label for="parentObjective">Parent Objective (Optional)</label>
-    <select name="parentObjective" id="parentObjective" class="form-control">
-      <option value="">-- None --</option>
+    <label for="parentObjective" class="form-label funky-label">📌 Parent Objective</label>
+    <select name="parentObjective" id="parentObjective" class="form-select input-pop">
+      <option value="">— None —</option>
       <% parentObjectives.forEach(obj => { %>
         <option value="<%= obj._id %>"><%= obj.title %></option>
       <% }) %>
     </select>
   </div>
 
-  <button type="submit" class="btn btn-success mt-3">✅ Save Objective</button>
+  <button type="submit" class="btn btn-success mt-3">🚀 Create Objective</button>
 </form>
 
-<a href="/<%= orgName %>/objectives" class="btn btn-outline-secondary mt-2">⬅ Back to Objectives</a>
+<a href="/<%= orgName %>/objectives" class="btn btn-outline-secondary mt-3">⬅ Back to Objectives</a>

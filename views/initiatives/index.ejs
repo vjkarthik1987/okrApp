@@ -1,35 +1,46 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Initiatives' %>
 
-<h2>📌 All Initiatives</h2>
-<a href="/<%= orgName %>/initiatives/new" class="btn btn-primary mb-3">➕ Create New Initiative</a>
+<h2 class="mb-4">📌 All Initiatives</h2>
+<a href="/<%= orgName %>/initiatives/new" class="btn btn-success mb-3">➕ Create New Initiative</a>
 
 <% if (initiatives.length === 0) { %>
   <div class="alert alert-warning">No initiatives created yet.</div>
 <% } else { %>
-  <table class="table table-bordered table-hover">
-    <thead class="table-light">
-      <tr>
-        <th>Title</th>
-        <th>Expected Outcome</th>
-        <th>Status</th>
-        <th>KR</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% initiatives.forEach(i => { %>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
         <tr>
-          <td><%= i.title %></td>
-          <td><%= i.expectedOutcome %></td>
-          <td><span class="badge bg-secondary"><%= i.status %></span></td>
-          <td><%= i.keyResultId?.title || '—' %></td>
-          <td>
-            <a href="/<%= orgName %>/initiatives/<%= i._id %>" class="btn btn-sm btn-outline-primary">View</a>
-            <a href="/<%= orgName %>/initiatives/<%= i._id %>/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
-          </td>
+          <th>Title</th>
+          <th>Expected Outcome</th>
+          <th>Status</th>
+          <th>Key Result</th>
+          <th style="width: 160px;">Actions</th>
         </tr>
-      <% }) %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% initiatives.forEach(i => { %>
+          <tr>
+            <td><strong><%= i.title %></strong></td>
+            <td class="text-muted" style="max-width: 300px;"><%= i.expectedOutcome.length > 120 ? i.expectedOutcome.slice(0, 120) + '...' : i.expectedOutcome %></td>
+            <td>
+              <% let statusColor = {
+                'Initiated': 'info',
+                'Closed': 'success',
+                'Deferred/On Hold': 'secondary',
+                'Blocked': 'danger',
+                'Dropped': 'dark'
+              }[i.status] || 'light'; %>
+              <span class="badge bg-<%= statusColor %>"><%= i.status %></span>
+            </td>
+            <td><%= i.keyResultId?.title || '—' %></td>
+            <td>
+              <a href="/<%= orgName %>/initiatives/<%= i._id %>" class="btn btn-sm btn-outline-primary me-1">👁️</a>
+              <a href="/<%= orgName %>/initiatives/<%= i._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️</a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
 <% } %>

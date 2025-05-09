@@ -1,36 +1,40 @@
 <% layout('layouts/dashboard') %>
 <% title = 'New Initiative' %>
 
-<h2>🚀 Create New Initiative</h2>
+<h2 class="mb-4">🚀 Create New Initiative</h2>
 
-<form action="/<%= orgName %>/initiatives" method="POST">
-    <div class="mb-3">
-        <label for="keyResultId">Key Results</label>
-        <select name="keyResultId" id="keyResultId" class="form-control">
-            <option value="">-- Select Key Result --</option>
-            <% keyResults.forEach(kr => { %>
-                <option value="<%= kr._id %>" <%= (kr._id.toString() === preselectedKeyResultId) ? 'selected' : '' %>>
-                <%= kr.title %>
-                </option>
-            <% }) %>
-        </select> 
-    </div>
+<form action="/<%= orgName %>/initiatives" method="POST" class="card p-4 shadow-sm">
+  <div class="mb-3">
+    <label for="keyResultId" class="form-label">🎯 Key Result</label>
+    <select name="keyResultId" id="keyResultId" class="form-select">
+      <option value="">-- Select Key Result --</option>
+      <% keyResults.forEach(kr => { %>
+        <option value="<%= kr._id %>" <%= (kr._id.toString() === preselectedKeyResultId) ? 'selected' : '' %>>
+          <%= kr.title %>
+        </option>
+      <% }) %>
+    </select>
+    <small class="text-muted">Link this initiative to a Key Result (optional but recommended).</small>
+  </div>
 
-    <div class="mb-3">
-        <label for="title">Title <span class="text-danger">*</span></label>
-        <input type="text" name="title" class="form-control" required>
-    </div>
+  <div class="mb-3">
+    <label for="title" class="form-label">📌 Title <span class="text-danger">*</span></label>
+    <input type="text" name="title" id="title" class="form-control" required>
+  </div>
 
-    <div class="mb-3">
-        <label for="description">Description</label>
-        <textarea name="description" class="form-control" rows="3"></textarea>
-    </div>
+  <div class="mb-3">
+    <label for="description" class="form-label">📝 Description</label>
+    <textarea name="description" id="description" class="form-control" rows="3" placeholder="Brief context or plan..."></textarea>
+  </div>
 
-    <div class="mb-3">
-        <label for="expectedOutcome">Expected Outcome <span class="text-danger">*</span></label>
-        <textarea name="expectedOutcome" class="form-control" rows="2" required></textarea>
-    </div>
+  <div class="mb-3">
+    <label for="expectedOutcome" class="form-label">🎯 Expected Outcome <span class="text-danger">*</span></label>
+    <textarea name="expectedOutcome" id="expectedOutcome" class="form-control" rows="2" required></textarea>
+    <small class="text-muted">Be clear about what success looks like.</small>
+  </div>
 
-    <button type="submit" class="btn btn-success mt-2">✅ Create Initiative</button>
-    <a href="/<%= orgName %>/objectives" class="btn btn-outline-secondary mt-2">⬅ Cancel</a>
+  <div class="d-flex justify-content-between mt-4">
+    <a href="/<%= orgName %>/objectives" class="btn btn-outline-secondary">⬅ Cancel</a>
+    <button type="submit" class="btn btn-success">✅ Create Initiative</button>
+  </div>
 </form>

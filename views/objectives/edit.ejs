@@ -1,40 +1,49 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Edit Objective' %>
 
-<h2>Edit Objective</h2>
+<h2 class="text-gradient mb-4">🛠️ Edit Objective</h2>
 
-<form action="/<%= orgName %>/objectives/<%= objective._id %>" method="POST">
+<form action="/<%= orgName %>/objectives/<%= objective._id %>" method="POST" class="animated-form">
+  <!-- Title -->
   <div class="mb-3">
-    <label>Title:</label>
-    <input type="text" name="title" class="form-control" value="<%= objective.title %>" required>
+    <label for="title" class="form-label funky-label">🎯 Title</label>
+    <input type="text" name="title" id="title" class="form-control input-pop" value="<%= objective.title %>" required>
   </div>
 
+  <!-- Description -->
   <div class="mb-3">
-    <label>Description:</label>
-    <textarea name="description" class="form-control"><%= objective.description %></textarea>
+    <label for="description" class="form-label funky-label">📝 Description</label>
+    <textarea name="description" id="description" class="form-control input-pop" rows="3"><%= objective.description %></textarea>
   </div>
 
+  <!-- Cycle -->
   <div class="mb-3">
-    <label>OKR Cycle(s):</label>
-    <select name="cycle" class="form-control" required multiple>
+    <label for="cycle" class="form-label funky-label">📆 OKR Cycle(s)</label>
+    <select name="cycle" id="cycle" class="form-select input-pop" multiple required>
       <% enabledCycles.forEach(c => { %>
         <option value="<%= c.label %>" <%= objective.cycle.includes(c.label) ? 'selected' : '' %>><%= c.label %></option>
       <% }) %>
     </select>
   </div>
 
+  <!-- Owning Team -->
   <div class="mb-3">
-    <label>Team:</label>
-    <select name="teamId" class="form-control" required>
+    <label for="teamId" class="form-label funky-label">👥 Owner Team</label>
+    <select name="teamId" id="teamId" class="form-select input-pop" required>
       <% teams.forEach(team => { %>
         <option value="<%= team._id %>" <%= objective.teamId?.toString() === team._id.toString() ? 'selected' : '' %>><%= team.name %></option>
       <% }) %>
     </select>
   </div>
 
+  <!-- Assigned Teams -->
   <div class="mb-3">
-    <label>Assigned Teams:</label>
-    <select name="assignedTeams" class="form-control" multiple>
+    <label for="assignedTeams" class="form-label funky-label">🤝 Assigned Teams</label>
+  
+    <!-- Custom searchable multi-select -->
+    <input type="text" class="form-control input-pop mb-2" id="teamSearch" placeholder="Type to filter teams...">
+  
+    <select name="assignedTeams" id="assignedTeams" class="form-select input-pop" multiple size="6">
       <% teams.forEach(team => { %>
         <option value="<%= team._id %>" 
           <%= objective.assignedTeams?.map(t => t.toString()).includes(team._id.toString()) ? 'selected' : '' %>>
@@ -42,18 +51,36 @@
         </option>
       <% }) %>
     </select>
-    <small class="text-muted">Teams allowed to contribute Key Results to this Objective</small>
+    
+    <small class="text-muted">Teams allowed to add Key Results to this Objective</small>
   </div>
 
-  <div class="mb-3">
-    <label>Parent Objective (optional):</label>
-    <select name="parentObjective" class="form-control">
-      <option value="">None</option>
+  <!-- Parent Objective -->
+  <div class="mb-4">
+    <label for="parentObjective" class="form-label funky-label">🧭 Parent Objective (optional)</label>
+    <select name="parentObjective" id="parentObjective" class="form-select input-pop">
+      <option value="">— None —</option>
       <% parentObjectives.forEach(obj => { %>
         <option value="<%= obj._id %>" <%= objective.parentObjective?.toString() === obj._id.toString() ? 'selected' : '' %>><%= obj.title %></option>
       <% }) %>
     </select>
   </div>
 
-  <button type="submit" class="btn btn-primary">Update Objective</button>
+  <!-- Submit -->
+  <div class="d-flex justify-content-start gap-3">
+    <button type="submit" class="btn btn-success">💾 Update Objective</button>
+    <a href="/<%= orgName %>/objectives" class="btn btn-outline-secondary">⬅ Cancel</a>
+  </div>
 </form>
+
+<script>
+  document.getElementById('teamSearch').addEventListener('input', function () {
+    const filter = this.value.toLowerCase();
+    const select = document.getElementById('assignedTeams');
+    const options = select.options;
+    for (let i = 0; i < options.length; i++) {
+      const text = options[i].text.toLowerCase();
+      options[i].style.display = text.includes(filter) ? '' : 'none';
+    }
+  });
+</script>

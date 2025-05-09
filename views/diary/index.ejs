@@ -3,88 +3,74 @@
 
 <h2 class="mb-4">📓 Diary Entries</h2>
 
-<!-- Scope Tabs (My, Team, Org) -->
-<ul class="nav nav-tabs mb-4" style="border-bottom: 2px solid #dee2e6;">
+<!-- Scope Tabs -->
+<ul class="nav nav-tabs mb-4 border-bottom border-2">
   <li class="nav-item">
-    <a class="nav-link <%= scope === 'my' ? 'active' : '' %>" 
-       href="/<%= orgName %>/diary?scope=my&weeks=<%= weeksFilter %>">
-       👤 <strong>My Diaries</strong>
-    </a>
+    <a class="nav-link <%= scope === 'my' ? 'active' : '' %>" href="/<%= orgName %>/diary?scope=my&weeks=<%= weeksFilter %>">👤 <strong>My Diaries</strong></a>
   </li>
   <li class="nav-item">
-    <a class="nav-link <%= scope === 'team' ? 'active' : '' %>" 
-       href="/<%= orgName %>/diary?scope=team&weeks=<%= weeksFilter %>">
-       👥 <strong>Team Diaries</strong>
-    </a>
+    <a class="nav-link <%= scope === 'team' ? 'active' : '' %>" href="/<%= orgName %>/diary?scope=team&weeks=<%= weeksFilter %>">👥 <strong>Team Diaries</strong></a>
   </li>
   <% if (user.isSuperAdmin) { %>
-  <li class="nav-item">
-    <a class="nav-link <%= scope === 'org' ? 'active' : '' %>" 
-       href="/<%= orgName %>/diary?scope=org&weeks=<%= weeksFilter %>">
-       🏢 <strong>Org Diaries</strong>
-    </a>
-  </li>
+    <li class="nav-item">
+      <a class="nav-link <%= scope === 'org' ? 'active' : '' %>" href="/<%= orgName %>/diary?scope=org&weeks=<%= weeksFilter %>">🏢 <strong>Org Diaries</strong></a>
+    </li>
   <% } %>
 </ul>
 
-<!-- Weeks Filter -->
-<div class="d-flex justify-content-start gap-3 mb-4">
-  <form id="filtersForm" class="form-inline" method="GET" action="/<%= orgName %>/diary">
+<!-- Filters -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <form id="filtersForm" method="GET" action="/<%= orgName %>/diary" class="d-flex gap-3 align-items-center">
     <input type="hidden" name="scope" value="<%= scope %>">
-    <div class="form-group">
-      <label class="me-2"><strong>Weeks:</strong></label>
-      <select name="weeks" onchange="document.getElementById('filtersForm').submit()" class="form-select">
-        <option value="4" <%= weeksFilter == 4 ? 'selected' : '' %>>Last 4 Weeks</option>
-        <option value="8" <%= weeksFilter == 8 ? 'selected' : '' %>>Last 8 Weeks</option>
-        <option value="all" <%= weeksFilter == 'all' ? 'selected' : '' %>>All Time</option>
-      </select>
-    </div>
+    <label class="me-2 fw-semibold">Weeks:</label>
+    <select name="weeks" class="form-select" onchange="this.form.submit()">
+      <option value="4" <%= weeksFilter == 4 ? 'selected' : '' %>>Last 4 Weeks</option>
+      <option value="8" <%= weeksFilter == 8 ? 'selected' : '' %>>Last 8 Weeks</option>
+      <option value="all" <%= weeksFilter == 'all' ? 'selected' : '' %>>All Time</option>
+    </select>
   </form>
-</div>
 
-<!-- New Diary Entry Button -->
-<% if (scope === 'my') { %>
-  <a href="/<%= orgName %>/diary/new" class="btn btn-primary mb-4">➕ New Entry</a>
-<% } %>
+  <% if (scope === 'my') { %>
+    <a href="/<%= orgName %>/diary/new" class="btn btn-primary">➕ New Entry</a>
+  <% } %>
+</div>
 
 <!-- Diary Entries Table -->
 <div class="table-responsive">
-  <table class="table table-bordered table-striped align-middle">
+  <table class="table table-bordered table-hover align-middle">
     <thead class="table-dark sticky-top">
       <tr>
-        <% if (scope !== 'my') { %>
-          <th>Employee</th>
-        <% } %>
-        <th>Week</th>
-        <th>Date</th>
-        <th>Content</th>
-        <% if (scope === 'my') { %>
-          <th>Actions</th>
-        <% } %>
+        <% if (scope !== 'my') { %><th>👤 Employee</th><% } %>
+        <th>📆 Week</th>
+        <th>🕒 Date</th>
+        <th>📄 Entry</th>
+        <% if (scope === 'my') { %><th>⚙️ Actions</th><% } %>
       </tr>
     </thead>
     <tbody>
       <% if (entries.length === 0) { %>
-        <tr><td colspan="<%= scope === 'my' ? 5 : 4 %>" class="text-center text-muted">No diary entries found.</td></tr>
+        <tr>
+          <td colspan="<%= scope === 'my' ? 5 : 4 %>" class="text-center text-muted">No diary entries found.</td>
+        </tr>
       <% } else { %>
         <% entries.forEach(entry => { %>
           <tr>
             <% if (scope !== 'my') { %>
               <td>
-                👤 <%= entry.user?.name || 'Unknown' %> <br>
+                <strong><%= entry.user?.name || 'Unknown' %></strong><br>
                 <small class="text-muted"><%= entry.user?.email || '' %></small>
               </td>
             <% } %>
             <td><%= entry.weekCycle?.label || '-' %></td>
             <td><%= new Date(entry.date).toDateString() %></td>
             <td>
-              <% if (entry.content.length <= 150) { %>
+              <% if (entry.content.length <= 160) { %>
                 <%= entry.content %>
               <% } else { %>
-                <%= entry.content.substring(0, 150) %>...
-                <details class="mt-1">
-                  <summary class="text-primary">Read Full</summary>
-                  <div style="white-space: pre-line;"><%= entry.content %></div>
+                <%= entry.content.substring(0, 160) %>...
+                <details class="mt-2">
+                  <summary class="text-primary">🔎 Read Full</summary>
+                  <div class="pt-2" style="white-space: pre-line;"><%= entry.content %></div>
                 </details>
               <% } %>
             </td>
@@ -92,7 +78,7 @@
               <td>
                 <a href="/<%= orgName %>/diary/<%= entry._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
                 <form method="POST" action="/<%= orgName %>/diary/<%= entry._id %>?_method=DELETE" style="display:inline;" onsubmit="return confirmDelete()">
-                  <button class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+                  <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
                 </form>
               </td>
             <% } %>
@@ -103,7 +89,6 @@
   </table>
 </div>
 
-<!-- Confirm Delete Script -->
 <script>
 function confirmDelete() {
   return confirm('Are you sure you want to delete this diary entry?');

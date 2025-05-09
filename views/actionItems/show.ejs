@@ -1,30 +1,46 @@
 <% layout('layouts/dashboard') %>
 <% title = item.title %>
 
-<h2>📝 <%= item.title %></h2>
+<div class="mb-4">
+  <h2 class="text-gradient">📝 <%= item.title %></h2>
+  <p class="text-muted"><%= item.description || 'No description provided.' %></p>
+</div>
 
-<p><strong>Description:</strong> <%= item.description || '—' %></p>
-
-<div class="row">
+<div class="row mb-4">
   <div class="col-md-6">
-    <p><strong>Assigned To:</strong> <%= item.assignedTo?.name || item.assignedTo?.email %></p>
-    <p><strong>Assigned By:</strong> <%= item.assignedBy?.name || item.assignedBy?.email %></p>
-    <p><strong>Status:</strong> <span class="badge bg-secondary"><%= item.status || 'Not Started' %></span></p>
-    <p><strong>Due Date:</strong> <%= item.dueDate ? new Date(item.dueDate).toDateString() : '—' %></p>
+    <p><strong>🙋 Assigned To:</strong> <%= item.assignedTo?.name || item.assignedTo?.email %></p>
+    <p><strong>🧑 Assigned By:</strong> <%= item.assignedBy?.name || item.assignedBy?.email %></p>
+    <p>
+      <strong>📍 Status:</strong>
+      <% if (item.status === 'Completed') { %>
+        <span class="badge bg-success">✅ Completed</span>
+      <% } else if (item.status === 'In Progress') { %>
+        <span class="badge bg-warning text-dark">⏳ In Progress</span>
+      <% } else if (item.status === 'Blocked') { %>
+        <span class="badge bg-danger">🚫 Blocked</span>
+      <% } else if (item.status === 'Deferred') { %>
+        <span class="badge bg-secondary">🕐 Deferred</span>
+      <% } else if (item.status === 'On Hold') { %>
+        <span class="badge bg-info text-dark">⏸️ On Hold</span>
+      <% } else { %>
+        <span class="badge bg-primary">🆕 Not Started</span>
+      <% } %>
+    </p>
+    <p><strong>📅 Due Date:</strong> <%= item.dueDate ? new Date(item.dueDate).toDateString() : '—' %></p>
   </div>
   <div class="col-md-6">
-    <p><strong>Meeting:</strong> <%= item.meeting || '—' %></p>
-    <p><strong>Cycle:</strong> <%= item.cycle?.label %></p>
-    <p><strong>Objective:</strong> <%= item.objectiveId?.title || '—' %></p>
-    <p><strong>Key Result:</strong> <%= item.keyResultId?.title || '—' %></p>
+    <p><strong>💬 Meeting:</strong> <%= item.meeting || '—' %></p>
+    <p><strong>📆 OKR Cycle:</strong> <%= item.cycle?.label || '—' %></p>
+    <p><strong>🎯 Objective:</strong> <%= item.objectiveId?.title || '—' %></p>
+    <p><strong>📈 Key Result:</strong> <%= item.keyResultId?.title || '—' %></p>
   </div>
 </div>
 
-<hr>
+<hr class="my-4">
 
-<h5>📚 Update History</h5>
+<h5 class="mb-3">📚 Update History</h5>
 <% if (item.updates && item.updates.length > 0) { %>
-  <ul class="list-group">
+  <ul class="list-group mb-4">
     <% item.updates.slice().reverse().forEach(u => { %>
       <li class="list-group-item d-flex justify-content-between">
         <span><%= u.updateText %></span>
@@ -35,11 +51,10 @@
 <% } else { %>
   <p class="text-muted">No updates yet.</p>
 <% } %>
-<hr>
 
-<h5>🧑‍💼 Manager Comments</h5>
+<h5 class="mb-3">🧑‍💼 Manager Comments</h5>
 <% if (item.comments && item.comments.length > 0) { %>
-  <ul class="list-group">
+  <ul class="list-group mb-4">
     <% item.comments.slice().reverse().forEach(c => { %>
       <li class="list-group-item d-flex justify-content-between">
         <div>
@@ -56,7 +71,7 @@
   <p class="text-muted">No manager comments yet.</p>
 <% } %>
 
-<hr>
-
-<a href="/<%= orgName %>/actionItems/<%= item._id %>/edit" class="btn btn-outline-primary">✏️ Edit</a>
-<a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary">⬅ Back</a>
+<div class="text-end mt-4">
+  <a href="/<%= orgName %>/actionItems/<%= item._id %>/edit" class="btn btn-primary">✏️ Edit</a>
+  <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary ms-2">⬅ Back</a>
+</div>

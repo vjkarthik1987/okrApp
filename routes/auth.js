@@ -96,21 +96,25 @@ router.post('/login', async (req, res) => {
     user.authenticate(password, (err, userObj, passwordErr) => {
       if (err || passwordErr) {
         console.log('Password mismatch');
-        return res.status(401).json({ error: 'Invalid email or password' });
+        req.flash('error', '❌ Incorrect email or password. Please try again.');
+        return res.redirect(`/${org.orgName}/auth/login`);
       }
-
+    
       req.login(userObj, (err) => {
         if (err) {
           console.log('Login error');
-          return res.status(500).json({ error: 'Login failed' });
+          req.flash('error', '❌ Incorrect email or password. Please try again.');
+          return res.redirect(`/${org.orgName}/auth/login`);
         }
+    
         res.redirect(`/${org.orgName}/dashboard`);
       });
     });
-
+    
   } catch (err) {
     console.error('Login failed:', err);
-    res.status(500).json({ error: 'Login failed' });
+    req.flash('error', '❌ Incorrect email or password. Please try again.');
+    res.redirect(`/${orgName}/auth/login`);;
   }
 });
 

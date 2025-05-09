@@ -1,10 +1,39 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Dashboard' %>
 
-<h2>Welcome to the OKR Dashboard</h2>
-<p>Hello <strong><%= user.name %></strong>! </p>
+<div class="mb-4">
+  <h2 class="mb-1">🎯 Welcome, <%= user.name %>!</h2>
+  <p class="text-muted">You're viewing your organization’s OKR dashboard.</p>
+</div>
 
-<p>This is your organization-level dashboard. We’ll fill this in with objective summaries, KR status charts, check-in history, etc.</p>
-<!-- Organization OKRs
-Team OKRs
-My Action Items -->
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title">🏢 Organization OKRs</h5>
+        <p class="card-text text-muted">High-level view of org-wide objectives and outcomes.</p>
+        <a href="/<%= orgName %>/objectives" class="btn btn-outline-primary btn-sm">View</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title">👥 My Team OKRs</h5>
+        <p class="card-text text-muted">Track how your team is progressing this quarter.</p>
+        <a href="/<%= orgName %>/objectives?scope=team" class="btn btn-outline-primary btn-sm">View</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title">✅ My Action Items</h5>
+        <p class="card-text text-muted">Stay on top of what’s due and what’s next.</p>
+        <a href="/<%= orgName %>/actionItems?scope=my" class="btn btn-outline-primary btn-sm">Go</a>
+      </div>
+    </div>
+  </div>
+</div>

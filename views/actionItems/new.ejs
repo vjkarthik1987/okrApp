@@ -1,28 +1,31 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Add Action Item' %>
 
-<h2>📝 Add Action Item</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0 text-gradient">📝 Add Action Item</h2>
+  <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary">⬅ Back</a>
+</div>
 
-<form action="/<%= orgName %>/actionItems" method="POST">
+<form action="/<%= orgName %>/actionItems" method="POST" class="card p-4 mb-4 shadow-sm border-0 animated-form">
   <div class="mb-3">
-    <label for="title">Title <span class="text-danger">*</span></label>
-    <input type="text" name="title" id="title" class="form-control" required>
+    <label for="title" class="form-label funky-label">📌 Title <span class="text-danger">*</span></label>
+    <input type="text" name="title" id="title" class="form-control input-pop" placeholder="e.g., Finalize onboarding flows" required>
   </div>
 
   <div class="mb-3">
-    <label for="description">Description</label>
-    <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+    <label for="description" class="form-label funky-label">🧾 Description</label>
+    <textarea name="description" id="description" class="form-control input-pop" rows="3" placeholder="Add context or next steps..."></textarea>
   </div>
 
   <div class="mb-3">
-    <label for="initiativeId">Initiative (optional)</label>
+    <label for="initiativeId" class="form-label funky-label">🚀 Initiative (Optional)</label>
     <% if (preselectedInitiativeId) { %>
       <input type="hidden" name="initiativeId" value="<%= preselectedInitiativeId %>">
       <% const selected = initiatives.find(i => i._id.toString() === preselectedInitiativeId.toString()); %>
-      <input type="text" class="form-control" disabled value="<%= selected?.title || 'Selected initiative' %>">
+      <input type="text" class="form-control input-pop" disabled value="<%= selected?.title || 'Selected initiative' %>">
     <% } else { %>
-      <select name="initiativeId" id="initiativeId" class="form-control">
-        <option value="">-- None --</option>
+      <select name="initiativeId" id="initiativeId" class="form-select input-pop">
+        <option value="">🎯 -- None --</option>
         <% initiatives.forEach(i => { %>
           <option value="<%= i._id %>"><%= i.title %></option>
         <% }) %>
@@ -30,57 +33,66 @@
     <% } %>
   </div>
 
-  <div class="mb-3">
-    <label for="assignedTo">Assign To <span class="text-danger">*</span></label>
-    <select name="assignedTo" id="assignedTo" class="form-control" required>
-      <% users.forEach(user => { %>
-        <option value="<%= user._id %>"><%= user.name || user.email %></option>
-      <% }) %>
-    </select>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="assignedTo" class="form-label funky-label">🙋 Assign To <span class="text-danger">*</span></label>
+      <small class="form-text text-muted">Start typing to search</small>
+      <input type="text" id="assignedToText" class="form-control input-pop" list="assignedToList" autocomplete="off" placeholder="e.g., Binesh" required>
+      <input type="hidden" name="assignedTo" id="assignedTo">
+      <datalist id="assignedToList">
+        <% users.forEach(user => { %>
+          <option data-id="<%= user._id %>" value="<%= user.name || user.email %>"></option>
+        <% }) %>
+      </datalist>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="cycle" class="form-label funky-label">📆 OKR Cycle <span class="text-danger">*</span></label>
+      <select name="cycle" id="cycle" class="form-select input-pop" required>
+        <% cycles.forEach(cycle => { %>
+          <option value="<%= cycle._id %>"><%= cycle.label %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="dueDate" class="form-label funky-label">📅 Due Date</label>
+      <input type="date" name="dueDate" class="form-control input-pop">
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="meeting" class="form-label funky-label">💬 Meeting Name (Optional)</label>
+      <input type="text" name="meeting" class="form-control input-pop" placeholder="e.g., Q2 Planning Sync">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="objectiveId" class="form-label funky-label">🎯 Link to Objective</label>
+      <select name="objectiveId" class="form-select input-pop">
+        <option value="">-- None --</option>
+        <% objectives.forEach(o => { %>
+          <option value="<%= o._id %>"><%= o.title %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="keyResultId" class="form-label funky-label">📈 Link to Key Result</label>
+      <select name="keyResultId" class="form-select input-pop">
+        <option value="">-- None --</option>
+        <% keyResults.forEach(kr => { %>
+          <option value="<%= kr._id %>"><%= kr.title %></option>
+        <% }) %>
+      </select>
+    </div>
   </div>
 
   <div class="mb-3">
-    <label for="cycle">OKR Cycle <span class="text-danger">*</span></label>
-    <select name="cycle" id="cycle" class="form-control" required>
-      <% cycles.forEach(cycle => { %>
-        <option value="<%= cycle._id %>"><%= cycle.label %></option>
-      <% }) %>
-    </select>
-  </div>
-
-  <div class="mb-3">
-    <label for="dueDate">Due Date</label>
-    <input type="date" name="dueDate" class="form-control">
-  </div>
-
-  <div class="mb-3">
-    <label for="meeting">Meeting Name (optional)</label>
-    <input type="text" name="meeting" class="form-control">
-  </div>
-
-  <div class="mb-3">
-    <label for="objectiveId">Link to Objective (optional)</label>
-    <select name="objectiveId" class="form-control">
-      <option value="">-- None --</option>
-      <% objectives.forEach(o => { %>
-        <option value="<%= o._id %>"><%= o.title %></option>
-      <% }) %>
-    </select>
-  </div>
-
-  <div class="mb-3">
-    <label for="keyResultId">Link to Key Result (optional)</label>
-    <select name="keyResultId" class="form-control">
-      <option value="">-- None --</option>
-      <% keyResults.forEach(kr => { %>
-        <option value="<%= kr._id %>"><%= kr.title %></option>
-      <% }) %>
-    </select>
-  </div>
-
-  <div class="mb-3">
-    <label for="parent">Parent Action Item (optional)</label>
-    <select name="parent" class="form-control">
+    <label for="parent" class="form-label funky-label">🔗 Parent Action Item</label>
+    <select name="parent" class="form-select input-pop">
       <option value="">-- None --</option>
       <% actionItems.forEach(ai => { %>
         <option value="<%= ai._id %>"><%= ai.title %></option>
@@ -88,6 +100,7 @@
     </select>
   </div>
 
-  <button type="submit" class="btn btn-success mt-3">✅ Create Action Item</button>
-  <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary mt-3">⬅ Back</a>
+  <div class="text-end mt-4">
+    <button type="submit" class="btn btn-primary px-4 py-2">✅ Create Action Item</button>
+  </div>
 </form>

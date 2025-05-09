@@ -1,9 +1,8 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Team Action Items' %>
 
-<h2 class="mb-4">📋 Team Action Items</h2>
+<h2 class="mb-4 text-gradient">📋 Team Action Items</h2>
 
-<!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mb-4">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/<%= orgName %>/manager-dashboard">Manager Dashboard</a></li>
@@ -11,110 +10,100 @@
   </ol>
 </nav>
 
-<!-- Status Summary Cards -->
+<!-- Summary Cards -->
 <div class="row mb-4 text-center">
   <div class="col-md-4">
-    <div class="card bg-primary text-white">
+    <div class="card text-white shadow-sm animated-form" style="background-color: #6C5CE7;">
       <div class="card-body">
-        <h5>Pending</h5>
+        <h6 class="text-uppercase">🕒 Pending</h6>
         <h2><%= pendingCount %></h2>
       </div>
     </div>
   </div>
   <div class="col-md-4">
-    <div class="card bg-success text-white">
+    <div class="card text-white shadow-sm animated-form" style="background-color: #00B894;">
       <div class="card-body">
-        <h5>Completed</h5>
+        <h6 class="text-uppercase">✅ Completed</h6>
         <h2><%= completedCount %></h2>
       </div>
     </div>
   </div>
   <div class="col-md-4">
-    <div class="card bg-danger text-white">
+    <div class="card text-white shadow-sm animated-form" style="background-color: #FF6B6B;">
       <div class="card-body">
-        <h5>Overdue</h5>
+        <h6 class="text-uppercase">⏰ Overdue</h6>
         <h2><%= overdueCount %></h2>
       </div>
     </div>
   </div>
 </div>
 
-<div class="alert alert-info small" role="alert">
-    <strong>Note:</strong> 
-    <ul class="mb-0">
-      <li><strong>Pending</strong> means the action item is not yet completed but the due date is still in the future.</li>
-      <li><strong>Overdue</strong> means the action item is not yet completed and the due date has already passed.</li>
-    </ul>
+<!-- Info Note -->
+<div class="alert alert-info small">
+  <strong>Legend:</strong>
+  <ul class="mb-0 ps-3">
+    <li><strong>Pending</strong>: Not completed, due date in future</li>
+    <li><strong>Overdue</strong>: Not completed, due date passed</li>
+  </ul>
 </div>
 
-<!-- Two Column Layout: Table + Chat -->
+<!-- Layout: Table + Chat -->
 <div class="row">
-  <!-- Left side: Action Items Table -->
-  <div class="col-md-8" style="max-height: 70vh; overflow-y: auto; padding-right: 20px;">
-    <h4 class="mb-3">📋 Team Action Items</h4>
+  <!-- Left: Action Items Table -->
+  <div class="col-md-8 pe-md-4" style="max-height: 70vh; overflow-y: auto;">
+    <h4 class="mb-3 funky-label">🗂️ All Action Items</h4>
 
-    <table class="table table-hover table-striped">
+    <table class="table table-hover table-striped align-middle">
       <thead class="table-dark sticky-top">
         <tr>
-          <th scope="col">Action Item</th>
-          <th scope="col">Assigned To</th>
-          <th scope="col">Due Date</th>
-          <th scope="col">Status</th>
+          <th>Action Item</th>
+          <th>Assigned To</th>
+          <th>Due Date</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
         <% if (actionItems.length === 0) { %>
-          <tr><td colspan="4" class="text-center">No Action Items found.</td></tr>
+          <tr><td colspan="4" class="text-center">No action items found.</td></tr>
         <% } else { %>
           <% actionItems.forEach(item => { %>
             <tr>
-                <td>
-                  <a href="/<%= orgName %>/manager-dashboard/action-items/<%= item._id %>" class="text-decoration-none">
-                    <%= item.title %>
-                  </a>
-                </td>
-                <td><%= item.assignedTo?.name || 'Unknown' %></td>
-                <td><%= item.dueDate ? new Date(item.dueDate).toLocaleDateString() : 'No Due Date' %></td>
-                <td>
-                    <% if (item.status === 'Completed') { %>
-                    <span class="badge bg-success">Completed</span>
-                    <% } else { %>
-                    <span class="badge bg-warning text-dark">Pending</span>
-                    <% } %>
-                </td>
+              <td>
+                <a href="/<%= orgName %>/manager-dashboard/action-items/<%= item._id %>" class="text-decoration-none fw-semibold">
+                  <%= item.title %>
+                </a>
+              </td>
+              <td><%= item.assignedTo?.name || '—' %></td>
+              <td><%= item.dueDate ? new Date(item.dueDate).toLocaleDateString() : '—' %></td>
+              <td>
+                <% if (item.status === 'Completed') { %>
+                  <span class="badge bg-success">✅ Completed</span>
+                <% } else { %>
+                  <span class="badge bg-warning text-dark">Pending</span>
+                <% } %>
+              </td>
             </tr>
-            
-            <!-- New Row Below Each Action Item Row: Add Comment Button + Hidden Form -->
-            <tr class="bg-light">
-                <td colspan="4">
-                    <!-- 💬 Add Comment Button -->
-                    <button 
-                    class="btn btn-sm btn-outline-primary" 
-                    onclick="this.nextElementSibling.style.display='block'; this.style.display='none';">
-                    💬 Add Comment
-                    </button>
-                
-                    <!-- Hidden Comment Form (initially hidden) -->
-                    <div style="display: none; margin-top: 10px;">
-                    <form action="/<%= orgName %>/manager-dashboard/action-items/<%= item._id %>/comment" method="POST">
-                        <div class="mb-2">
-                        <textarea name="commentText" class="form-control" placeholder="Add a comment..." required></textarea>
-                        </div>
-                        <div class="mb-2 d-flex gap-2">
-                        <select name="newStatus" class="form-select w-auto">
-                            <option value="">No Status Change</option>
-                            <option value="Not Started">Not Started</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Blocked">Blocked</option>
-                            <option value="Deferred">Deferred</option>
-                            <option value="On Hold">On Hold</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                        </div>
-                    </form>
+            <tr class="bg-light border-top">
+              <td colspan="4">
+                <button class="btn btn-sm btn-outline-primary" onclick="toggleComment(this)">💬 Add Comment</button>
+                <div class="comment-box mt-2 animated-form" style="display: none;">
+                  <form action="/<%= orgName %>/manager-dashboard/action-items/<%= item._id %>/comment" method="POST">
+                    <textarea name="commentText" class="form-control mb-2" placeholder="Add a comment..." required></textarea>
+                    <div class="d-flex gap-2 align-items-center">
+                      <select name="newStatus" class="form-select w-auto">
+                        <option value="">No Status Change</option>
+                        <option>Not Started</option>
+                        <option>In Progress</option>
+                        <option>Completed</option>
+                        <option>Blocked</option>
+                        <option>Deferred</option>
+                        <option>On Hold</option>
+                      </select>
+                      <button type="submit" class="btn btn-primary">Submit</button>
                     </div>
-                </td>
+                  </form>
+                </div>
+              </td>
             </tr>
           <% }) %>
         <% } %>
@@ -122,22 +111,29 @@
     </table>
   </div>
 
-  <!-- Right side: Chat Timeline -->
-  <div class="col-md-4" style="max-height: 70vh; overflow-y: auto; border-left: 1px solid #dee2e6;">
-    <h4 class="mb-3">💬 Recent Updates (Last 4 weeks)</h4>
-
+  <!-- Right: WhatsApp-style Feed -->
+  <div class="col-md-4 border-start ps-md-4" style="max-height: 70vh; overflow-y: auto;">
+    <h4 class="mb-3 funky-label">💬 Recent Updates</h4>
     <% if (chatUpdates.length === 0) { %>
       <p class="text-muted">No recent updates.</p>
     <% } else { %>
       <% chatUpdates
-          .sort((a, b) => new Date(b.updateDate) - new Date(a.updateDate)) // Newest first
-          .forEach(update => { %>
-        <div class="mb-3 p-2 rounded bg-light">
-          <small class="text-muted"><%= new Date(update.updateDate).toLocaleDateString() %> | <%= new Date(update.updateDate).toLocaleTimeString() %></small>
+        .sort((a, b) => new Date(b.updateDate) - new Date(a.updateDate))
+        .forEach(update => { %>
+        <div class="mb-3 p-3 rounded bg-light shadow-sm chat-message assistant">
+          <small class="text-muted"><%= new Date(update.updateDate).toLocaleString() %></small>
           <div class="fw-bold mt-1"><%= update.updatedBy %></div>
-          <div>🔹 <strong><%= update.actionItemTitle %>:</strong> <%= update.updateText %></div>
+          <div>🔹 <strong><%= update.actionItemTitle %></strong>: <%= update.updateText %></div>
         </div>
       <% }) %>
     <% } %>
   </div>
 </div>
+
+<script>
+  function toggleComment(btn) {
+    const formDiv = btn.nextElementSibling;
+    formDiv.style.display = 'block';
+    btn.style.display = 'none';
+  }
+</script>

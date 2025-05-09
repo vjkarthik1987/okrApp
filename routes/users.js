@@ -183,7 +183,8 @@ router.get('/:id/edit', isSuperAdmin, async (req, res) => {
     isActive: true
   }).sort({ name: 1 });
 
-  // 👇 Add logic to calculate disableRoleEdit
+  const teams = await Team.find({ organization: req.organization._id }).sort({ name: 1 }); // ✅ Fetch teams
+
   const superAdminCount = await User.countDocuments({ organization: req.organization._id, role: 'super_admin', isActive: true });
   const disableRoleEdit = (userToEdit.role === 'super_admin' && superAdminCount <= 1);
 
@@ -192,9 +193,11 @@ router.get('/:id/edit', isSuperAdmin, async (req, res) => {
     orgName: req.organization.orgName,
     user: req.user,
     allUsers,
-    disableRoleEdit // 🔥 Pass this
+    teams,                // ✅ Pass to template
+    disableRoleEdit
   });
 });
+
 
 // PUT Update User
 router.put('/:id', isSuperAdmin, async (req, res) => {
@@ -217,6 +220,8 @@ router.put('/:id', isSuperAdmin, async (req, res) => {
     user.gender = req.body.gender || user.gender;
     user.joiningDate = req.body.joiningDate || user.joiningDate;
     user.manager = newManagerId || null;
+    user.team = req.body.team || user.team; // ✅ Add team update
+
     await user.save();
 
     if (oldManagerId !== newManagerId) {

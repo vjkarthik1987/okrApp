@@ -1,12 +1,15 @@
-<% title = 'Generate WeekCycles' %>
+<% title = 'Generate Week Cycles' %>
 <% layout('layouts/dashboard') %>
 
-<h2>Generate Weekly Cycles</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0 text-gradient">📆 Generate Weekly Cycles</h2>
+</div>
 
-<form action="/<%= orgName %>/admin/weekcycles/generate" method="POST">
+<form action="/<%= orgName %>/admin/weekcycles/generate" method="POST" class="card p-4 shadow-sm border-0 animated-form">
+
   <div class="mb-3">
-    <label for="cycle">Select OKR Cycle</label>
-    <select name="cycleId" class="form-control" required>
+    <label for="cycle" class="form-label funky-label">🗓️ Select OKR Cycle</label>
+    <select name="cycleId" class="form-select input-pop" required>
       <% okrCycles.forEach(cycle => { %>
         <option value="<%= cycle._id %>"><%= cycle.label %></option>
       <% }) %>
@@ -14,14 +17,18 @@
   </div>
 
   <div class="mb-3">
-    <label for="startDate">First Wednesday</label>
-    <input type="date" name="startDate" class="form-control" required>
+    <label for="startDate" class="form-label funky-label">📍 First Wednesday</label>
+    <input type="date" name="startDate" class="form-control input-pop" required>
+    <div class="form-text">This should be the first Wednesday of the OKR cycle.</div>
   </div>
 
   <div class="mb-3">
-    <label for="numWeeks">Number of Weeks</label>
-    <input type="number" name="numWeeks" value="13" class="form-control" required>
+    <label for="numWeeks" class="form-label funky-label">🔢 Number of Weeks</label>
+    <input type="number" name="numWeeks" value="13" class="form-control input-pop" required>
+    <div class="form-text">Typically 13 weeks for a quarter.</div>
   </div>
 
-  <button type="submit" class="btn btn-primary">Generate Weeks</button>
+  <div class="text-end">
+    <button type="submit" class="btn btn-primary px-4 py-2">🚀 Generate Weeks</button>
+  </div>
 </form>

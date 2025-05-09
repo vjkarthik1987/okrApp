@@ -1,7 +1,7 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Key Results for ' + objective.title %>
 
-<h2>Key Results for: <%= objective.title %></h2>
+<h2 class="mb-4">🎯 Key Results for: <%= objective.title %></h2>
 
 <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/new" class="btn btn-primary mb-3">➕ Add Key Result</a>
 <a href="/<%= orgName %>/objectives/" class="btn btn-outline-secondary mb-3">⬅️ Back to Objectives</a>
@@ -9,8 +9,8 @@
 <% if (keyResults.length === 0) { %>
   <div class="alert alert-warning">No key results yet.</div>
 <% } else { %>
-  <table class="table">
-    <thead>
+  <table class="table table-hover align-middle">
+    <thead class="table-light sticky-top">
       <tr>
         <th>Title</th>
         <th>Target</th>
@@ -23,26 +23,37 @@
       <% keyResults.forEach(kr => { %>
         <tr>
           <td>
-            <%= kr.title %>
-            <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>" title="View Key Result" style="text-decoration: none;">
-              👁️
-            </a>
+            <strong><%= kr.title %></strong>
+            <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>" title="View Key Result">👁️</a>
             <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/initiatives" class="btn btn-sm btn-outline-primary">📋 View Initiatives</a>
           </td>
-          <td><%= kr.targetValue %></td>
-          <td><%= kr.progressValue %>%</td>
+
+          <td><%= kr.targetValue || '—' %></td>
+
+          <td>
+            <% if (kr.metricType === 'milestone') { %>
+              <span class="badge bg-info">🎯 Milestone</span>
+            <% } else { %>
+              <div class="progress" style="height: 18px;">
+                <div class="progress-bar" role="progressbar" style="width: <%= kr.progressValue %>%;">
+                  <%= kr.progressValue %>%
+                </div>
+              </div>
+            <% } %>
+          </td>
+
           <td><%= kr.dueDate ? kr.dueDate.toDateString() : '—' %></td>
+
           <td>
             <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/edit" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
             <form method="POST" action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/delete" style="display:inline;">
-              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">🗑 Delete</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Really delete this KR? 😱')">🗑 Delete</button>
             </form>
           </td>
         </tr>
 
         <tr>
           <td colspan="5">
-
             <% if (kr.metricType === 'milestone' && kr.milestones.length > 0) { %>
               <form method="POST" action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/milestones/save">
                 <div class="row">
@@ -50,7 +61,7 @@
                     <div class="col-md-6">
                       <label class="form-check-label d-flex align-items-center gap-2">
                         <input type="checkbox" name="milestones[<%= i %>][completed]" <%= m.completed ? 'checked' : '' %> />
-                        <%= m.label %> (<%= m.weight %>%)
+                        <span><%= m.completed ? '✅' : '🕓' %> <%= m.label %> (<%= m.weight %>%)</span>
                       </label>
                       <input type="hidden" name="milestones[<%= i %>][label]" value="<%= m.label %>">
                     </div>
@@ -58,7 +69,7 @@
                 </div>
                 <div class="row mt-3">
                   <div class="col-md-4">
-                    <select name="weekCycle" class="form-select form-select-sm" required title="Select associated week">
+                    <select name="weekCycle" class="form-select form-select-sm" required>
                       <option value="">📅 Week</option>
                       <% weekCycles.forEach(wc => { %>
                         <option value="<%= wc._id %>"><%= wc.label %></option>
@@ -73,13 +84,13 @@
             <% } else { %>  
               <form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/update" method="POST" class="row g-2 align-items-center mt-2 mb-3">
                 <div class="col-sm-2">
-                  <input type="number" step="any" name="updateValue" class="form-control form-control-sm" required placeholder="Progress" title="Enter progress value" />
+                  <input type="number" step="any" name="updateValue" class="form-control form-control-sm" required placeholder="Progress" />
                 </div>
                 <div class="col-sm-4">
-                  <input type="text" name="updateText" class="form-control form-control-sm" placeholder="Optional note" title="Add an update note" />
+                  <input type="text" name="updateText" class="form-control form-control-sm" placeholder="Optional note" />
                 </div>
                 <div class="col-sm-4">
-                  <select name="weekCycle" class="form-select form-select-sm" required title="Select associated week">
+                  <select name="weekCycle" class="form-select form-select-sm" required>
                     <option value="">📅 Week</option>
                     <% weekCycles.forEach(wc => { %>
                       <option value="<%= wc._id %>"><%= wc.label %></option>
@@ -94,9 +105,10 @@
 
             <% if (kr.updates && kr.updates.length > 0) { %>
               <ul class="small text-muted mt-2 mb-0">
-                <% [...kr.updates].reverse().forEach((upd, realIndex) => { %> <!-- Use realIndex here -->
+                <% [...kr.updates].reverse().forEach((upd, realIndex) => { %>
                   <li>
-                    <%= upd.updateDate.toDateString() %>: <%= upd.updateValue %> (<%= upd.updateText || 'No note' %>)
+                    <%= upd.updateDate.toDateString() %>: <strong><%= upd.updateValue %></strong> 
+                    (<%= upd.updateText || 'No note' %>)
                     <form method="POST" action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/updates/<%= realIndex %>/delete" style="display:inline">
                       <button type="submit" class="btn btn-sm btn-outline-danger btn-link p-0" onclick="return confirm('Delete this update?')">🗑</button>
                     </form>
@@ -104,11 +116,29 @@
                 <% }) %>
               </ul>
             <% } %>
-
           </td>
         </tr>
-
       <% }) %>
     </tbody>
   </table>
 <% } %>
+
+<style>
+  .table-hover tbody tr:hover {
+    background-color: #fff8e1;
+    transition: background 0.2s ease;
+  }
+  .progress {
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: #eee;
+  }
+  .progress-bar {
+    font-weight: bold;
+    background: linear-gradient(90deg, #6C5CE7, #FF6B6B);
+    color: white;
+  }
+  .btn-link:hover {
+    color: #FF6B6B !important;
+  }
+</style>

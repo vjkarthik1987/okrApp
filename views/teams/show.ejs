@@ -1,38 +1,46 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Team Details' %>
 
-<h2>Team: <%= team.name %></h2>
+<h2 class="mb-4">👥 Team: <%= team.name %></h2>
 
-<div class="mb-3">
-  <strong>Function Head:</strong>
-  <% if (team.functionHead) { %>
-    <%= team.functionHead.name %> (<%= team.functionHead.email %>)
-  <% } else { %>
-    <em>Not Assigned</em>
-  <% } %>
+<div class="card mb-4 shadow-sm">
+  <div class="card-body">
+    <!-- Function Head -->
+    <div class="mb-3">
+      <h5 class="text-muted">👤 Function Head</h5>
+      <% if (team.functionHead) { %>
+        <p><strong><%= team.functionHead.name %></strong> (<%= team.functionHead.email %>)</p>
+      <% } else { %>
+        <p class="text-muted">Not Assigned</p>
+      <% } %>
+    </div>
+
+    <!-- OKR Editors -->
+    <div class="mb-3">
+      <h5 class="text-muted">✍️ OKR Editors</h5>
+      <% if (team.okrEditors && team.okrEditors.length > 0) { %>
+        <ul class="mb-0 ps-3">
+          <% team.okrEditors.forEach(editor => { %>
+            <li><%= editor.name %> (<%= editor.email %>)</li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p class="text-muted">No editors assigned</p>
+      <% } %>
+    </div>
+
+    <!-- Parent Team -->
+    <div class="mb-3">
+      <h5 class="text-muted">🧩 Parent Team</h5>
+      <% if (team.parentTeam) { %>
+        <p><%= team.parentTeam.name %></p>
+      <% } else { %>
+        <p class="text-muted">No parent team</p>
+      <% } %>
+    </div>
+  </div>
 </div>
 
-<div class="mb-3">
-  <strong>OKR Editors:</strong>
-  <% if (team.okrEditors && team.okrEditors.length > 0) { %>
-    <ul>
-      <% team.okrEditors.forEach(editor => { %>
-        <li><%= editor.name %> (<%= editor.email %>)</li>
-      <% }) %>
-    </ul>
-  <% } else { %>
-    <em>No editors assigned</em>
-  <% } %>
-</div>
-
-<div class="mb-3">
-  <strong>Parent Team:</strong>
-  <% if (team.parentTeam) { %>
-    <%= team.parentTeam.name %>
-  <% } else { %>
-    <em>No parent team</em>
-  <% } %>
-</div>
-
-<a href="/<%= orgName %>/teams" class="btn btn-secondary">⬅ Back to Teams</a>
+<!-- Action Buttons -->
+<a href="/<%= orgName %>/teams" class="btn btn-outline-secondary me-2">⬅ Back to Teams</a>
 <a href="/<%= orgName %>/teams/<%= team._id %>/edit" class="btn btn-primary">✏️ Edit Team</a>

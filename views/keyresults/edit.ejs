@@ -1,39 +1,18 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Edit Key Result' %>
 
-<h2>Edit Key Result for: <%= kr.title %></h2>
+<h2 class="mb-4 text-gradient">🎯 Edit Key Result</h2>
 
-<h3 class="mt-5">📈 Update Progress</h3>
-<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/update" method="POST">
-  <div class="row">
-    <div class="col-md-4 mb-3">
-      <label for="updateValue">New Value</label>
-      <input type="number" step="any" name="updateValue" id="updateValue" class="form-control" required>
-      <label for="weekCycle">Week Cycle</label>
-      <select name="weekCycle" id="weekCycle" class="form-control" required>
-        <% weekCycles.forEach(wc => { %>
-          <option value="<%= wc._id %>"><%= wc.label %></option>
-        <% }) %>
-      </select>
-    </div>
-    <div class="col-md-8 mb-3">
-      <label for="updateText">Update Summary</label>
-      <input type="text" name="updateText" id="updateText" class="form-control" required>
-    </div>
-  </div>
-  <button type="submit" class="btn btn-primary">📤 Submit Update</button>
-</form>
+<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>" method="POST" class="animated-form">
 
-<h3 class="mt-5">📈 Edit Key Result</h3>
-<form action="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>" method="POST" id="krForm">
   <div class="mb-3">
-    <label for="title">Key Result Title <span class="text-danger">*</span></label>
-    <input type="text" name="title" id="title" class="form-control" required value="<%= kr.title %>">
+    <label class="funky-label" for="title">Key Result Title *</label>
+    <input type="text" name="title" id="title" class="form-control input-pop" value="<%= kr.title %>" required>
   </div>
 
   <div class="mb-3">
-    <label for="metricType">Metric Type <span class="text-danger">*</span></label>
-    <select name="metricType" id="metricType" onchange="handleMetricTypeChange(this.value)" class="form-control">
+    <label class="funky-label" for="metricType">Metric Type *</label>
+    <select name="metricType" id="metricType" class="form-control input-pop" onchange="handleMetricTypeChange(this.value)">
       <option value="percent" <%= kr.metricType === 'percent' ? 'selected' : '' %>>Percent</option>
       <option value="number" <%= kr.metricType === 'number' ? 'selected' : '' %>>Number</option>
       <option value="boolean" <%= kr.metricType === 'boolean' ? 'selected' : '' %>>Boolean</option>
@@ -41,104 +20,100 @@
     </select>
   </div>
 
+  <!-- Milestones -->
   <div id="milestonesSection" style="<%= kr.metricType === 'milestone' ? '' : 'display: none;' %>">
     <div id="milestoneList">
       <% if (kr.milestones && kr.milestones.length > 0) { %>
-        <% kr.milestones.forEach((m, index) => { %>
-          <div class="row align-items-center mb-2" id="milestone-row-<%= index %>">
+        <% kr.milestones.forEach((m, i) => { %>
+          <div class="row align-items-center mb-2" id="milestone-row-<%= i %>">
             <div class="col-md-5">
-              <input type="text" name="milestones[<%= index %>][label]" class="form-control" value="<%= m.label %>">
+              <input type="text" name="milestones[<%= i %>][label]" class="form-control input-pop" value="<%= m.label %>">
             </div>
             <div class="col-md-2">
-              <input type="number" name="milestones[<%= index %>][weight]" class="form-control weight-input" value="<%= m.weight %>" onchange="validateMilestoneWeights()">
+              <input type="number" name="milestones[<%= i %>][weight]" class="form-control weight-input input-pop" value="<%= m.weight %>" onchange="validateMilestoneWeights()">
             </div>
             <div class="col-md-3">
-              <input type="date" name="milestones[<%= index %>][dueDate]" class="form-control" value="<%= m.dueDate ? m.dueDate.toISOString().split('T')[0] : '' %>">
+              <input type="date" name="milestones[<%= i %>][dueDate]" class="form-control input-pop" value="<%= m.dueDate?.toISOString().split('T')[0] || '' %>">
             </div>
             <div class="col-md-2">
-              <button type="button" class="btn btn-danger btn-sm" onclick="removeMilestone(<%= index %>)">🗑️</button>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMilestone(<%= i %>)">🗑️</button>
             </div>
           </div>
         <% }) %>
       <% } %>
     </div>
-    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addMilestone()">➕ Add Milestone</button>
-    <small class="text-muted d-block mt-1">Total weightage must be exactly 100%</small>
+    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addMilestone()">➕ Add Milestone</button>
+    <small class="text-muted d-block mt-1">Total milestone weight must be exactly 100%</small>
   </div>
 
+  <!-- Start / Target -->
   <div class="row">
     <div class="col-md-6 mb-3">
-      <label for="startValue">Start Value</label>
-      <input type="text" name="startValue" id="startValue" class="form-control" value="<%= kr.startValue ?? '' %>">
+      <label class="funky-label">Start Value</label>
+      <input type="text" name="startValue" class="form-control input-pop" value="<%= kr.startValue ?? '' %>">
     </div>
-
     <div class="col-md-6 mb-3">
-      <label for="targetValue">Target Value</label>
-      <input type="text" name="targetValue" id="targetValue" class="form-control" value="<%= kr.targetValue ?? '' %>">
+      <label class="funky-label">Target Value</label>
+      <input type="text" name="targetValue" class="form-control input-pop" value="<%= kr.targetValue ?? '' %>">
     </div>
   </div>
 
+  <!-- Due Dates -->
   <div class="row">
     <div class="col-md-6 mb-3">
-      <label for="dueDate">Due Date</label>
-      <input type="date" name="dueDate" id="dueDate" class="form-control" value="<%= kr.dueDate ? kr.dueDate.toISOString().split('T')[0] : '' %>">
+      <label class="funky-label">Due Date</label>
+      <input type="date" name="dueDate" class="form-control input-pop" value="<%= kr.dueDate?.toISOString().split('T')[0] || '' %>">
     </div>
     <div class="col-md-6 mb-3">
-      <label for="actualCompletionDate">Actual Completion Date</label>
-      <input type="date" name="actualCompletionDate" id="actualCompletionDate" class="form-control" value="<%= kr.actualCompletionDate ? kr.actualCompletionDate.toISOString().split('T')[0] : '' %>">
+      <label class="funky-label">Actual Completion Date</label>
+      <input type="date" name="actualCompletionDate" class="form-control input-pop" value="<%= kr.actualCompletionDate?.toISOString().split('T')[0] || '' %>">
     </div>
   </div>
 
+  <!-- Assigned Teams -->
   <div class="mb-3">
-    <label for="assignedTeams">Assigned Teams</label>
-    <select name="assignedTeams" multiple class="form-control">
-      <% 
-        const assignedTeamIds = kr.assignedTeams.map(t => String(t._id));
-        teams.forEach(team => { 
-      %>
-        <option value="<%= team._id %>" 
-          <%= assignedTeamIds.includes(String(team._id)) ? 'selected' : '' %>>
-          <%= team.name %>
-        </option>
+    <label class="funky-label">Assigned Teams</label>
+    <select name="assignedTeams" id="assignedTeams" multiple class="form-control" style="display:none;">
+      <% const selectedTeamIds = kr.assignedTeams.map(t => String(t._id)); %>
+      <% teams.forEach(team => { %>
+        <option value="<%= team._id %>" <%= selectedTeamIds.includes(String(team._id)) ? 'selected' : '' %>><%= team.name %></option>
       <% }) %>
     </select>
   </div>
 
+  <!-- Assigned Users -->
   <div class="mb-3">
-    <label for="assignedTo">Assigned Users</label>
-    <select name="assignedTo" multiple class="form-control">
-      <% 
-        const assignedUserIds = kr.assignedTo.map(u => String(u._id));
-        users.forEach(user => {
-      %>
-        <option value="<%= user._id %>" 
-          <%= assignedUserIds.includes(String(user._id)) ? 'selected' : '' %>>
+    <label class="funky-label">Assigned Users</label>
+    <select name="assignedTo" id="assignedTo" multiple class="form-control" style="display:none;">
+      <% const selectedUserIds = kr.assignedTo.map(u => String(u._id)); %>
+      <% users.forEach(user => { %>
+        <option value="<%= user._id %>" <%= selectedUserIds.includes(String(user._id)) ? 'selected' : '' %>>
           <%= user.name %> (<%= user.email %>)
         </option>
       <% }) %>
     </select>
   </div>
 
+  <!-- Progress Direction -->
   <div class="mb-3">
-    <label for="direction">Progress Direction</label>
-    <select name="direction" id="direction" class="form-control">
-      <option value="auto" <%= kr.direction === 'auto' ? 'selected' : '' %>>Auto (based on values)</option>
+    <label class="funky-label">Progress Direction</label>
+    <select name="direction" class="form-control input-pop">
+      <option value="auto" <%= kr.direction === 'auto' ? 'selected' : '' %>>Auto</option>
       <option value="increase" <%= kr.direction === 'increase' ? 'selected' : '' %>>Increase is better</option>
       <option value="decrease" <%= kr.direction === 'decrease' ? 'selected' : '' %>>Decrease is better</option>
     </select>
   </div>
 
-  <button type="submit" class="btn btn-success mt-3">💾 Save Changes</button>
+  <button type="submit" class="btn btn-success">💾 Save Key Result</button>
+  <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary ms-2">⬅ Back</a>
 </form>
 
-<a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary mt-3">⬅ Back</a>
-
+<!-- 🧠 JS for Milestones + Typeahead Multiselect -->
 <script>
   let milestoneCount = <%= kr.milestones?.length || 0 %>;
 
   function handleMetricTypeChange(value) {
-    const section = document.getElementById('milestonesSection');
-    section.style.display = value === 'milestone' ? 'block' : 'none';
+    document.getElementById('milestonesSection').style.display = value === 'milestone' ? 'block' : 'none';
   }
 
   function addMilestone(label = '', weight = 20, date = '') {
@@ -146,45 +121,83 @@
     const row = document.createElement('div');
     row.className = 'row align-items-center mb-2';
     row.id = `milestone-row-${milestoneCount}`;
-
     row.innerHTML = `
-      <div class="col-md-5">
-        <input type="text" name="milestones[${milestoneCount}][label]" class="form-control" value="${label}">
-      </div>
-      <div class="col-md-2">
-        <input type="number" name="milestones[${milestoneCount}][weight]" class="form-control weight-input" value="${weight}" onchange="validateMilestoneWeights()">
-      </div>
-      <div class="col-md-3">
-        <input type="date" name="milestones[${milestoneCount}][dueDate]" class="form-control" value="${date}">
-      </div>
-      <div class="col-md-2">
-        <button type="button" class="btn btn-danger btn-sm" onclick="removeMilestone(${milestoneCount})">🗑️</button>
-      </div>
+      <div class="col-md-5"><input type="text" name="milestones[${milestoneCount}][label]" class="form-control input-pop" value="${label}"></div>
+      <div class="col-md-2"><input type="number" name="milestones[${milestoneCount}][weight]" class="form-control weight-input input-pop" value="${weight}" onchange="validateMilestoneWeights()"></div>
+      <div class="col-md-3"><input type="date" name="milestones[${milestoneCount}][dueDate]" class="form-control input-pop" value="${date}"></div>
+      <div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMilestone(${milestoneCount})">🗑️</button></div>
     `;
-
     container.appendChild(row);
     milestoneCount++;
     validateMilestoneWeights();
   }
 
-  function removeMilestone(index) {
-    const row = document.getElementById(`milestone-row-${index}`);
-    if (row) {
-      row.remove();
-      validateMilestoneWeights();
-    }
+  function removeMilestone(i) {
+    document.getElementById(`milestone-row-${i}`)?.remove();
+    validateMilestoneWeights();
   }
 
   function validateMilestoneWeights() {
-    const weights = document.querySelectorAll('.weight-input');
-    let total = 0;
-    weights.forEach(w => total += parseFloat(w.value) || 0);
-
-    const list = document.getElementById('milestoneList');
-    if (total !== 100) {
-      list.classList.add('border', 'border-danger');
-    } else {
-      list.classList.remove('border', 'border-danger');
-    }
+    const weights = [...document.querySelectorAll('.weight-input')];
+    const total = weights.reduce((sum, w) => sum + (parseFloat(w.value) || 0), 0);
+    document.getElementById('milestoneList').classList.toggle('border-danger', total !== 100);
   }
+
+  function enhanceMultiSelect(selectId) {
+    const select = document.getElementById(selectId);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'multi-select-wrapper mb-2';
+
+    const input = document.createElement('input');
+    input.className = 'form-control mb-1';
+    input.placeholder = 'Type and press Enter...';
+
+    const chipList = document.createElement('ul');
+    chipList.className = 'selected-list';
+
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(input);
+    wrapper.appendChild(chipList);
+    select.style.display = 'none';
+
+    const selected = new Set([...select.selectedOptions].map(opt => opt.value));
+
+    function renderChips() {
+      chipList.innerHTML = '';
+      [...select.options].forEach(opt => {
+        if (selected.has(opt.value)) {
+          const chip = document.createElement('li');
+          chip.className = 'selected-chip';
+          chip.textContent = opt.text;
+          chip.onclick = () => {
+            selected.delete(opt.value);
+            opt.selected = false;
+            renderChips();
+          };
+          chipList.appendChild(chip);
+        }
+      });
+    }
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const term = input.value.toLowerCase().trim();
+        const match = [...select.options].find(o => o.text.toLowerCase().includes(term) && !selected.has(o.value));
+        if (match) {
+          selected.add(match.value);
+          match.selected = true;
+          input.value = '';
+          renderChips();
+        }
+      }
+    });
+
+    renderChips();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    enhanceMultiSelect('assignedTeams');
+    enhanceMultiSelect('assignedTo');
+  });
 </script>

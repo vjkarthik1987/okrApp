@@ -2,7 +2,7 @@
 <% title = 'Objectives' %>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2 class="mb-0"><i class="ph ph-clipboard-text"></i> Team Objectives</h2>
+  <h2 class="mb-0 text-gradient"><i class="ph ph-clipboard-text"></i> Team Objectives</h2>
   <a href="/<%= orgName %>/objectives/new" class="btn btn-primary">
     <i class="ph ph-plus-circle"></i> New Objective
   </a>
@@ -11,7 +11,7 @@
 <form method="GET" class="row g-3 align-items-end mb-4">
   <div class="col-auto">
     <label for="quarter" class="form-label">Cycle</label>
-    <select name="cycle" id="quarter" class="form-select" onchange="this.form.submit()">
+    <select name="cycle" id="quarter" class="form-select input-pop" onchange="this.form.submit()">
       <option value="">All</option>
       <% enabledCycles.forEach(c => { %>
         <option value="<%= c.label %>" <%= c.label === cycle ? 'selected' : '' %>><%= c.label %></option>
@@ -22,7 +22,7 @@
   <% if (!user.isSuperAdmin) { %>
     <div class="col-auto">
       <label for="teamFilter" class="form-label">Team</label>
-      <select name="teamId" id="teamFilter" class="form-select" onchange="this.form.submit()">
+      <select name="teamId" id="teamFilter" class="form-select input-pop" onchange="this.form.submit()">
         <option value="" <%= !selectedTeamId ? 'selected' : '' %>>All My Teams</option>
         <% accessibleTeams.forEach(team => { %>
           <option value="<%= team._id %>" <%= (selectedTeamId && team._id.toString() === selectedTeamId) ? 'selected' : '' %>>
@@ -56,7 +56,14 @@
       <tbody>
         <% objectives.forEach(obj => { %>
           <tr>
-            <td><strong><%= obj.title %></strong></td>
+            <td>
+              <div class="d-flex flex-column">
+                <strong><%= obj.title %></strong>
+                <% if (obj.description) { %>
+                  <a href="?highlight=<%= obj._id %>" class="small text-primary mt-1">📄 View Description</a>
+                <% } %>
+              </div>
+            </td>
             <td><%= obj.teamId?.name || 'N/A' %></td>
             <td>
               <% if (obj.assignedTeams?.length > 0) { %>
@@ -84,8 +91,9 @@
             <td>
               <div class="progress" style="height: 20px;">
                 <div class="progress-bar 
-                    <%= obj.progressValue >= 75 ? 'bg-success' : obj.progressValue >= 50 ? 'bg-info' : obj.progressValue >= 25 ? 'bg-warning text-dark' : 'bg-danger' %>"
-                    role="progressbar" style="width: <%= obj.progressValue %>%; min-width: 40px;">
+                  <%= obj.progressValue >= 75 ? 'bg-success' : obj.progressValue >= 50 ? 'bg-info' : obj.progressValue >= 25 ? 'bg-warning text-dark' : 'bg-danger' %>"
+                  role="progressbar"
+                  style="width: <%= obj.progressValue %>%; min-width: 40px;">
                   <%= obj.progressValue %>%
                 </div>
               </div>
@@ -100,7 +108,7 @@
                 <i class="ph ph-pencil-simple-line"></i> Edit
               </a>
               <form action="/<%= orgName %>/objectives/<%= obj._id %>/delete" method="POST" style="display:inline">
-                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">
+                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this objective?')">
                   <i class="ph ph-trash"></i> Delete
                 </button>
               </form>

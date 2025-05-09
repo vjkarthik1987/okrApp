@@ -61,27 +61,84 @@
   .btn-login:hover {
     background: #2563eb;
   }
+  .form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  @keyframes wave {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(14deg); }
+    40% { transform: rotate(-8deg); }
+    60% { transform: rotate(14deg); }
+    80% { transform: rotate(-4deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  .login-title::after {
+    content: ' 👋';
+    display: inline-block;
+    animation: wave 2s infinite;
+    transform-origin: 70% 70%;
+  }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px);}
     to { opacity: 1; transform: translateY(0);}
   }
+  .toggle-password {
+    position: absolute;
+    top: 38px;
+    right: 12px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #64748b;
+    user-select: none;
+  }
+
+  .toggle-password:hover {
+    color: #3b82f6;
+  }
 </style>
 
-<div class="login-container">
-  <div class="login-title">Welcome Back 👋</div>
+<div class="login-container mx-3">
+  <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger text-sm text-center" style="font-size: 0.95rem; padding: 0.5rem; border-radius: 0.5rem;">
+      <%= error %>
+    </div>
+  <% } %>
+  <div class="login-title">Welcome Back</div>
+  <p class="text-center mb-4" style="color: #64748b; font-size: 0.95rem;">
+    Enter your credentials to access your organization dashboard.
+  </p>
   <form action="/<%= orgName %>/auth/login" method="POST">
     <div class="mb-3">
       <label class="form-label" for="email">Email</label>
       <input type="email" class="form-control" id="email" name="email" required>
     </div>
-    <div class="mb-3">
+    <div class="mb-3 position-relative">
       <label class="form-label" for="password">Password</label>
       <input type="password" class="form-control" id="password" name="password" required>
+      <span class="toggle-password" onclick="togglePassword()" title="Show/Hide">👁️</span>
     </div>
     <div class="mb-3 text-end">
       <a href="/<%= orgName %>/auth/forgot-password" class="text-decoration-none" style="font-size: 0.9rem; color: #3b82f6;">Forgot Password?</a>
     </div>
-    <button class="btn-login" type="submit">Login →</button>
+    <button class="btn-login" type="submit">🚀 Let's Go</button>
   </form>
 </div>
+
+<script>
+  function togglePassword() {
+    const input = document.getElementById('password');
+    const toggle = document.querySelector('.toggle-password');
+    if (input.type === 'password') {
+      input.type = 'text';
+      toggle.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      toggle.textContent = '👁️';
+    }
+  }
+</script>

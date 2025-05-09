@@ -1,6 +1,7 @@
 // File: routes/assistant.js
 const express = require('express');
 const router = express.Router({ mergeParams: true });
+const QueryLog = require('../models/QueryLog');
 
 const { isSuperAdmin } = require('../utils/checkRoles');
 const { isLoggedIn } = require('../middleware/auth');

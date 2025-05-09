@@ -1,56 +1,51 @@
 <% layout('layouts/dashboard') %>
 <% title = 'View Key Result' %>
 
+<h2 class="text-gradient mb-3">📈 Key Result: <%= kr.title %></h2>
 
-<h2>📈 Key Result for: <%= objective.title %></h2>
-<div class="mb-2">
-    <a href="/<%= orgName %>/initiatives/new?keyResultId=<%= kr._id %>" class="btn btn-primary mt-3">
-        ➕ Create Initiative
-    </a>
-</div>
-<div>
-    <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary mb-3">⬅ Back to KRs</a>
+<div class="mb-4 d-flex flex-wrap gap-2">
+  <a href="/<%= orgName %>/initiatives/new?keyResultId=<%= kr._id %>" class="btn btn-primary">➕ Create Initiative</a>
+  <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults" class="btn btn-outline-secondary">⬅ Back to Key Results</a>
+  <a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/edit" class="btn btn-outline-primary">✏️ Edit this KR</a>
 </div>
 
-<div class="card mb-4">
+<div class="card shadow-sm mb-4 animated-form">
   <div class="card-body">
-    <h4><%= kr.title %></h4>
+    <h4 class="mb-3"><%= kr.title %></h4>
 
-    <dl class="row mt-3">
-      <dt class="col-sm-3">Metric Type:</dt>
-      <dd class="col-sm-9"><%= kr.metricType %></dd>
+    <dl class="row">
+      <dt class="col-sm-4 funky-label">📊 Metric Type</dt>
+      <dd class="col-sm-8"><%= kr.metricType %></dd>
 
-      <dt class="col-sm-3">Start Value:</dt>
-      <dd class="col-sm-9"><%= kr.startValue ?? '-' %></dd>
+      <dt class="col-sm-4 funky-label">🔢 Start Value</dt>
+      <dd class="col-sm-8"><%= kr.startValue ?? '—' %></dd>
 
-      <dt class="col-sm-3">Target Value:</dt>
-      <dd class="col-sm-9"><%= kr.targetValue ?? '-' %></dd>
+      <dt class="col-sm-4 funky-label">🎯 Target Value</dt>
+      <dd class="col-sm-8"><%= kr.targetValue ?? '—' %></dd>
 
-      <dt class="col-sm-3">Progress:</dt>
-      <dd class="col-sm-9"><%= kr.progressValue %>%</dd>
+      <dt class="col-sm-4 funky-label">📈 Progress</dt>
+      <dd class="col-sm-8"><span class="badge bg-success px-3 py-2"><%= kr.progressValue %>%</span></dd>
 
-      <dt class="col-sm-3">Due Date:</dt>
-      <dd class="col-sm-9"><%= kr.dueDate ? kr.dueDate.toDateString() : '-' %></dd>
+      <dt class="col-sm-4 funky-label">📅 Due Date</dt>
+      <dd class="col-sm-8"><%= kr.dueDate ? kr.dueDate.toDateString() : '—' %></dd>
 
-      <dt class="col-sm-3">Actual Completion Date:</dt>
-      <dd class="col-sm-9"><%= kr.actualCompletionDate ? kr.actualCompletionDate.toDateString() : '-' %></dd>
+      <dt class="col-sm-4 funky-label">✅ Actual Completion Date</dt>
+      <dd class="col-sm-8"><%= kr.actualCompletionDate ? kr.actualCompletionDate.toDateString() : '—' %></dd>
     </dl>
 
     <% if (kr.metricType === 'milestone' && kr.milestones.length > 0) { %>
-      <h5 class="mt-4">🛤 Milestones</h5>
-      <ul class="list-group">
+      <h5 class="mt-4 funky-label">🛤 Milestones</h5>
+      <ul class="list-group mb-4">
         <% kr.milestones.forEach(m => { %>
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span><%= m.label %> (<%= m.weight %>%)</span>
             <span>
-              <% if (m.completed) { %>
-                ✅ Completed
-              <% } else { %>
-                ⏳ Pending
-              <% } %>
+              <strong><%= m.label %></strong> — <span class="text-muted"><%= m.weight %>%</span>
               <% if (m.dueDate) { %>
-                <small class="text-muted ms-2">(<%= m.dueDate.toDateString() %>)</small>
+                <br><small class="text-muted">Due: <%= m.dueDate.toDateString() %></small>
               <% } %>
+            </span>
+            <span class="badge <%= m.completed ? 'bg-success' : 'bg-warning' %> px-3 py-2">
+              <%= m.completed ? '✅ Completed' : '⏳ Pending' %>
             </span>
           </li>
         <% }) %>
@@ -58,18 +53,15 @@
     <% } %>
 
     <% if (kr.updates && kr.updates.length > 0) { %>
-      <h5 class="mt-4">📝 Updates</h5>
+      <h5 class="funky-label">📝 Progress Updates</h5>
       <ul class="list-group">
         <% kr.updates.slice().reverse().forEach(update => { %>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span><%= update.updateText || 'No note' %></span>
+          <li class="list-group-item d-flex justify-content-between">
+            <span><%= update.updateText || 'No note provided' %></span>
             <small class="text-muted"><%= new Date(update.updateDate).toLocaleString() %></small>
           </li>
         <% }) %>
       </ul>
     <% } %>
-
   </div>
 </div>
-
-<a href="/<%= orgName %>/objectives/<%= objective._id %>/keyresults/<%= kr._id %>/edit" class="btn btn-primary">✏️ Edit this KR</a>

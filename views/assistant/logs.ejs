@@ -1,29 +1,56 @@
 <% layout('layouts/dashboard') %>
 
 <style>
-    table td, table th {
-        word-wrap: break-word;
-        word-break: break-word;
-        vertical-align: top;
-    }
+  table td, table th {
+    word-wrap: break-word;
+    word-break: break-word;
+    vertical-align: top;
+  }
 
-    td pre, td code {
-        white-space: pre-wrap;       /* wrap text inside <pre> or <code> */
-        word-break: break-word;
-    }
+  td pre, td code {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #f9fafb;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+
+  td ul {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-left: 1rem;
+    margin-bottom: 0;
+  }
+
+  .timestamp-badge {
+    font-size: 0.8rem;
+    color: #6c757d;
+    background-color: #f1f3f5;
+    padding: 3px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .table-responsive {
+    border-radius: 8px;
+    overflow: auto;
+  }
 </style>
 
-<h2 class="mb-4">📜 Assistant Query Logs</h2>
+<h2 class="mb-4 text-gradient">📜 Assistant Query Logs</h2>
 
 <div class="table-responsive">
-  <table class="table table-bordered table-striped">
+  <table class="table table-bordered table-hover align-middle shadow-sm">
     <thead class="table-light">
       <tr>
-        <th>User</th>
-        <th>Query</th>
-        <th>Response</th>
-        <th>Matched Context</th>
-        <th>Time</th>
+        <th>👤 User</th>
+        <th>❓ Query</th>
+        <th>🤖 Response</th>
+        <th>📌 Matched Context</th>
+        <th>🕒 Time</th>
       </tr>
     </thead>
     <tbody>
@@ -33,16 +60,16 @@
           <td><pre class="mb-0"><%= log.query %></pre></td>
           <td><pre class="mb-0"><%= log.response %></pre></td>
           <td>
-            <ul class="mb-0" style="padding-left: 1rem;">
+            <ul>
               <% log.matchedChunks.forEach(chunk => { %>
-                <li>
+                <li class="mb-2">
                   <div><strong>Score:</strong> <%= chunk.similarity.toFixed(3) %></div>
-                  <code style="font-size: 0.85em;"><%= chunk.text.slice(0, 200) %>...</code>
+                  <code><%= chunk.text.slice(0, 200) %>...</code>
                 </li>
               <% }) %>
             </ul>
           </td>
-          <td><%= log.createdAt.toLocaleString() %></td>
+          <td><span class="timestamp-badge"><%= log.createdAt.toLocaleString() %></span></td>
         </tr>
       <% }) %>
     </tbody>

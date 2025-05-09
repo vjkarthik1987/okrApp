@@ -1,10 +1,15 @@
 <% layout('layouts/dashboard') %>
+<% title = 'View Context File' %>
 
-<h2>👁️ <%= file.title %></h2>
-<p class="text-muted"><%= file.description %></p>
+<h2 class="mb-2">👁️ <%= file.title %></h2>
+<p class="text-muted mb-1"><%= file.description %></p>
 <p><small class="text-muted">🕒 Uploaded on: <%= file.createdAt.toDateString() %></small></p>
 
 <hr>
-<pre class="bg-light p-3 border rounded" style="white-space: pre-wrap;"><%= file.content %></pre>
 
-<a href="/<%= orgName %>/context-files" class="btn btn-secondary mt-3">⬅️ Back</a>
+<div class="bg-light p-4 rounded border shadow-sm" style="white-space: pre-wrap; font-family: 'Courier New', monospace; line-height: 1.6; font-size: 0.95rem;">
+  <%= file.content %>
+</div>
+
+<a href="/<%= orgName %>/context-files" class="btn btn-outline-secondary mt-4">⬅️ Back to Context Files</a>
+s

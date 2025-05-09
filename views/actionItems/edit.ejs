@@ -3,30 +3,38 @@
 
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2 class="mb-0">✏️ Update Action Item</h2>
-  <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary">
-    ⬅ Back
-  </a>
+  <h2 class="mb-0 text-gradient">✏️ Update Action Item</h2>
+  <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary">⬅ Back</a>
 </div>
 
 <!-- Alert Note -->
 <div class="alert alert-warning small">
-  <strong>Note:</strong> Manager Comments are maintained separately as part of Action Item history. Editing is not allowed for manager comments.
+  <strong>Heads-up:</strong> Manager comments are shown below and can't be edited here.
 </div>
 
 <!-- Update Form -->
-<form action="/<%= orgName %>/actionItems/<%= item._id %>?_method=PUT" method="POST" class="needs-validation" novalidate>
+<form action="/<%= orgName %>/actionItems/<%= item._id %>?_method=PUT" method="POST" class="animated-form">
 
-  <!-- Updates Section -->
-  <div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-      📋 Update Progress
-    </div>
+  <!-- 📋 Updates -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-primary text-white fw-bold">📋 Update Progress</div>
     <div class="card-body">
       <div class="mb-3">
-        <label for="updateText" class="form-label"><b>Update Notes</b></label>
-        <textarea name="updateText" id="updateText" class="form-control" rows="3" placeholder="e.g., Completed initial testing..." required></textarea>
-        <div class="form-text">Describe what changed since the last update.</div>
+        <label for="updateText" class="form-label funky-label">📝 Update Notes</label>
+        <textarea name="updateText" id="updateText" class="form-control input-pop" rows="3" placeholder="e.g., Completed initial testing..." required></textarea>
+        <div class="form-text">What changed since last time?</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="status" class="form-label funky-label">📍 Status</label>
+        <select name="status" class="form-select input-pop">
+          <option value="Not Started" <%= item.status === 'Not Started' ? 'selected' : '' %>>Not Started</option>
+          <option value="In Progress" <%= item.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+          <option value="Completed" <%= item.status === 'Completed' ? 'selected' : '' %>>Completed</option>
+          <option value="Blocked" <%= item.status === 'Blocked' ? 'selected' : '' %>>Blocked</option>
+          <option value="Deferred" <%= item.status === 'Deferred' ? 'selected' : '' %>>Deferred</option>
+          <option value="On Hold" <%= item.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
+        </select>
       </div>
 
       <h6 class="mt-4">📚 Previous Updates</h6>
@@ -40,16 +48,14 @@
           <% }) %>
         </ul>
       <% } else { %>
-        <p class="text-muted">No previous updates yet.</p>
+        <p class="text-muted">No updates yet.</p>
       <% } %>
     </div>
   </div>
 
-  <!-- Manager Comments Section -->
-  <div class="card mb-4">
-    <div class="card-header bg-info text-white">
-      🧑‍💼 Manager Comments (Read-Only)
-    </div>
+  <!-- 🧑‍💼 Manager Comments -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-info text-white fw-bold">🧑‍💼 Manager Comments (Read-Only)</div>
     <div class="card-body">
       <% if (item.comments && item.comments.length > 0) { %>
         <ul class="list-group">
@@ -66,43 +72,42 @@
           <% }) %>
         </ul>
       <% } else { %>
-        <p class="text-muted">No manager comments yet.</p>
+        <p class="text-muted">No comments yet.</p>
       <% } %>
     </div>
   </div>
 
-  <!-- Edit Other Details Section -->
-  <div class="card mb-4">
-    <div class="card-header bg-secondary text-white">
-      ⚙️ Edit Action Item Details
-    </div>
+  <!-- ⚙️ Edit Fields -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-secondary text-white fw-bold">⚙️ Action Item Details</div>
     <div class="card-body">
-
       <div class="mb-3">
-        <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
-        <input type="text" name="title" id="title" value="<%= item.title %>" class="form-control" required>
+        <label for="title" class="form-label funky-label">📌 Title</label>
+        <input type="text" name="title" id="title" value="<%= item.title %>" class="form-control input-pop" required>
       </div>
 
       <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea name="description" id="description" class="form-control" rows="3"><%= item.description %></textarea>
+        <label for="description" class="form-label funky-label">🧾 Description</label>
+        <textarea name="description" id="description" class="form-control input-pop" rows="3"><%= item.description %></textarea>
       </div>
 
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label for="assignedTo" class="form-label">Assigned To</label>
-          <select name="assignedTo" class="form-select">
+          <label for="assignedTo" class="form-label funky-label">🙋 Assigned To</label>
+          <small class="form-text text-muted mb-1">Start typing to search</small>
+          <input type="text" id="assignedToText" class="form-control input-pop" list="assignedToList" value="<%= users.find(u => u._id.equals(item.assignedTo))?.name || '' %>" placeholder="e.g., Binesh">
+          <input type="hidden" name="assignedTo" id="assignedTo" value="<%= item.assignedTo %>">
+
+          <datalist id="assignedToList">
             <% users.forEach(user => { %>
-              <option value="<%= user._id %>" <%= item.assignedTo.equals(user._id) ? 'selected' : '' %>>
-                <%= user.name || user.email %>
-              </option>
+              <option data-id="<%= user._id %>" value="<%= user.name || user.email %>"></option>
             <% }) %>
-          </select>
+          </datalist>
         </div>
 
         <div class="col-md-6 mb-3">
-          <label for="cycle" class="form-label">Cycle</label>
-          <select name="cycle" class="form-select">
+          <label for="cycle" class="form-label funky-label">📆 OKR Cycle</label>
+          <select name="cycle" class="form-select input-pop">
             <% cycles.forEach(c => { %>
               <option value="<%= c._id %>" <%= item.cycle.equals(c._id) ? 'selected' : '' %>><%= c.label %></option>
             <% }) %>
@@ -112,8 +117,8 @@
 
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label for="initiativeId" class="form-label">Initiative (Optional)</label>
-          <select name="initiativeId" id="initiativeId" class="form-select">
+          <label for="initiativeId" class="form-label funky-label">🚀 Initiative</label>
+          <select name="initiativeId" class="form-select input-pop">
             <option value="">-- None --</option>
             <% initiatives.forEach(i => { %>
               <option value="<%= i._id %>" <%= item.initiativeId?.toString() === i._id.toString() ? 'selected' : '' %>>
@@ -123,36 +128,32 @@
           </select>
         </div>
 
-        <div class="col-md-6 mb-3">
-          <label for="status" class="form-label">Status</label>
-          <select name="status" id="status" class="form-select">
-            <option value="Not Started" <%= item.status === 'Not Started' ? 'selected' : '' %>>Not Started</option>
-            <option value="In Progress" <%= item.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
-            <option value="Completed" <%= item.status === 'Completed' ? 'selected' : '' %>>Completed</option>
-            <option value="Blocked" <%= item.status === 'Blocked' ? 'selected' : '' %>>Blocked</option>
-            <option value="Deferred" <%= item.status === 'Deferred' ? 'selected' : '' %>>Deferred</option>
-            <option value="On Hold" <%= item.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
-          </select>
-        </div>
-      </div>
-
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label for="dueDate" class="form-label">Due Date</label>
-          <input type="date" name="dueDate" class="form-control" value="<%= item.dueDate ? item.dueDate.toISOString().split('T')[0] : '' %>">
+          <label for="dueDate" class="form-label funky-label">📅 Due Date</label>
+          <input type="date" name="dueDate" class="form-control input-pop" value="<%= item.dueDate ? item.dueDate.toISOString().split('T')[0] : '' %>">
         </div>
 
         <div class="col-md-6 mb-3">
-          <label for="meeting" class="form-label">Meeting</label>
-          <input type="text" name="meeting" class="form-control" value="<%= item.meeting %>">
+          <label for="meeting" class="form-label funky-label">💬 Meeting</label>
+          <input type="text" name="meeting" class="form-control input-pop" value="<%= item.meeting %>">
         </div>
       </div>
     </div>
   </div>
 
   <!-- Save Button -->
-  <div class="text-end">
-    <button type="submit" class="btn btn-success">💾 Update Action Item</button>
+  <div class="text-end m-3">
+    <button type="submit" class="btn btn-primary px-4 py-2">💾 Update Action Item</button>
   </div>
 
 </form>
+
+<script>
+  document.getElementById('assignedToText').addEventListener('input', function () {
+    const input = this.value;
+    const options = document.querySelectorAll('#assignedToList option');
+    const matched = Array.from(options).find(opt => opt.value === input);
+    document.getElementById('assignedTo').value = matched ? matched.dataset.id : '';
+  });
+</script>

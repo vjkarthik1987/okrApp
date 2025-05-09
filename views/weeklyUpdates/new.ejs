@@ -1,20 +1,20 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Generate Weekly Summary' %>
 
-<h2 class="mb-4">📘 Generate Team Weekly Summary</h2>
+<h2 class="mb-4 text-gradient">📘 Generate Team Weekly Summary</h2>
 
 <% if (success && success.length > 0) { %>
-  <div class="alert alert-success"><%= success %></div>
+  <div class="alert alert-success funky-label"><%= success %></div>
 <% } %>
 <% if (error && error.length > 0) { %>
-  <div class="alert alert-danger"><%= error %></div>
+  <div class="alert alert-danger funky-label"><%= error %></div>
 <% } %>
 
-<form method="POST" action="/<%= orgName %>/weeklyUpdates/generate">
-  <div class="row mb-3">
+<form method="POST" action="/<%= orgName %>/weeklyUpdates/generate" class="animated-form">
+  <div class="row mb-4">
     <div class="col-md-6">
-      <label for="teamId" class="form-label">Team</label>
-      <select name="teamId" id="teamId" class="form-select" required>
+      <label for="teamId" class="form-label funky-label">👥 Team</label>
+      <select name="teamId" id="teamId" class="form-select input-pop" required>
         <option value="">-- Select Team --</option>
         <% teams.forEach(team => { %>
           <option value="<%= team._id %>"><%= team.name %></option>
@@ -23,8 +23,8 @@
     </div>
 
     <div class="col-md-6">
-      <label for="weekCycle" class="form-label">Week Cycle</label>
-      <select name="weekCycle" id="weekCycle" class="form-select" required>
+      <label for="weekCycle" class="form-label funky-label">📆 Week Cycle</label>
+      <select name="weekCycle" id="weekCycle" class="form-select input-pop" required>
         <option value="">-- Select Week --</option>
         <% weekCycles.forEach(wc => { %>
           <option value="<%= wc._id %>"><%= wc.label %></option>
@@ -33,47 +33,47 @@
     </div>
   </div>
 
-  <button type="submit" class="btn btn-primary">🔄 Generate Summary</button>
+  <button type="submit" class="btn btn-primary">✨ Generate Summary</button>
 </form>
 
 <% if (preview) { %>
-  <hr>
-  <h4>Preview:</h4>
+  <hr class="my-5">
+  <h4 class="text-gradient">🔍 Preview</h4>
 
   <p><strong>Team:</strong> <%= preview.teamName %></p>
   <p><strong>Week:</strong> <%= preview.weekLabel %></p>
 
-  <h5>Objectives:</h5>
-  <ul>
+  <h5 class="mt-4">🎯 Objectives</h5>
+  <ul class="ps-3">
     <% preview.objectives.forEach(obj => { %>
       <li><%= obj.title %></li>
     <% }) %>
   </ul>
 
-  <h5>Key Results:</h5>
-  <ul>
+  <h5 class="mt-4">📊 Key Results</h5>
+  <ul class="ps-3">
     <% preview.keyResults.forEach(kr => { %>
-      <li><%= kr.title %> - <%= kr.progressValue %>%</li>
+      <li><%= kr.title %> – <%= kr.progressValue %>%</li>
     <% }) %>
   </ul>
 
-  <h5>Action Items:</h5>
-  <ul>
+  <h5 class="mt-4">📋 Action Items</h5>
+  <ul class="ps-3">
     <% preview.actionItems.forEach(ai => { %>
-      <li><%= ai.title %> - <%= ai.status %></li>
+      <li><%= ai.title %> – <%= ai.status %></li>
     <% }) %>
   </ul>
 
-  <h5>Diary Entries:</h5>
-  <ul>
+  <h5 class="mt-4">📝 Diary Entries</h5>
+  <ul class="ps-3">
     <% preview.diaryEntries.forEach(entry => { %>
       <li><%= entry.userName %>: <%= entry.summary %></li>
     <% }) %>
   </ul>
 
   <% if (preview.nonCompliantUsers.length > 0) { %>
-    <h5>Non-Compliant Users (No Diary Entry):</h5>
-    <ul>
+    <h5 class="mt-4 text-danger">🚫 Non-Compliant Users</h5>
+    <ul class="ps-3">
       <% preview.nonCompliantUsers.forEach(u => { %>
         <li><%= u.name %></li>
       <% }) %>

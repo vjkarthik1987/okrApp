@@ -1,42 +1,57 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Edit Team' %>
 
-<h2>Edit Team: <%= team.name %></h2>
+<h2 class="mb-4">🛠️ Edit Team: <%= team.name %></h2>
 
-<form action="/<%= orgName %>/teams/<%= team._id %>?_method=PUT" method="POST">
+<form action="/<%= orgName %>/teams/<%= team._id %>?_method=PUT" method="POST" class="animated-form">
+  
+  <!-- Team Name -->
   <div class="mb-3">
-    <label>Team Name:</label>
-    <input type="text" name="name" class="form-control" value="<%= team.name %>" required>
+    <label for="name" class="form-label funky-label">📛 Team Name</label>
+    <input type="text" name="name" id="name" class="form-control input-pop" value="<%= team.name %>" required>
   </div>
 
+  <!-- Parent Team -->
   <div class="mb-3">
-    <label>Parent Team:</label>
-    <select name="parentTeam" class="form-control">
+    <label for="parentTeam" class="form-label funky-label">🏢 Parent Team</label>
+    <select name="parentTeam" id="parentTeam" class="form-select input-pop">
       <option value="">None</option>
       <% teams.forEach(t => { %>
         <option value="<%= t._id %>" <%= team.parentTeam?.toString() === t._id.toString() ? 'selected' : '' %>><%= t.name %></option>
       <% }) %>
     </select>
+    <small class="text-muted">Select the parent team this one rolls up to.</small>
   </div>
 
+  <!-- Function Head -->
   <div class="mb-3">
-    <label>Function Head:</label>
-    <select name="functionHead" class="form-control">
+    <label for="functionHead" class="form-label funky-label">👨‍💼 Function Head</label>
+    <select name="functionHead" id="functionHead" class="form-select input-pop">
       <option value="">Select</option>
       <% users.forEach(u => { %>
-        <option value="<%= u._id %>" <%= team.functionHead?.toString() === u._id.toString() ? 'selected' : '' %>><%= u.name %> (<%= u.email %>)</option>
+        <option value="<%= u._id %>" <%= team.functionHead?.toString() === u._id.toString() ? 'selected' : '' %>>
+          <%= u.name %> (<%= u.email %>)
+        </option>
       <% }) %>
     </select>
+    <small class="text-muted">This person has top-level access to manage this function.</small>
   </div>
 
+  <!-- OKR Editors -->
   <div class="mb-3">
-    <label>OKR Editors (multi-select):</label>
-    <select name="okrEditors" class="form-control" multiple>
+    <label for="okrEditors" class="form-label funky-label">✍️ OKR Editors</label>
+    <select name="okrEditors" id="okrEditors" class="form-select input-pop" multiple>
       <% users.forEach(u => { %>
-        <option value="<%= u._id %>" <%= (team.okrEditors || []).includes(u._id.toString()) ? 'selected' : '' %>><%= u.name %> (<%= u.email %>)</option>
+        <option value="<%= u._id %>" <%= (team.okrEditors || []).includes(u._id.toString()) ? 'selected' : '' %>>
+          <%= u.name %> (<%= u.email %>)
+        </option>
       <% }) %>
     </select>
+    <small class="text-muted">These users can create and update OKRs for this team.</small>
   </div>
 
-  <button class="btn btn-success">Update Team</button>
+  <!-- Submit Button -->
+  <button class="btn btn-success mt-3">💾 Update Team</button>
 </form>
+
+<a href="/<%= orgName %>/teams" class="btn btn-outline-secondary mt-3">⬅ Back to Teams</a>

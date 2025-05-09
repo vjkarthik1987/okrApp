@@ -1,71 +1,72 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Action Item Details' %>
 
-<!-- Back Button -->
-<a href="/<%= orgName %>/manager-dashboard/team-action-items" class="btn btn-outline-secondary mb-4">
-  ⬅ Back to Team Action Items
-</a>
+<h2 class="text-gradient mb-4">📝 <%= item.title %></h2>
 
-<h2 class="mb-4">📝 <%= item.title %></h2>
+<div class="mb-4 d-flex flex-wrap gap-2">
+  <a href="/<%= orgName %>/manager-dashboard/team-action-items" class="btn btn-outline-secondary">⬅ Back to Team Action Items</a>
+</div>
 
-<!-- Basic Information -->
-<div class="row">
-  <div class="col-md-6">
-    <p><strong>Description:</strong> <%= item.description || '—' %></p>
-    <p><strong>Assigned To:</strong> <%= item.assignedTo?.name || item.assignedTo?.email || '—' %></p>
-    <p><strong>Assigned By:</strong> <%= item.assignedBy?.name || item.assignedBy?.email || '—' %></p>
-    <p><strong>Status:</strong> 
-      <% if (item.status === 'Completed') { %>
-        <span class="badge bg-success">✅ Completed</span>
-      <% } else if (item.status === 'In Progress') { %>
-        <span class="badge bg-warning text-dark">⏳ In Progress</span>
-      <% } else if (item.status === 'Blocked') { %>
-        <span class="badge bg-danger">🚫 Blocked</span>
-      <% } else if (item.status === 'Deferred') { %>
-        <span class="badge bg-secondary">🕐 Deferred</span>
-      <% } else if (item.status === 'On Hold') { %>
-        <span class="badge bg-info text-dark">⏸️ On Hold</span>
-      <% } else { %>
-        <span class="badge bg-primary">🆕 Not Started</span>
-      <% } %>
-    </p>
-    <p><strong>Due Date:</strong> <%= item.dueDate ? new Date(item.dueDate).toDateString() : '—' %></p>
-  </div>
+<!-- Details Card -->
+<div class="card shadow-sm mb-4 animated-form">
+  <div class="card-body">
+    <div class="row">
+      <!-- Left Column -->
+      <div class="col-md-6">
+        <p><strong class="funky-label">📄 Description:</strong><br> <%= item.description || '—' %></p>
+        <p><strong class="funky-label">👤 Assigned To:</strong> <%= item.assignedTo?.name || item.assignedTo?.email || '—' %></p>
+        <p><strong class="funky-label">🧑‍🏫 Assigned By:</strong> <%= item.assignedBy?.name || item.assignedBy?.email || '—' %></p>
+        <p><strong class="funky-label">📅 Due Date:</strong> <%= item.dueDate ? new Date(item.dueDate).toDateString() : '—' %></p>
+        <p><strong class="funky-label">📍 Status:</strong> 
+          <% if (item.status === 'Completed') { %>
+            <span class="badge bg-success">✅ Completed</span>
+          <% } else if (item.status === 'In Progress') { %>
+            <span class="badge bg-warning text-dark">⏳ In Progress</span>
+          <% } else if (item.status === 'Blocked') { %>
+            <span class="badge bg-danger">🚫 Blocked</span>
+          <% } else if (item.status === 'Deferred') { %>
+            <span class="badge bg-secondary">🕐 Deferred</span>
+          <% } else if (item.status === 'On Hold') { %>
+            <span class="badge bg-info text-dark">⏸️ On Hold</span>
+          <% } else { %>
+            <span class="badge bg-primary">🆕 Not Started</span>
+          <% } %>
+        </p>
+      </div>
 
-  <div class="col-md-6">
-    <p><strong>Meeting:</strong> <%= item.meeting || '—' %></p>
-    <p><strong>Cycle:</strong> <%= item.cycle?.label || '—' %></p>
-    <p><strong>Objective:</strong> <%= item.objectiveId?.title || '—' %></p>
-    <p><strong>Key Result:</strong> <%= item.keyResultId?.title || '—' %></p>
-    <p><strong>Initiative:</strong> <%= item.initiativeId?.title || '—' %></p>
+      <!-- Right Column -->
+      <div class="col-md-6">
+        <p><strong class="funky-label">🗓️ Cycle:</strong> <%= item.cycle?.label || '—' %></p>
+        <p><strong class="funky-label">📌 Meeting:</strong> <%= item.meeting || '—' %></p>
+        <p><strong class="funky-label">🎯 Objective:</strong> <%= item.objectiveId?.title || '—' %></p>
+        <p><strong class="funky-label">📊 Key Result:</strong> <%= item.keyResultId?.title || '—' %></p>
+        <p><strong class="funky-label">🚀 Initiative:</strong> <%= item.initiativeId?.title || '—' %></p>
+      </div>
+    </div>
   </div>
 </div>
 
-<hr>
-
 <!-- Update History -->
-<h5>📚 Update History</h5>
+<h5 class="funky-label mb-2">📚 Update History</h5>
 <% if (item.updates && item.updates.length > 0) { %>
   <ul class="list-group mb-4">
     <% item.updates.slice().reverse().forEach(u => { %>
-      <li class="list-group-item d-flex justify-content-between">
+      <li class="list-group-item d-flex justify-content-between align-items-center">
         <span><%= u.updateText %></span>
         <small class="text-muted"><%= new Date(u.updateDate).toLocaleString() %></small>
       </li>
     <% }) %>
   </ul>
 <% } else { %>
-  <p class="text-muted">No updates yet.</p>
+  <p class="text-muted">No updates added yet.</p>
 <% } %>
 
-<hr>
-
 <!-- Manager Comments -->
-<h5>🧑‍💼 Manager Comments</h5>
+<h5 class="funky-label mt-4 mb-2">🧑‍💼 Manager Comments</h5>
 <% if (item.comments && item.comments.length > 0) { %>
   <ul class="list-group">
     <% item.comments.slice().reverse().forEach(c => { %>
-      <li class="list-group-item d-flex justify-content-between">
+      <li class="list-group-item d-flex justify-content-between align-items-center">
         <div>
           <strong><%= c.commenter?.name || 'Manager' %>:</strong> <%= c.commentText %>
           <% if (c.newStatus) { %>
@@ -77,13 +78,12 @@
     <% }) %>
   </ul>
 <% } else { %>
-  <p class="text-muted">No manager comments yet.</p>
+  <p class="text-muted">No comments from managers yet.</p>
 <% } %>
 
+<!-- Footer Metadata -->
 <hr>
-
-<!-- Audit Metadata (Optional Nice Touch) -->
 <div class="small text-muted">
-  <p>Created on: <%= new Date(item.createdAt).toLocaleString() %></p>
-  <p>Last updated: <%= new Date(item.updatedAt).toLocaleString() %></p>
+  <p>📌 Created: <%= new Date(item.createdAt).toLocaleString() %></p>
+  <p>🔄 Last Updated: <%= new Date(item.updatedAt).toLocaleString() %></p>
 </div>

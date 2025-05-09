@@ -1,41 +1,49 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Manage OKR Cycles' %>
 
-<h2 class="mb-4">🧑‍💼 Manage OKR Cycles</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0 text-gradient">📅 Manage OKR Cycles</h2>
+</div>
 
+<!-- Generate Quarters -->
 <form method="POST" action="/<%= orgName %>/admin/cycles/seed" class="mb-4">
-  <div class="row g-2">
+  <div class="row g-2 align-items-center">
     <div class="col-auto">
-      <input type="number" name="year" class="form-control" placeholder="Enter Year (e.g., 2026)" required>
+      <input type="number" name="year" class="form-control input-pop" placeholder="Enter Year (e.g., 2026)" required>
     </div>
     <div class="col-auto">
-      <button class="btn btn-outline-primary">Generate 4 Quarters</button>
+      <button class="btn btn-primary">🔄 Generate 4 Quarters</button>
     </div>
   </div>
 </form>
 
+<!-- Table -->
 <% if (cycles.length === 0) { %>
-  <div class="alert alert-warning">No OKR cycles defined yet.</div>
+  <div class="alert alert-warning">🚫 No OKR cycles defined yet.</div>
 <% } else { %>
-  <table class="table table-bordered table-hover">
+  <table class="table table-bordered table-hover shadow-sm align-middle">
     <thead class="table-light">
       <tr>
-        <th>Cycle Label</th>
-        <th>Type</th>
-        <th>Start Date</th> <!-- NEW -->
-        <th>End Date</th>   <!-- NEW -->
-        <th>Enabled?</th>
-        <th>Toggle</th>
+        <th>🆔 Label</th>
+        <th>🧩 Type</th>
+        <th>📅 Start Date</th>
+        <th>📅 End Date</th>
+        <th>✅ Enabled?</th>
+        <th>⚙️ Toggle</th>
       </tr>
     </thead>
     <tbody>
       <% cycles.forEach(cycle => { %>
         <tr>
-          <td><%= cycle.label %></td>
+          <td><span class="fw-bold"><%= cycle.label %></span></td>
           <td><%= cycle.type %></td>
-          <td><%= cycle.startDate.toDateString() %></td> <!-- NEW -->
-          <td><%= cycle.endDate.toDateString() %></td>   <!-- NEW -->
-          <td><%= cycle.isEnabled ? '✅' : '❌' %></td>
+          <td><%= cycle.startDate.toDateString() %></td>
+          <td><%= cycle.endDate.toDateString() %></td>
+          <td>
+            <span class="badge <%= cycle.isEnabled ? 'bg-success' : 'bg-secondary' %>">
+              <%= cycle.isEnabled ? '✅ Enabled' : '❌ Disabled' %>
+            </span>
+          </td>
           <td>
             <form method="POST" action="/<%= orgName %>/admin/cycles/<%= cycle._id %>/toggle" style="display:inline">
               <button class="btn btn-sm <%= cycle.isEnabled ? 'btn-outline-danger' : 'btn-outline-success' %>">
@@ -46,5 +54,5 @@
         </tr>
       <% }) %>
     </tbody>
-  </table>  
+  </table>
 <% } %>
