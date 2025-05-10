@@ -1,24 +1,37 @@
 <% layout('layouts/dashboard') %>
 <% title = 'Add Action Item' %>
 
+<style>
+  .fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h2 class="mb-0 text-gradient">📝 Add Action Item</h2>
-  <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary">⬅ Back</a>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="#bulkUpload" class="btn btn-outline-primary">📤 Upload CSV</a>
+    <a href="/<%= orgName %>/actionItems" class="btn btn-outline-secondary">⬅ Back</a>
+  </div>
 </div>
 
-<form action="/<%= orgName %>/actionItems" method="POST" class="card p-4 mb-4 shadow-sm border-0 animated-form">
+<form action="/<%= orgName %>/actionItems" method="POST" class="card p-4 mb-4 shadow-sm border-0 animated-form fade-in">
   <div class="mb-3">
-    <label for="title" class="form-label funky-label">📌 Title <span class="text-danger">*</span></label>
+    <label for="title" class="form-label funky-label" data-bs-toggle="tooltip" title="Give your task a crisp, clear title">📌 Title <span class="text-danger">*</span></label>
     <input type="text" name="title" id="title" class="form-control input-pop" placeholder="e.g., Finalize onboarding flows" required>
   </div>
 
   <div class="mb-3">
-    <label for="description" class="form-label funky-label">🧾 Description</label>
+    <label for="description" class="form-label funky-label" data-bs-toggle="tooltip" title="Add context, steps, or notes">🧾 Description</label>
     <textarea name="description" id="description" class="form-control input-pop" rows="3" placeholder="Add context or next steps..."></textarea>
   </div>
 
   <div class="mb-3">
-    <label for="initiativeId" class="form-label funky-label">🚀 Initiative (Optional)</label>
+    <label for="initiativeId" class="form-label funky-label" data-bs-toggle="tooltip" title="Optionally link to an initiative">🚀 Initiative (Optional)</label>
     <% if (preselectedInitiativeId) { %>
       <input type="hidden" name="initiativeId" value="<%= preselectedInitiativeId %>">
       <% const selected = initiatives.find(i => i._id.toString() === preselectedInitiativeId.toString()); %>
@@ -35,7 +48,7 @@
 
   <div class="row">
     <div class="col-md-6 mb-3">
-      <label for="assignedTo" class="form-label funky-label">🙋 Assign To <span class="text-danger">*</span></label>
+      <label for="assignedTo" class="form-label funky-label" data-bs-toggle="tooltip" title="Who is responsible?">🙋 Assign To <span class="text-danger">*</span></label>
       <small class="form-text text-muted">Start typing to search</small>
       <input type="text" id="assignedToText" class="form-control input-pop" list="assignedToList" autocomplete="off" placeholder="e.g., Binesh" required>
       <input type="hidden" name="assignedTo" id="assignedTo">
@@ -47,7 +60,7 @@
     </div>
 
     <div class="col-md-6 mb-3">
-      <label for="cycle" class="form-label funky-label">📆 OKR Cycle <span class="text-danger">*</span></label>
+      <label for="cycle" class="form-label funky-label" data-bs-toggle="tooltip" title="Which OKR cycle does this belong to?">📆 OKR Cycle <span class="text-danger">*</span></label>
       <select name="cycle" id="cycle" class="form-select input-pop" required>
         <% cycles.forEach(cycle => { %>
           <option value="<%= cycle._id %>"><%= cycle.label %></option>
@@ -58,19 +71,19 @@
 
   <div class="row">
     <div class="col-md-6 mb-3">
-      <label for="dueDate" class="form-label funky-label">📅 Due Date</label>
+      <label for="dueDate" class="form-label funky-label" data-bs-toggle="tooltip" title="Set a deadline, if needed">📅 Due Date</label>
       <input type="date" name="dueDate" class="form-control input-pop">
     </div>
 
     <div class="col-md-6 mb-3">
-      <label for="meeting" class="form-label funky-label">💬 Meeting Name (Optional)</label>
+      <label for="meeting" class="form-label funky-label" data-bs-toggle="tooltip" title="Mention the meeting it came from">💬 Meeting Name (Optional)</label>
       <input type="text" name="meeting" class="form-control input-pop" placeholder="e.g., Q2 Planning Sync">
     </div>
   </div>
 
   <div class="row">
     <div class="col-md-6 mb-3">
-      <label for="objectiveId" class="form-label funky-label">🎯 Link to Objective</label>
+      <label for="objectiveId" class="form-label funky-label" data-bs-toggle="tooltip" title="Optional link to an Objective">🎯 Link to Objective</label>
       <select name="objectiveId" class="form-select input-pop">
         <option value="">-- None --</option>
         <% objectives.forEach(o => { %>
@@ -80,7 +93,7 @@
     </div>
 
     <div class="col-md-6 mb-3">
-      <label for="keyResultId" class="form-label funky-label">📈 Link to Key Result</label>
+      <label for="keyResultId" class="form-label funky-label" data-bs-toggle="tooltip" title="Optional link to a Key Result">📈 Link to Key Result</label>
       <select name="keyResultId" class="form-select input-pop">
         <option value="">-- None --</option>
         <% keyResults.forEach(kr => { %>
@@ -91,7 +104,7 @@
   </div>
 
   <div class="mb-3">
-    <label for="parent" class="form-label funky-label">🔗 Parent Action Item</label>
+    <label for="parent" class="form-label funky-label" data-bs-toggle="tooltip" title="If this is a sub-task, link to parent">🔗 Parent Action Item</label>
     <select name="parent" class="form-select input-pop">
       <option value="">-- None --</option>
       <% actionItems.forEach(ai => { %>
@@ -104,3 +117,43 @@
     <button type="submit" class="btn btn-primary px-4 py-2">✅ Create Action Item</button>
   </div>
 </form>
+
+<div class="card p-4 shadow-sm border-0 mt-5 fade-in" id="bulkUpload">
+  <h5 class="text-gradient mb-3">📤 Or Upload Multiple Action Items</h5>
+
+  <p class="text-muted">
+    📄 <strong><a href="/templates/action_items_template.csv" download>Download Sample CSV Template</a></strong><br>
+    🔁 <strong>Due Date Format:</strong> <code>DD-MM-YYYY</code><br>
+    🧠 Use best-match names for Assigned To, Objective, Key Result, Initiative, and Parent Action Items.<br>
+    🕒 OKR Cycle will be assigned later manually.
+  </p>
+
+  <div id="uploadProgress" class="progress my-3 d-none">
+    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 100%">
+      ⏳ Uploading... Hang tight!
+    </div>
+  </div>
+
+  <form action="/<%= orgName %>/actionItems/upload" method="POST" enctype="multipart/form-data" class="mt-3">
+    <div class="mb-3">
+      <label class="form-label funky-label">📎 Upload CSV File</label>
+      <input type="file" name="csvFile" accept=".csv" class="form-control input-pop border border-dashed" required>
+    </div>
+    <div class="text-end">
+      <button type="submit" class="btn btn-outline-primary px-4 py-2">🚀 Upload CSV</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+    new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+
+  document.querySelector('form[action$="upload"]').addEventListener('submit', function () {
+    document.getElementById('uploadProgress').classList.remove('d-none');
+  });
+</script>
+
+

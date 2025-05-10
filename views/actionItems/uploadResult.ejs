@@ -1,0 +1,28 @@
+<% layout('layouts/dashboard') %>
+<% title = '📋 Bulk Upload Summary' %>
+
+<h2 class="mb-4 text-gradient">📋 Bulk Upload Summary</h2>
+
+<a href="/<%= orgName %>/actionItems/new" class="btn btn-outline-secondary mb-3">⬅ Back to Add Page</a>
+
+<% if (results.length > 0) { %>
+  <div class="card mb-4 p-3 shadow-sm border-0">
+    <h5>✅ Successfully Created</h5>
+    <ul>
+      <% results.forEach(r => { %>
+        <li><strong><%= r.title %></strong> - <%= r.status %></li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+
+<% if (errors.length > 0) { %>
+  <div class="card p-3 shadow-sm border-0 border-danger">
+    <h5>❌ Failed Rows</h5>
+    <ul>
+      <% errors.forEach(e => { %>
+        <li><strong><%= e.title %></strong>: <%= e.error %></li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>

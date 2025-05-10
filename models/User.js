@@ -44,6 +44,24 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  followedItems: [
+    {
+      item: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        refPath: 'followedItems.itemType'
+      },
+      itemType: {
+        type: String,
+        required: true,
+        enum: ['ActionItem', 'KeyResult', 'DiaryEntry', 'Objective']
+      },
+      followedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
   resetPasswordToken: String,
   resetPasswordExpires: Date,
 }, { timestamps: true });

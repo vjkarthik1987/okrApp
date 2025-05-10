@@ -28,7 +28,6 @@ const ActionItemSchema = new mongoose.Schema({
   cycle: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'OKRCycle',
-    required: true
   },
   organization: {
     type: mongoose.Schema.Types.ObjectId,

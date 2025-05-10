@@ -1,0 +1,378 @@
+[
+  {
+    "query": "List KRs that are at risk",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "status": "at risk"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "status": "at risk"
+    },
+    "exampleResponse": "Here are the key results for: List KRs that are at risk"
+  },
+  {
+    "query": "Show key results on track",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "status": "on track"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "status": "on track"
+    },
+    "exampleResponse": "Here are the key results for: Show key results on track"
+  },
+  {
+    "query": "Find KRs where progress is below 40%",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "progressValue": {
+          "$lt": 40
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "progressValue": {
+        "$lt": 40
+      }
+    },
+    "exampleResponse": "Here are the key results for: Find KRs where progress is below 40%"
+  },
+  {
+    "query": "Display key results assigned to Product Management",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "assignedTeams": "Product Management"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "assignedTeams": "Product Management"
+    },
+    "exampleResponse": "Here are the key results for: Display key results assigned to Product Management"
+  },
+  {
+    "query": "Get milestone-based key results",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "metricType": "milestone"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "metricType": "milestone"
+    },
+    "exampleResponse": "Here are the key results for: Get milestone-based key results"
+  },
+  {
+    "query": "List KRs owned by Clinton Abbott",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "owner": "Clinton Abbott"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "owner": "Clinton Abbott"
+    },
+    "exampleResponse": "Here are the key results for: List KRs owned by Clinton Abbott"
+  },
+  {
+    "query": "Which KRs have not been updated in 14 days",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "updates": {
+          "$not": {
+            "$elemMatch": {
+              "updateDate": {
+                "$gte": {
+                  "$dateSubtract": {
+                    "startDate": "$$NOW",
+                    "unit": "day",
+                    "amount": 14
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "updates": {
+        "$not": {
+          "$elemMatch": {
+            "updateDate": {
+              "$gte": {
+                "$dateSubtract": {
+                  "startDate": "$$NOW",
+                  "unit": "day",
+                  "amount": 14
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "exampleResponse": "Here are the key results for: Which KRs have not been updated in 14 days"
+  },
+  {
+    "query": "KRs with progress greater than 80%",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "progressValue": {
+          "$gt": 80
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "progressValue": {
+        "$gt": 80
+      }
+    },
+    "exampleResponse": "Here are the key results for: KRs with progress greater than 80%"
+  },
+  {
+    "query": "Find overdue key results",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "dueDate": {
+          "$lt": "$$TODAY"
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "dueDate": {
+        "$lt": "$$TODAY"
+      }
+    },
+    "exampleResponse": "Here are the key results for: Find overdue key results"
+  },
+  {
+    "query": "Get KRs without owners",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "owner": {
+          "$exists": false
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "owner": {
+        "$exists": false
+      }
+    },
+    "exampleResponse": "Here are the key results for: Get KRs without owners"
+  },
+  {
+    "query": "List key results assigned to me",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "assignedTo": "CURRENT_USER_ID"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "assignedTo": "CURRENT_USER_ID"
+    },
+    "exampleResponse": "Here are the key results for: List key results assigned to me"
+  },
+  {
+    "query": "Show KRs due next week",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "dueDate": {
+          "$gte": "$$NEXT_MONDAY",
+          "$lte": "$$NEXT_SUNDAY"
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "dueDate": {
+        "$gte": "$$NEXT_MONDAY",
+        "$lte": "$$NEXT_SUNDAY"
+      }
+    },
+    "exampleResponse": "Here are the key results for: Show KRs due next week"
+  },
+  {
+    "query": "Which KRs are not yet started",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "progressValue": {
+          "$eq": 0
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "progressValue": {
+        "$eq": 0
+      }
+    },
+    "exampleResponse": "Here are the key results for: Which KRs are not yet started"
+  },
+  {
+    "query": "Get recently updated key results",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "updates.updateDate": {
+          "$gte": "$$NOW_MINUS_7_DAYS"
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "updates.updateDate": {
+        "$gte": "$$NOW_MINUS_7_DAYS"
+      }
+    },
+    "exampleResponse": "Here are the key results for: Get recently updated key results"
+  },
+  {
+    "query": "Find key results linked to Objective XYZ",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "objectiveId": "OBJECTIVE_XYZ"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "objectiveId": "OBJECTIVE_XYZ"
+    },
+    "exampleResponse": "Here are the key results for: Find key results linked to Objective XYZ"
+  },
+  {
+    "query": "Show boolean-type KRs",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "metricType": "boolean"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "metricType": "boolean"
+    },
+    "exampleResponse": "Here are the key results for: Show boolean-type KRs"
+  },
+  {
+    "query": "Which KRs are missing milestones",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "milestones": {
+          "$size": 0
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "milestones": {
+        "$size": 0
+      }
+    },
+    "exampleResponse": "Here are the key results for: Which KRs are missing milestones"
+  },
+  {
+    "query": "List KRs with 3 or more milestones",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "milestones": {
+          "$size": {
+            "$gte": 3
+          }
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "milestones": {
+        "$size": {
+          "$gte": 3
+        }
+      }
+    },
+    "exampleResponse": "Here are the key results for: List KRs with 3 or more milestones"
+  },
+  {
+    "query": "KRs marked as completed",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "status": "completed"
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "status": "completed"
+    },
+    "exampleResponse": "Here are the key results for: KRs marked as completed"
+  },
+  {
+    "query": "KRs updated this week",
+    "intent": {
+      "model": "KeyResult",
+      "action": "search",
+      "filters": {
+        "updates.updateDate": {
+          "$gte": "$$WEEK_START",
+          "$lte": "$$WEEK_END"
+        }
+      }
+    },
+    "instruction": "Execute the intent using the filters derived from the user query.",
+    "mongoQuery": {
+      "updates.updateDate": {
+        "$gte": "$$WEEK_START",
+        "$lte": "$$WEEK_END"
+      }
+    },
+    "exampleResponse": "Here are the key results for: KRs updated this week"
+  }
+]

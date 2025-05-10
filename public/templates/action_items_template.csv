@@ -1,0 +1,6 @@
+title,description,assignedTo,cycleLabel,dueDate (DD-MM-YYYY),meeting,objectiveTitle,keyResultTitle,initiativeTitle,parentTitle
+Fix dashboard bug,Check logs and UI crash,Karthik Vj,Q2-2025,01-06-2025,Sprint Retro,Improve UI experience,Fix critical bugs,Tech Cleanup,—
+Improve onboarding email,Content needs review and localization,Anita Paul,Q2-2025,03-06-2025,Marketing Sync,Drive user adoption,Improve email conversion,User Comm Initiative,—
+Review infra costs,Check AWS monthly bills and overages,Nandakumra K,Q2-2025,05-06-2025,Infra Review,Reduce costs,Review infra spend,Infra Cleanup,—
+Update training docs,Add Q2 features in Help Center,Renu Joseph,Q2-2025,04-06-2025,Knowledge Share,Enhance documentation,Update Help Center,Enablement Plan,—
+Coordinate user feedback,Set up usability session with 3 clients,Pranav S,Q2-2025,06-06-2025,UX Review,Improve UI experience,User interviews,Customer Feedback Loop,—

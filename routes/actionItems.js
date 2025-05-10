@@ -7,6 +7,13 @@ const Objective = require('../models/Objective');
 const KeyResult = require('../models/KeyResult');
 const { isLoggedIn } = require('../middleware/auth');
 const Initiative = require('../models/Initiative');
+const fs = require('fs');
+const csvParser = require('csv-parser');
+const dayjs = require('dayjs');
+const upload = require('../middleware/uploadFile');
+const { distance } = require('fastest-levenshtein');
+const sendActionItemNotification = require('../utils/sendActionItemEmail');
+
 
 // Helper function to get all reportees recursively
 async function getAllReportees(userId) {
@@ -124,29 +131,113 @@ router.get('/new', isLoggedIn, async (req, res) => {
 });
 
 // Create
-router.post('/', isLoggedIn, async (req, res) => {
+router.post('/upload', isLoggedIn, upload.single('csvFile'), async (req, res) => {
   const { orgName } = req.params;
-  const { title, description, assignedTo, cycle, dueDate, meeting, objectiveId, keyResultId, parent, initiativeId } = req.body;
 
-  const actionItem = new ActionItem({
-    title,
-    description,
-    assignedTo,
-    assignedBy: req.user._id,
-    createdBy: req.user._id,
-    cycle,
-    dueDate,
-    meeting,
-    status: 'Not Started',
-    objectiveId: objectiveId || null,
-    keyResultId: keyResultId || null,
-    initiativeId: initiativeId || null,
-    parent: parent || null,
-    organization: req.user.organization
-  });
+  const users = await User.find({ organization: req.user.organization });
+  const objectives = await Objective.find({ organization: req.user.organization });
+  const keyResults = await KeyResult.find({ organization: req.user.organization });
+  const initiatives = await Initiative.find({ organization: req.user.organization });
+  const actionItems = await ActionItem.find({ organization: req.user.organization });
+  const cycles = await OKRCycle.find({ organization: req.user.organization });
 
-  await actionItem.save();
-  res.redirect(`/${orgName}/actionItems`);
+  const cycleMap = Object.fromEntries(cycles.map(c => [c.label?.toLowerCase(), c._id]));
+  const results = [];
+  const errors = [];
+  const promises = [];
+
+  function normalize(str) {
+    return str?.toLowerCase().replace(/\s+/g, '').trim();
+  }
+
+  function findUser(inputName) {
+    if (!inputName) return null;
+  
+    const inputTokens = normalize(inputName).split(/\s+/);
+    let bestMatch = null;
+    let bestScore = 0;
+  
+    for (const user of users) {
+      const userTokens = normalize(user.name).split(/\s+/);
+  
+      let matchCount = 0;
+      for (const token of inputTokens) {
+        if (userTokens.some(t => t.startsWith(token) || distance(token, t) <= 1)) {
+          matchCount++;
+        }
+      }
+  
+      const score = matchCount / inputTokens.length;
+  
+      if (score > bestScore && score >= 0.6) { // You can adjust this threshold
+        bestScore = score;
+        bestMatch = user;
+      }
+    }
+  
+    return bestMatch;
+  }
+
+  function findBestMatch(title, list) {
+    if (!title) return null;
+    const input = normalize(title);
+    return list.find(i => normalize(i.title).startsWith(input)) ||
+           list.find(i => normalize(i.title).includes(input)) || null;
+  }
+
+  fs.createReadStream(req.file.path)
+    .pipe(csvParser())
+    .on('data', (row) => {
+      promises.push((async () => {
+        try {
+          const assignedUser = findUser(row.assignedTo);
+          if (!assignedUser) throw new Error(`Could not find user: ${row.assignedTo}`);
+
+          const cycleId = row.cycleLabel ? cycleMap[row.cycleLabel.toLowerCase()] : null;
+          const dueDate = dayjs(row['dueDate (DD-MM-YYYY)'], 'DD-MM-YYYY', true).isValid()
+            ? dayjs(row['dueDate (DD-MM-YYYY)'], 'DD-MM-YYYY').toDate()
+            : null;
+
+          const objective = findBestMatch(row.objectiveTitle, objectives);
+          const kr = findBestMatch(row.keyResultTitle, keyResults);
+          const initiative = findBestMatch(row.initiativeTitle, initiatives);
+          const parent = findBestMatch(row.parentTitle, actionItems);
+
+          const actionItem = new ActionItem({
+            title: row.title,
+            description: row.description || '',
+            assignedTo: assignedUser._id,
+            assignedBy: req.user._id,
+            createdBy: req.user._id,
+            dueDate,
+            meeting: row.meeting || '',
+            status: 'Not Started',
+            objectiveId: objective?._id || null,
+            keyResultId: kr?._id || null,
+            initiativeId: initiative?._id || null,
+            parent: parent?._id || null,
+            organization: req.user.organization,
+            cycle: cycleId || null
+          });
+
+          await actionItem.save();
+          await sendActionItemNotification({
+            actionItem,
+            assignedToUser: assignedUser,
+            createdByUser: req.user
+          });
+
+          results.push({ title: row.title, status: '✅ Success' });
+        } catch (err) {
+          errors.push({ title: row.title || 'Unknown', error: err.message });
+        }
+      })());
+    })
+    .on('end', async () => {
+      await Promise.all(promises);
+      fs.unlinkSync(req.file.path);
+      res.render('actionItems/uploadResult', { orgName, results, errors });
+    });
 });
 
 //Show detail of each Action Item
