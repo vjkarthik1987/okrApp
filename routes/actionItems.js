@@ -13,6 +13,7 @@ const dayjs = require('dayjs');
 const upload = require('../middleware/uploadFile');
 const { distance } = require('fastest-levenshtein');
 const sendActionItemNotification = require('../utils/sendActionItemEmail');
+const Team = require('../models/Team');
 
 
 // Helper function to get all reportees recursively
@@ -117,6 +118,7 @@ router.get('/new', isLoggedIn, async (req, res) => {
   const keyResults = await KeyResult.find({ organization: req.user.organization });
   const actionItems = await ActionItem.find({ organization: req.user.organization });
   const initiatives = await Initiative.find({ organization: req.user.organization });
+  const teams = await Team.find({ organization: req.user.organization });
 
   res.render('actionItems/new', {
     orgName,
@@ -127,10 +129,168 @@ router.get('/new', isLoggedIn, async (req, res) => {
     actionItems,
     initiatives,
     preselectedInitiativeId: initiativeId || null,
+    teams,
   });
 });
 
-// Create
+// Create (web form)
+router.post('/', isLoggedIn, upload.single('csvUsers'), async (req, res) => {
+  const { orgName } = req.params;
+  const {
+    title, description, cycle, dueDate, meeting, objectiveId, keyResultId,
+    initiativeId, parent, assignedTo, bulkAssignmentData,
+    recurrenceType, recurrenceEndDate, sendEmail
+  } = req.body;
+
+  const isBulk = !!bulkAssignmentData;
+  const createdBy = req.user._id;
+  const organization = req.user.organization;
+  let assignees = [];
+
+  try {
+    const isSuperAdmin = req.user.isSuperAdmin;
+    const isFunctionHead = await Team.exists({
+      organization,
+      functionHead: req.user._id
+    });
+
+    // 🔍 Resolve assignees
+    if (!isBulk) {
+      if (!assignedTo) throw new Error('No user selected');
+      assignees = [assignedTo];
+    } else {
+      const parsed = JSON.parse(bulkAssignmentData);
+      const mode = parsed.mode;
+      const targetIds = parsed.targetIds || [];
+
+      if (mode === 'organization') {
+        if (!isSuperAdmin && !isFunctionHead) {
+          req.flash('error', 'Only Super Admins or Function Heads can assign to all employees.');
+          return res.redirect(`/${orgName}/actionItems/new`);
+        }
+
+        const users = await User.find({ organization, isActive: true });
+        assignees = users.map(u => u._id);
+
+      } else if (mode === 'teams') {
+        const users = await User.find({ team: { $in: targetIds }, organization, isActive: true });
+        assignees = users.map(u => u._id);
+
+      } else if (mode === 'users') {
+        assignees = targetIds;
+
+      } else if (mode === 'csv') {
+        const users = await User.find({ organization });
+        const teams = await Team.find({ organization });
+        const teamMap = Object.fromEntries(teams.map(t => [t.name.toLowerCase().trim(), t._id.toString()]));
+
+        const matches = [];
+        await new Promise((resolve, reject) => {
+          fs.createReadStream(req.file.path)
+            .pipe(csvParser())
+            .on('data', row => {
+              const name = row.Name?.toLowerCase().trim();
+              const teamName = row.Team?.toLowerCase().trim();
+              const teamId = teamMap[teamName];
+              const match = users.find(u =>
+                u.name?.toLowerCase().includes(name) &&
+                (!teamId || u.team?.toString() === teamId)
+              );
+              if (match) matches.push(match._id);
+            })
+            .on('end', () => {
+              fs.unlinkSync(req.file.path);
+              assignees = matches;
+              resolve();
+            })
+            .on('error', reject);
+        });
+      }
+    }
+
+    if (assignees.length === 0) {
+      req.flash('error', 'No valid assignees found.');
+      return res.redirect(`/${orgName}/actionItems/new`);
+    }
+
+    // 🔁 Recurrence logic
+    const due = dayjs(dueDate);
+    let dueDates = [due.toDate()];
+
+    function generateDueDates(start, end, type) {
+      const dates = [];
+      let current = dayjs(start);
+      const final = dayjs(end);
+      while (current.isSame(final) || current.isBefore(final)) {
+        dates.push(current.toDate());
+        if (type === 'Weekly') current = current.add(1, 'week');
+        else if (type === 'Fortnightly') current = current.add(2, 'week');
+        else if (type === 'Monthly') current = current.add(1, 'month');
+        else if (type === 'Quarterly') current = current.add(3, 'month');
+        else break;
+      }
+      return dates;
+    }
+
+    if (recurrenceType && recurrenceType !== 'None' && recurrenceEndDate) {
+      dueDates = generateDueDates(dueDate, recurrenceEndDate, recurrenceType);
+    }
+
+    // 🏗️ Build action items
+    const itemsToCreate = [];
+
+    for (let userId of assignees) {
+      for (let d of dueDates) {
+        itemsToCreate.push({
+          title,
+          description,
+          assignedTo: userId,
+          assignedBy: req.user._id,
+          createdBy,
+          organization,
+          cycle,
+          dueDate: d,
+          meeting,
+          objectiveId: objectiveId || null,
+          keyResultId: keyResultId || null,
+          initiativeId: initiativeId || null,
+          parent: parent || null,
+          status: 'Not Started'
+        });
+      }
+    }
+
+    const createdItems = await ActionItem.insertMany(itemsToCreate);
+
+    // 📧 Optional email notifications
+    const shouldSendEmail = sendEmail === 'on';
+    if (shouldSendEmail) {
+      const usersMap = await User.find({ _id: { $in: assignees } }).then(users =>
+        Object.fromEntries(users.map(u => [u._id.toString(), u]))
+      );
+
+      for (let item of createdItems) {
+        const assignedToUser = usersMap[item.assignedTo.toString()];
+        if (assignedToUser) {
+          sendActionItemNotification({
+            actionItem: item,
+            assignedToUser,
+            createdByUser: req.user
+          });
+        }
+      }
+    }
+
+    req.flash('success', `Created ${itemsToCreate.length} action items.`);
+    res.redirect(`/${orgName}/actionItems`);
+  } catch (err) {
+    console.error('Action Item creation failed:', err);
+    req.flash('error', err.message || 'Something went wrong.');
+    res.redirect(`/${orgName}/actionItems/new`);
+  }
+});
+
+// Create bulk action items
 router.post('/upload', isLoggedIn, upload.single('csvFile'), async (req, res) => {
   const { orgName } = req.params;
 

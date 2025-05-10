@@ -3,79 +3,207 @@
 
 <h2 class="mb-4">👥 Manager Dashboard</h2>
 
-<div class="d-flex justify-content-start gap-3 mb-4">
-  <a href="/<%= orgName %>/manager-dashboard/team-okrs">🎯 Team OKRs (future)</a>
-  <a href="/<%= orgName %>/manager-dashboard/team-action-items">📋 Team Action Items</a>
-  <a href="/<%= orgName %>/manager-dashboard/team-diary-entries">📓 Team Diary Entries (future)</a>
-</div>
-
-<form method="GET" action="/<%= orgName %>/manager-dashboard" class="mb-4">
-  <div class="d-flex align-items-center gap-2">
-    <label for="maxDepthSelect" class="form-label m-0">Show up to Level:</label>
-    <select id="maxDepthSelect" name="maxDepth" class="form-select w-auto" onchange="this.form.submit()">
-      <option value="">All Levels</option>
-      <% for (let i = 1; i <= 8; i++) { %>
-        <option value="<%= i %>" <%= maxDepth == i ? 'selected' : '' %>>Level <%= i %></option>
-      <% } %>
-    </select>
-  </div>
-</form>
-
-<div class="card">
+<!-- 👥 Team Hierarchy -->
+<div class="card mb-4">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <span>🧑‍🤝‍🧑 My Team Hierarchy</span>
-    <button class="btn btn-sm btn-outline-secondary" onclick="collapseAll()">📉 Collapse All</button>
+    <div>🧑‍🤝‍🧑 My Team Hierarchy</div>
+    <div class="d-flex gap-2">
+      <form method="GET" class="d-flex align-items-center gap-2">
+        <input type="hidden" name="view" value="<%= view %>">
+        <label for="maxDepth" class="form-label m-0">Level:</label>
+        <select id="maxDepth" name="maxDepth" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+          <option value="">All</option>
+          <% for (let i = 1; i <= 8; i++) { %>
+            <option value="<%= i %>" <%= maxDepth == i ? 'selected' : '' %>>Up to <%= i %></option>
+          <% } %>
+        </select>
+      </form>
+      <button class="btn btn-sm btn-outline-secondary" onclick="collapseAll()">📉 Collapse All</button>
+    </div>
   </div>
   <div class="card-body">
     <% if (teamTree.length === 0) { %>
       <p>No direct reports found.</p>
     <% } else { %>
       <ul class="tree-root list-unstyled">
-        <% teamTree.forEach(function(member) { %>
-          <%- include('./_teamNode', { member: member, depth: 0, maxDepth: maxDepth, currentUserId: user._id }) %>
+        <% teamTree.forEach(member => { %>
+          <%- include('./_teamNode', { member, depth: 0, maxDepth, currentUserId: user._id }) %>
         <% }) %>
       </ul>
     <% } %>
   </div>
 </div>
 
+<!-- 🔎 Action Item Filters -->
+<div class="card p-3 mb-3">
+  <form method="GET" class="row g-2 align-items-end">
+    <input type="hidden" name="maxDepth" value="<%= maxDepth %>">
+    <div class="col-auto">
+      <label class="form-label">View:</label>
+      <select name="view" class="form-select form-select-sm">
+        <option value="self" <%= view === 'self' ? 'selected' : '' %>>🙋 My Items</option>
+        <option value="direct" <%= view === 'direct' ? 'selected' : '' %>>👥 Direct Reports</option>
+        <option value="team" <%= view === 'team' ? 'selected' : '' %>>🏢 Full Team</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label">Status:</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">All</option>
+        <% ['Not Started', 'In Progress', 'Completed', 'On Hold', 'Blocked', 'Deferred'].forEach(stat => { %>
+          <option value="<%= stat %>" <%= status === stat ? 'selected' : '' %>><%= stat %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label">Page:</label>
+      <select name="aiPage" class="form-select form-select-sm">
+        <% for (let i = 1; i <= aiTotalPages; i++) { %>
+          <option value="<%= i %>" <%= aiPage == i ? 'selected' : '' %>>Page <%= i %></option>
+        <% } %>
+      </select>
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+    </div>
+  </form>
+</div>
+
+<div class="row">
+  <!-- Left Column: Action Items & Diary Entries -->
+  <div class="col-md-8" style="max-height: 72vh; overflow-y: auto;">
+
+    <!-- 📋 Action Items -->
+    <% if (myActionItems.length > 0) { %>
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white fw-bold">📋 Action Items</div>
+        <div class="card-body table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr><th>Title</th><th>Status</th><th>Due</th><th>Assigned To</th><th>Meeting</th></tr>
+            </thead>
+            <tbody>
+              <% myActionItems.forEach(item => { %>
+                <tr>
+                  <td><a href="/<%= orgName %>/actionItems/<%= item._id %>"><%= item.title %></a></td>
+                  <td><%= item.status %></td>
+                  <td><%= item.dueDate ? new Date(item.dueDate).toLocaleDateString() : '—' %></td>
+                  <td><%= item.assignedTo?.name || '—' %></td>
+                  <td><%= item.meeting || '—' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } else { %>
+      <p class="text-muted">No action items found.</p>
+    <% } %>
+
+    <!-- 📓 Diary Entries -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-info text-white fw-bold">📓 Diary Entries</div>
+      <div class="card-body">
+        <form method="GET" class="row g-2 mb-3">
+          <input type="hidden" name="maxDepth" value="<%= maxDepth %>">
+          <input type="hidden" name="view" value="<%= view %>">
+          <input type="hidden" name="status" value="<%= status %>">
+          <div class="col-auto">
+            <label class="form-label">Week:</label>
+            <select name="weekCycleId" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">—Select Week—</option>
+              <% weeks.forEach(week => { %>
+                <option value="<%= week._id %>" <%= selectedWeekCycleId == week._id.toString() ? 'selected' : '' %>>
+                  <%= week.label %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="col-auto">
+            <label class="form-label">Page:</label>
+            <select name="diaryPage" class="form-select form-select-sm">
+              <% for (let i = 1; i <= diaryTotalPages; i++) { %>
+                <option value="<%= i %>" <%= diaryPage == i ? 'selected' : '' %>>Page <%= i %></option>
+              <% } %>
+            </select>
+          </div>
+        </form>
+
+        <% if (diaryEntries.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle">
+              <thead>
+                <tr><th>Employee</th><th>Status</th><th>Entry</th></tr>
+              </thead>
+              <tbody>
+                <% teamUserIds.forEach(userId => {
+                  const entry = diaryEntries.find(e => e.user._id.toString() === userId);
+                  const name = entry ? entry.user.name : (userMap[userId]?.name || 'Unknown');
+                  const email = entry ? entry.user.email : (userMap[userId]?.email || 'Unknown');
+                  const content = entry ? entry.content : '';
+                %>
+                  <tr>
+                    <td><strong><%= name %></strong><br><small class="text-muted"><%= email %></small></td>
+                    <td><span class="badge <%= entry ? 'bg-success' : 'bg-danger' %>"><%= entry ? 'Submitted' : 'Not Submitted' %></span></td>
+                    <td>
+                      <% if (entry) { %>
+                        <details><summary>View</summary><div class="small mt-1" style="white-space: pre-line;"><%= content %></div></details>
+                      <% } else { %>
+                        <span class="text-muted">—</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <p class="text-muted mb-0">📭 No diary entries found.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔄 Recent Updates -->
+  <div class="col-md-4 border-start ps-3" style="max-height: 72vh; overflow-y: auto;">
+    <h6 class="text-uppercase fw-bold mb-3 text-muted">🗨️ Recent Updates</h6>
+    <% if (allUpdates.length === 0) { %>
+      <p class="text-muted">No updates in the past 4 weeks.</p>
+    <% } else { %>
+      <% allUpdates.forEach(update => { %>
+        <div class="update-snippet mb-3 px-3 py-2 border rounded shadow-sm bg-light">
+          <div class="d-flex justify-content-between small text-muted">
+            <span><%= update.user || update.updatedBy %></span>
+            <span><%= new Date(update.date || update.updateDate).toLocaleString() %></span>
+          </div>
+          <div class="mt-1">
+            <% if (update.type === 'action') { %>
+              <span class="badge bg-primary me-1">Action</span>
+              <strong><%= update.actionItemTitle %></strong><br>
+              <%= update.updateText %>
+            <% } else { %>
+              <span class="badge bg-info me-1">Diary</span>
+              <%= update.content.length > 150 ? update.content.substring(0, 150) + '…' : update.content %>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</div>
+
+<!-- Basic Styles -->
 <style>
-  .tree-root, .tree-root ul {
-    padding-left: 1rem;
-    position: relative;
-  }
-  .tree-root li {
-    position: relative;
-    padding-left: 1.5rem;
-    margin-bottom: 0.75rem;
-  }
-  .tree-root li::before {
-    content: '';
-    position: absolute;
-    top: 0.75rem;
-    left: 0;
-    width: 1rem;
-    height: 1px;
-    background: #ccc;
-  }
-  .tree-root ul::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0.75rem;
-    width: 1px;
-    height: 100%;
-    background: #ccc;
-  }
-  .tree-node.collapsed > ul {
-    display: none;
-  }
+  .tree-root, .tree-root ul { padding-left: 1rem; position: relative; }
+  .tree-root li { position: relative; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  .tree-root li::before { content: ''; position: absolute; top: 0.75rem; left: 0; width: 1rem; height: 1px; background: #ccc; }
+  .tree-root ul::before { content: ''; position: absolute; top: 0; left: 0.75rem; width: 1px; height: 100%; background: #ccc; }
+  .tree-node.collapsed > ul { display: none; }
+  .update-snippet { font-size: 0.85rem; line-height: 1.3; }
 </style>
 
 <script>
   function collapseAll() {
-    document.querySelectorAll('.tree-node').forEach(node => {
-      node.classList.add('collapsed');
-    });
+    document.querySelectorAll('.tree-node').forEach(node => node.classList.add('collapsed'));
   }
 </script>

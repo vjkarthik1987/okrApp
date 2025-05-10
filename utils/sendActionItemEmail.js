@@ -15,12 +15,47 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+let emailQueue = [];
+let isProcessing = false;
+const delayBetweenEmails = 750; // in milliseconds
+const maxRetries = 3;
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function processQueue() {
+  if (isProcessing) return;
+  isProcessing = true;
+
+  while (emailQueue.length > 0) {
+    const { mailOptions, assignedToUser, retryCount = 0 } = emailQueue.shift();
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Email sent to ${assignedToUser.email}`);
+    } catch (err) {
+      const isRateLimit = err.message.includes('Concurrent connections limit exceeded');
+      console.error(`❌ Email failed to ${assignedToUser.email}: ${err.message}`);
+
+      if (isRateLimit && retryCount < maxRetries) {
+        console.log(`🔁 Retrying ${assignedToUser.email} (${retryCount + 1})...`);
+        emailQueue.push({ mailOptions, assignedToUser, retryCount: retryCount + 1 });
+      }
+    }
+
+    await sleep(delayBetweenEmails);
+  }
+
+  isProcessing = false;
+}
+
 async function sendActionItemNotification({ actionItem, assignedToUser, createdByUser }) {
   if (!assignedToUser?.email) return;
 
   const mailOptions = {
     from: `"OKR System" <${process.env.OFFICE_365_EMAIL}>`,
-    to: 'karthikvj@suntecsbs.com', //to: assignedToUser.email,
+    to: assignedToUser.email, // or use a test email like 'karthikvj@suntecsbs.com'
     subject: `📝 New Action Item Assigned: ${actionItem.title}`,
     html: `
       <p>Hi ${assignedToUser.name},</p>
@@ -36,11 +71,8 @@ async function sendActionItemNotification({ actionItem, assignedToUser, createdB
     `
   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-  } catch (err) {
-    console.error(`❌ Email failed to ${assignedToUser.email}:`, err.message);
-  }
+  emailQueue.push({ mailOptions, assignedToUser });
+  processQueue(); // trigger queue processor (if not already running)
 }
 
 module.exports = sendActionItemNotification;

@@ -115,7 +115,7 @@
           </td>
           <td><%= item.cycle?.label || '-' %></td>
           <td>
-            <a href="/<%= orgName %>/actionItems/<%= item._id %>/edit" class="btn btn-sm btn-outline-primary">✏️ Edit</a>
+            <a href="/<%= orgName %>/actionItems/<%= item._id %>/edit" class="btn btn-sm btn-outline-primary">✏️ Update</a>
             <form method="POST" action="/<%= orgName %>/actionItems/<%= item._id %>?_method=DELETE" style="display:inline" onsubmit="return confirmDelete()">
               <button class="btn btn-sm btn-outline-danger">🗑️</button>
             </form>

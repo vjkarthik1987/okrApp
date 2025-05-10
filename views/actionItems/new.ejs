@@ -19,72 +19,149 @@
   </div>
 </div>
 
-<form action="/<%= orgName %>/actionItems" method="POST" class="card p-4 mb-4 shadow-sm border-0 animated-form fade-in">
+<form action="/<%= orgName %>/actionItems" method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm border-0 mb-4">
+  <h4 class="mb-3 text-gradient">📝 Create Action Item</h4>
+
+  <!-- Title -->
   <div class="mb-3">
-    <label for="title" class="form-label funky-label" data-bs-toggle="tooltip" title="Give your task a crisp, clear title">📌 Title <span class="text-danger">*</span></label>
-    <input type="text" name="title" id="title" class="form-control input-pop" placeholder="e.g., Finalize onboarding flows" required>
+    <label class="form-label">📌 Title <span class="text-danger">*</span></label>
+    <input type="text" name="title" class="form-control" required>
   </div>
 
+  <!-- Description -->
   <div class="mb-3">
-    <label for="description" class="form-label funky-label" data-bs-toggle="tooltip" title="Add context, steps, or notes">🧾 Description</label>
-    <textarea name="description" id="description" class="form-control input-pop" rows="3" placeholder="Add context or next steps..."></textarea>
+    <label class="form-label">🧾 Description</label>
+    <textarea name="description" class="form-control" rows="3"></textarea>
   </div>
 
+  <!-- Initiative -->
   <div class="mb-3">
-    <label for="initiativeId" class="form-label funky-label" data-bs-toggle="tooltip" title="Optionally link to an initiative">🚀 Initiative (Optional)</label>
-    <% if (preselectedInitiativeId) { %>
-      <input type="hidden" name="initiativeId" value="<%= preselectedInitiativeId %>">
-      <% const selected = initiatives.find(i => i._id.toString() === preselectedInitiativeId.toString()); %>
-      <input type="text" class="form-control input-pop" disabled value="<%= selected?.title || 'Selected initiative' %>">
-    <% } else { %>
-      <select name="initiativeId" id="initiativeId" class="form-select input-pop">
-        <option value="">🎯 -- None --</option>
-        <% initiatives.forEach(i => { %>
-          <option value="<%= i._id %>"><%= i.title %></option>
+    <label class="form-label">🚀 Initiative</label>
+    <select name="initiativeId" class="form-select">
+      <option value="">-- None --</option>
+      <% initiatives.forEach(i => { %>
+        <option value="<%= i._id %>"><%= i.title %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <!-- Bulk Assignment -->
+  <div class="form-check form-switch mb-3">
+    <input class="form-check-input" type="checkbox" id="bulkToggle">
+    <label class="form-check-label" for="bulkToggle">🧠 Enable Bulk Assignment</label>
+  </div>
+
+  <div id="bulkOptions" class="bg-light-subtle border rounded p-3 mb-3 d-none">
+    <div class="form-check"><input class="form-check-input" type="radio" name="bulkMode" value="organization"> Entire Organization</div>
+    <div class="form-check"><input class="form-check-input" type="radio" name="bulkMode" value="teams"> Select Teams</div>
+    <div class="form-check"><input class="form-check-input" type="radio" name="bulkMode" value="users"> Select Users</div>
+    <div class="form-check"><input class="form-check-input" type="radio" name="bulkMode" value="csv"> Upload CSV</div>
+
+    <div class="mt-3 d-none" id="teamSelect">
+      <label class="form-label">Select Teams</label>
+      <select id="selectedTeams" multiple class="form-select">
+        <% teams.forEach(t => { %>
+          <option value="<%= t._id %>"><%= t.name %></option>
         <% }) %>
       </select>
-    <% } %>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6 mb-3">
-      <label for="assignedTo" class="form-label funky-label" data-bs-toggle="tooltip" title="Who is responsible?">🙋 Assign To <span class="text-danger">*</span></label>
-      <small class="form-text text-muted">Start typing to search</small>
-      <input type="text" id="assignedToText" class="form-control input-pop" list="assignedToList" autocomplete="off" placeholder="e.g., Binesh" required>
-      <input type="hidden" name="assignedTo" id="assignedTo">
-      <datalist id="assignedToList">
-        <% users.forEach(user => { %>
-          <option data-id="<%= user._id %>" value="<%= user.name || user.email %>"></option>
-        <% }) %>
-      </datalist>
     </div>
 
-    <div class="col-md-6 mb-3">
-      <label for="cycle" class="form-label funky-label" data-bs-toggle="tooltip" title="Which OKR cycle does this belong to?">📆 OKR Cycle <span class="text-danger">*</span></label>
-      <select name="cycle" id="cycle" class="form-select input-pop" required>
-        <% cycles.forEach(cycle => { %>
-          <option value="<%= cycle._id %>"><%= cycle.label %></option>
+    <div class="mt-3 d-none" id="userSelect">
+      <label class="form-label">Select Users</label>
+      <select id="selectedUsers" multiple class="form-select">
+        <% users.forEach(u => { %>
+          <option value="<%= u._id %>"><%= u.name %></option>
         <% }) %>
       </select>
     </div>
-  </div>
 
-  <div class="row">
-    <div class="col-md-6 mb-3">
-      <label for="dueDate" class="form-label funky-label" data-bs-toggle="tooltip" title="Set a deadline, if needed">📅 Due Date</label>
-      <input type="date" name="dueDate" class="form-control input-pop">
-    </div>
-
-    <div class="col-md-6 mb-3">
-      <label for="meeting" class="form-label funky-label" data-bs-toggle="tooltip" title="Mention the meeting it came from">💬 Meeting Name (Optional)</label>
-      <input type="text" name="meeting" class="form-control input-pop" placeholder="e.g., Q2 Planning Sync">
+    <div class="mt-3 d-none" id="csvUpload">
+      <label class="form-label">Upload CSV</label>
+      <input type="file" name="csvUsers" accept=".csv" class="form-control">
     </div>
   </div>
 
+  <!-- Single User -->
+  <div id="singleUserSelect" class="mb-3">
+    <label class="form-label">🙋 Assign To</label>
+    <input type="text" id="assignedToText" class="form-control" list="assignedToList" required>
+    <input type="hidden" name="assignedTo" id="assignedTo">
+    <datalist id="assignedToList">
+      <% users.forEach(user => { %>
+        <option value="<%= user.name %>" data-id="<%= user._id %>">
+      <% }) %>
+    </datalist>
+  </div>
+
+  <!-- Cycle -->
+  <div class="mb-3">
+    <label class="form-label">📆 OKR Cycle</label>
+    <select name="cycle" class="form-select" required>
+      <% cycles.forEach(c => { %>
+        <option value="<%= c._id %>"><%= c.label %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <!-- Due Date + Meeting -->
   <div class="row">
     <div class="col-md-6 mb-3">
-      <label for="objectiveId" class="form-label funky-label" data-bs-toggle="tooltip" title="Optional link to an Objective">🎯 Link to Objective</label>
-      <select name="objectiveId" class="form-select input-pop">
+      <label class="form-label">📅 Due Date</label>
+      <input type="date" name="dueDate" class="form-control" required>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">💬 Meeting</label>
+      <input type="text" name="meeting" class="form-control">
+    </div>
+  </div>
+
+  <!-- Recurrence -->
+  <div class="mb-3 border rounded p-3 bg-light-subtle">
+    <label class="form-label">🔁 Recurrence</label>
+    <div class="row">
+      <div class="col-md-6">
+        <select name="recurrenceType" id="recurrenceType" class="form-select">
+          <option value="None">None</option>
+          <option value="Weekly">Weekly</option>
+          <option value="Fortnightly">Fortnightly</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Quarterly">Quarterly</option>
+        </select>
+      </div>
+
+      <div class="col-md-6 d-none" id="recurrenceDayPicker">
+        <select name="recurrenceDay" class="form-select">
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+          <option value="0">Sunday</option>
+        </select>
+      </div>
+
+      <div class="col-md-6 d-none" id="recurrenceDatePicker">
+        <select name="recurrenceDate" class="form-select">
+          <% for (let i = 1; i <= 31; i++) { %>
+            <option value="<%= i %>"><%= i %></option>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="col-md-6 d-none" id="recurrenceEndPicker">
+        <input type="date" name="recurrenceEndDate" id="recurrenceEndDate" class="form-control">
+      </div>
+
+      <div class="col-md-12 mt-2 text-muted" id="recurrencePreview"></div>
+    </div>
+  </div>
+
+  <!-- Objective + Key Result -->
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">🎯 Objective</label>
+      <select name="objectiveId" class="form-select">
         <option value="">-- None --</option>
         <% objectives.forEach(o => { %>
           <option value="<%= o._id %>"><%= o.title %></option>
@@ -93,8 +170,8 @@
     </div>
 
     <div class="col-md-6 mb-3">
-      <label for="keyResultId" class="form-label funky-label" data-bs-toggle="tooltip" title="Optional link to a Key Result">📈 Link to Key Result</label>
-      <select name="keyResultId" class="form-select input-pop">
+      <label class="form-label">📈 Key Result</label>
+      <select name="keyResultId" class="form-select">
         <option value="">-- None --</option>
         <% keyResults.forEach(kr => { %>
           <option value="<%= kr._id %>"><%= kr.title %></option>
@@ -103,9 +180,10 @@
     </div>
   </div>
 
+  <!-- Parent -->
   <div class="mb-3">
-    <label for="parent" class="form-label funky-label" data-bs-toggle="tooltip" title="If this is a sub-task, link to parent">🔗 Parent Action Item</label>
-    <select name="parent" class="form-select input-pop">
+    <label class="form-label">🔗 Parent Action Item</label>
+    <select name="parent" class="form-select">
       <option value="">-- None --</option>
       <% actionItems.forEach(ai => { %>
         <option value="<%= ai._id %>"><%= ai.title %></option>
@@ -113,8 +191,19 @@
     </select>
   </div>
 
-  <div class="text-end mt-4">
-    <button type="submit" class="btn btn-primary px-4 py-2">✅ Create Action Item</button>
+  <!-- Hidden field for bulk JSON -->
+  <input type="hidden" name="bulkAssignmentData" id="bulkAssignmentData">
+
+  <div class="form-check mt-3">
+    <input class="form-check-input" type="checkbox" id="sendEmail" name="sendEmail" checked>
+    <label class="form-check-label" for="sendEmail">
+      📧 Send Email Notification to Assignees
+    </label>
+  </div>
+
+  <!-- Submit -->
+  <div class="text-end">
+    <button type="submit" class="btn btn-primary">✅ Create Action Item</button>
   </div>
 </form>
 
@@ -156,4 +245,107 @@
   });
 </script>
 
+<script>
+  const bulkToggle = document.getElementById('bulkToggle');
+  const bulkOptions = document.getElementById('bulkOptions');
+  const singleUserSelect = document.getElementById('singleUserSelect');
+  const bulkAssignmentData = document.getElementById('bulkAssignmentData');
+
+  const teamSelect = document.getElementById('teamSelect');
+  const userSelect = document.getElementById('userSelect');
+  const csvUpload = document.getElementById('csvUpload');
+
+  const recurrenceType = document.getElementById('recurrenceType');
+  const dayPicker = document.getElementById('recurrenceDayPicker');
+  const datePicker = document.getElementById('recurrenceDatePicker');
+  const endPicker = document.getElementById('recurrenceEndPicker');
+  const dueDateInput = document.querySelector('[name="dueDate"]');
+  const endDateInput = document.getElementById('recurrenceEndDate');
+  const previewBox = document.getElementById('recurrencePreview');
+
+  // Default end date = March 31 of current FY
+  const now = new Date();
+  const fyEnd = new Date(now.getFullYear(), 2, 31);
+  if (now.getMonth() > 2) fyEnd.setFullYear(fyEnd.getFullYear() + 1);
+  endDateInput.value = fyEnd.toISOString().split('T')[0];
+
+  // Toggle bulk assignment
+  bulkToggle.addEventListener('change', () => {
+    const checked = bulkToggle.checked;
+    bulkOptions.classList.toggle('d-none', !checked);
+    singleUserSelect.classList.toggle('d-none', checked);
+  });
+
+  document.querySelectorAll('input[name="bulkMode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      teamSelect.classList.add('d-none');
+      userSelect.classList.add('d-none');
+      csvUpload.classList.add('d-none');
+      if (radio.value === 'teams') teamSelect.classList.remove('d-none');
+      if (radio.value === 'users') userSelect.classList.remove('d-none');
+      if (radio.value === 'csv') csvUpload.classList.remove('d-none');
+    });
+  });
+
+  document.querySelector('form').addEventListener('submit', function () {
+    if (bulkToggle.checked) {
+      const mode = document.querySelector('input[name="bulkMode"]:checked')?.value;
+      let targetIds = [];
+      if (mode === 'teams') targetIds = [...document.getElementById('selectedTeams').selectedOptions].map(o => o.value);
+      if (mode === 'users') targetIds = [...document.getElementById('selectedUsers').selectedOptions].map(o => o.value);
+      bulkAssignmentData.value = JSON.stringify({ mode, targetIds });
+    }
+  });
+
+  // Recurrence preview
+  function getIntervalDays(type) {
+    if (type === 'Weekly') return 7;
+    if (type === 'Fortnightly') return 14;
+    if (type === 'Monthly') return 30;
+    if (type === 'Quarterly') return 90;
+    return null;
+  }
+
+  function updatePreview() {
+    const type = recurrenceType.value;
+    if (type === 'None') return previewBox.innerHTML = '';
+    const start = new Date(dueDateInput.value);
+    const end = new Date(endDateInput.value);
+    if (isNaN(start) || isNaN(end)) return;
+    const interval = getIntervalDays(type);
+    if (!interval) return;
+    const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
+    const count = Math.floor(daysDiff / interval) + 1;
+    previewBox.innerHTML = `🧠 <strong>${count}</strong> action items will be created from ${start.toDateString()} to ${end.toDateString()}.`;
+  }
+
+  recurrenceType.addEventListener('change', () => {
+    const val = recurrenceType.value;
+    dayPicker.classList.add('d-none');
+    datePicker.classList.add('d-none');
+    endPicker.classList.add('d-none');
+    previewBox.innerHTML = '';
+    if (val === 'Weekly' || val === 'Fortnightly') dayPicker.classList.remove('d-none');
+    if (val === 'Monthly' || val === 'Quarterly') datePicker.classList.remove('d-none');
+    if (val !== 'None') endPicker.classList.remove('d-none');
+    updatePreview();
+  });
+
+  dueDateInput.addEventListener('change', updatePreview);
+  endDateInput.addEventListener('change', updatePreview);
+
+  document.getElementById('assignedToText')?.addEventListener('input', function () {
+    const val = this.value.toLowerCase();
+    const match = [...document.querySelectorAll('#assignedToList option')].find(o => o.value.toLowerCase() === val);
+    if (match) document.getElementById('assignedTo').value = match.dataset.id;
+  });
+
+  bulkToggle.addEventListener('change', () => {
+    const checked = bulkToggle.checked;
+    bulkOptions.classList.toggle('d-none', !checked);
+    singleUserSelect.classList.toggle('d-none', checked);
+    document.getElementById('assignedToText').required = !checked;
+  });
+  
+</script>
 
